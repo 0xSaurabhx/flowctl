@@ -1,5 +1,6 @@
 <script lang="ts">
 	import '../app.css';
+	import '@knadh/oat/oat.min.js';
 	import favicon from '$lib/assets/favicon.svg';
 	import { currentUser, isAuthenticated, isLoading } from '$lib/stores/auth';
 	import { resolvedTheme, applyTheme } from '$lib/stores/theme';

@@ -157,37 +157,33 @@
     });
 </script>
 
-<div class="bg-card rounded-lg border border-border overflow-hidden">
+<div class="card">
     {#if title || subtitle}
-        <div class="px-6 py-4 border-b border-border bg-muted">
+        <div class="table-header">
             {#if title}
-                <h3 class="text-lg font-semibold text-foreground">{title}</h3>
+                <h3>{title}</h3>
             {/if}
             {#if subtitle}
-                <p class="text-sm text-muted-foreground mt-1">{subtitle}</p>
+                <p class="text-light text-sm">{subtitle}</p>
             {/if}
         </div>
     {/if}
 
     {#if loading}
-        <div
-            class="flex items-center justify-center h-64"
-            role="status"
-            aria-live="polite"
-        >
+        <div class="empty-state" role="status" aria-live="polite">
             <LoadingSpinner label="Loading..." />
         </div>
     {:else if data.length === 0}
-        <div class="flex flex-col items-center justify-center h-64 text-center">
+        <div class="empty-state">
             {#if EmptyIconComponent}
-                <div class="text-muted-foreground mb-4">
+                <div class="text-light mb-4">
                     <EmptyIconComponent size={emptyIconSize} />
                 </div>
             {:else if emptyIcon}
                 {@html emptyIcon}
             {:else}
                 <svg
-                    class="w-16 h-16 text-muted-foreground mb-4"
+                    class="empty-icon"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -200,23 +196,17 @@
                     />
                 </svg>
             {/if}
-            <h3 class="text-lg font-medium text-foreground mb-2">
-                {emptyMessage}
-            </h3>
+            <h3>{emptyMessage}</h3>
         </div>
     {:else}
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-border">
-                <thead class="bg-muted">
+        <div class="table">
+            <table>
+                <thead>
                 <tr>
                     {#each columns as column}
                         <th
                             scope="col"
-                            class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider {column.width
-                                ? column.width
-                                : ''} {column.sortable
-                                ? 'cursor-pointer select-none hover:bg-subtle'
-                                : ''}"
+                            class={column.sortable ? 'sortable' : ''}
                             onclick={() => handleSort(column)}
                             aria-sort={sortKey === column.key
                                 ? sortDirection === "asc"
@@ -224,19 +214,12 @@
                                     : "descending"
                                 : undefined}
                         >
-                            <div class="flex items-center space-x-1">
+                            <div class="hstack gap-1">
                                 <span>{column.header}</span>
                                 {#if column.sortable}
-                                    <div
-                                        class="flex flex-col"
-                                        aria-hidden="true"
-                                    >
+                                    <div class="sort-indicators" aria-hidden="true">
                                         <svg
-                                            class="w-3 h-3 {sortKey ===
-                                                column.key &&
-                                            sortDirection === 'asc'
-                                                ? 'text-primary-500'
-                                                : 'text-muted-foreground'}"
+                                            class="sort-arrow {sortKey === column.key && sortDirection === 'asc' ? 'active' : ''}"
                                             fill="currentColor"
                                             viewBox="0 0 20 20"
                                         >
@@ -247,11 +230,7 @@
                                             />
                                         </svg>
                                         <svg
-                                            class="w-3 h-3 -mt-1 {sortKey ===
-                                                column.key &&
-                                            sortDirection === 'desc'
-                                                ? 'text-primary-500'
-                                                : 'text-muted-foreground'}"
+                                            class="sort-arrow sort-arrow-down {sortKey === column.key && sortDirection === 'desc' ? 'active' : ''}"
                                             fill="currentColor"
                                             viewBox="0 0 20 20"
                                         >
@@ -267,29 +246,20 @@
                         </th>
                     {/each}
                     {#if actions.length > 0}
-                        <th
-                            scope="col"
-                            class="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider w-16"
-                        >
+                        <th scope="col">
                             <span class="sr-only">Actions</span>
                         </th>
                     {/if}
                 </tr>
             </thead>
-            <tbody class="bg-card divide-y divide-border">
+            <tbody>
                 {#each sortedData as row}
                     <tr
-                        class="hover:bg-muted {onRowClick
-                            ? 'cursor-pointer'
-                            : ''}"
+                        class={onRowClick ? 'clickable' : ''}
                         onclick={() => handleRowClick(row)}
                     >
                         {#each columns as column}
-                            <td
-                                class="px-6 py-4 whitespace-nowrap text-sm text-foreground {column.width
-                                    ? column.width
-                                    : ''}"
-                            >
+                            <td>
                                 {#if column.component}
                                     {@const Component = column.component}
                                     <Component
@@ -305,19 +275,17 @@
                         {#if actions.length > 0}
                             {@const rowIndex = sortedData.indexOf(row)}
                             {@const visibleActions = actions.filter(a => !a.visible || a.visible(row))}
-                            <td
-                                class="px-6 py-4 whitespace-nowrap text-sm font-medium w-16 text-right"
-                            >
+                            <td class="actions-cell">
                                 {#if visibleActions.length > 0}
-                                    <div class="actions-menu inline-block">
+                                    <div class="actions-menu">
                                         <button
                                             onclick={(e) => toggleMenu(rowIndex, e)}
-                                            class="p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                                            class="actions-trigger"
                                             aria-label="Actions"
                                             aria-haspopup="true"
                                             aria-expanded={openMenuIndex === rowIndex}
                                         >
-                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
                                                 <circle cx="10" cy="4" r="1.5" />
                                                 <circle cx="10" cy="10" r="1.5" />
                                                 <circle cx="10" cy="16" r="1.5" />
@@ -340,19 +308,19 @@
     {@const visibleActions = actions.filter(a => !a.visible || a.visible(row))}
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
-        class="fixed inset-0 z-40"
+        class="menu-backdrop"
         onclick={closeMenu}
         onkeydown={(e) => { if (e.key === 'Escape') closeMenu(); }}
     ></div>
     <div
-        class="actions-menu fixed z-50 w-36 bg-card border border-border rounded-md shadow-lg py-1"
+        class="actions-menu context-menu"
         style="top: {menuPosition.top}px; left: {menuPosition.left}px;"
     >
         {#each visibleActions as action}
             {#if action.href}
                 <a
                     href={action.href(row)}
-                    class="block w-full text-left px-4 py-2 text-sm {action.className || 'text-foreground'} hover:bg-muted transition-colors"
+                    class="context-menu-item {action.className || ''}"
                     onclick={() => closeMenu()}
                 >
                     {action.label}
@@ -360,7 +328,7 @@
             {:else}
                 <button
                     onclick={(e) => { handleActionClick(action, row, e); closeMenu(); }}
-                    class="block w-full text-left px-4 py-2 text-sm {action.className || 'text-foreground'} hover:bg-muted transition-colors cursor-pointer"
+                    class="context-menu-item {action.className || ''}"
                 >
                     {action.label}
                 </button>
@@ -368,3 +336,119 @@
         {/each}
     </div>
 {/if}
+
+<style>
+    .table-header {
+        padding: var(--space-4) var(--space-6);
+        border-bottom: 1px solid var(--border);
+        background: var(--muted);
+    }
+
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 16rem;
+        text-align: center;
+    }
+
+    .empty-icon {
+        width: 4rem;
+        height: 4rem;
+        color: var(--muted-foreground);
+        margin-bottom: var(--space-4);
+    }
+
+    th.sortable {
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .sort-indicators {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sort-arrow {
+        width: 0.75rem;
+        height: 0.75rem;
+        color: var(--muted-foreground);
+    }
+
+    .sort-arrow-down {
+        margin-top: -0.25rem;
+    }
+
+    .sort-arrow.active {
+        color: var(--primary);
+    }
+
+    tr.clickable {
+        cursor: pointer;
+    }
+
+    .actions-cell {
+        width: 4rem;
+        text-align: right;
+    }
+
+    .actions-trigger {
+        all: unset;
+        cursor: pointer;
+        padding: var(--space-1);
+        border-radius: var(--radius-small);
+        color: var(--muted-foreground);
+        display: inline-flex;
+    }
+
+    .actions-trigger:hover {
+        background: var(--muted);
+        color: var(--foreground);
+    }
+
+    .menu-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+    }
+
+    .context-menu {
+        position: fixed;
+        z-index: 50;
+        width: 9rem;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-medium);
+        box-shadow: var(--shadow-large);
+        padding: var(--space-1) 0;
+    }
+
+    .context-menu-item {
+        all: unset;
+        display: block;
+        width: 100%;
+        text-align: left;
+        padding: var(--space-2) var(--space-4);
+        font-size: 0.875rem;
+        color: var(--foreground);
+        cursor: pointer;
+        box-sizing: border-box;
+    }
+
+    .context-menu-item:hover {
+        background: var(--muted);
+    }
+
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+    }
+</style>

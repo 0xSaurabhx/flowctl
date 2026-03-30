@@ -42,6 +42,6 @@ export const resolvedTheme = derived<typeof theme, ResolvedTheme>(
 
 export function applyTheme(resolved: ResolvedTheme) {
     if (!browser) return;
-    document.documentElement.classList.remove('light', 'dark');
-    document.documentElement.classList.add(resolved);
+    document.documentElement.style.colorScheme = resolved;
+    document.body.setAttribute('data-theme', resolved);
 }

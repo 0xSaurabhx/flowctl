@@ -25,30 +25,76 @@
 </script>
 
 <!-- Flow Info Card -->
-<div class="bg-card rounded-lg border border-input p-6 mb-6">
-  <div class="flex justify-between items-start">
+<div class="card p-4 mb-4">
+  <div class="info-layout">
     <div>
-      <div class="flex items-center gap-3">
-        <h1 class="text-2xl font-semibold text-foreground">{flowName}</h1>
+      <div class="hstack gap-2">
+        <h1 class="flow-title">{flowName}</h1>
         {#if triggerType}
-          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {triggerType === 'manual' ? 'bg-primary-100 text-primary-900' : 'bg-success-100 text-success-900'}">
+          <span class="badge {triggerType === 'manual' ? '' : 'success'}">
             {triggerType}
           </span>
         {/if}
       </div>
-      <p class="text-muted-foreground mt-1">Started at {startTime}</p>
+      <p class="text-light mt-1">Started at {startTime}</p>
       {#if triggeredBy}
-        <p class="text-sm text-muted-foreground mt-3">Triggered By</p>
-        <p class="text-sm text-foreground">{extractName(triggeredBy)}</p>
+        <p class="text-lighter label mt-2">Triggered By</p>
+        <p>{extractName(triggeredBy)}</p>
       {/if}
     </div>
-    <div class="text-right">
-      <p class="text-sm text-muted-foreground">Execution ID</p>
-      <p class="font-mono text-sm text-foreground">{executionId}</p>
+    <div class="info-right">
+      <p class="text-lighter label">Execution ID</p>
+      <p class="mono">{executionId}</p>
       {#if scheduledAt}
-        <p class="text-sm text-muted-foreground mt-3">Scheduled At</p>
-        <p class="text-sm text-foreground">{scheduledAt}</p>
+        <p class="text-lighter label mt-2">Scheduled At</p>
+        <p>{scheduledAt}</p>
       {/if}
     </div>
   </div>
 </div>
+
+<style>
+  .card {
+    background: var(--card);
+    border-radius: 0.5rem;
+    border: 1px solid var(--border);
+  }
+  .info-layout {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .flow-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--foreground);
+  }
+  .info-right {
+    text-align: right;
+  }
+  .label {
+    font-size: 0.875rem;
+  }
+  .mono {
+    font-family: monospace;
+    font-size: 0.875rem;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: var(--faint);
+    color: var(--foreground);
+  }
+  .badge.success {
+    background: var(--success);
+    color: white;
+  }
+  .p-4 { padding: 1.5rem; }
+  .mb-4 { margin-bottom: 1.5rem; }
+  .mt-1 { margin-top: 0.25rem; }
+  .mt-2 { margin-top: 0.75rem; }
+</style>

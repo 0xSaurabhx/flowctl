@@ -1,5 +1,5 @@
 <script lang="ts">
-  let { 
+  let {
     value = $bindable(''),
     placeholder = 'Search...',
     loading = false,
@@ -18,7 +18,7 @@
   const handleInput = (event: Event) => {
     const target = event.target as HTMLInputElement;
     value = target.value;
-    
+
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
       onSearch(value.trim());
@@ -26,22 +26,35 @@
   };
 </script>
 
-<div class="max-w-md">
-  <div class="relative">
+<div class="search-wrapper">
+  <div class="search-field">
     <input
-      type="text"
+      type="search"
       {placeholder}
       {value}
       oninput={handleInput}
-      class="w-full px-4 py-2 text-foreground bg-card border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
     />
     {#if loading}
-      <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
-        <svg class="animate-spin h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-      </div>
+      <div class="search-spinner" aria-busy="true"></div>
     {/if}
   </div>
 </div>
+
+<style>
+  .search-wrapper {
+    max-width: 28rem;
+  }
+
+  .search-field {
+    position: relative;
+  }
+
+  .search-spinner {
+    position: absolute;
+    right: var(--space-3);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1rem;
+    height: 1rem;
+  }
+</style>

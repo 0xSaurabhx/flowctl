@@ -7,22 +7,33 @@
 </script>
 
 {#if Object.keys(results).length > 0}
-  <div class="overflow-x-auto rounded-lg border border-border">
-    <table class="min-w-full divide-y divide-border">
-      <thead class="bg-muted">
+  <div class="table-wrap">
+    <table>
+      <thead>
         <tr>
-          <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Variable</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Value</th>
+          <th>Variable</th>
+          <th>Value</th>
         </tr>
       </thead>
-      <tbody class="bg-card divide-y divide-border">
+      <tbody>
         {#each Object.entries(results) as [key, value]}
-          <tr class="hover:bg-muted transition-colors">
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground font-mono">{key}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground font-mono">{value}</td>
+          <tr>
+            <td class="mono">{key}</td>
+            <td class="mono">{value}</td>
           </tr>
         {/each}
       </tbody>
     </table>
   </div>
 {/if}
+
+<style>
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border);
+  }
+  .mono {
+    font-family: monospace;
+  }
+</style>

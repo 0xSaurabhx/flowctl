@@ -10,65 +10,75 @@
 
 	let { schedule, onClose }: Props = $props();
 
-	function handleClose() {
-		onClose();
-	}
+	let dialogEl: HTMLDialogElement;
 
-	// Close on Escape key
-	function handleKeydown(event: KeyboardEvent) {
-		if (event.key === 'Escape') {
-			handleClose();
+	$effect(() => {
+		if (dialogEl) {
+			dialogEl.showModal();
 		}
-	}
+	});
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<dialog bind:this={dialogEl} onclose={onClose}>
+	<header>
+		<h3>Schedule Details</h3>
+	</header>
 
-<!-- Modal Backdrop -->
-<div
-	class="fixed inset-0 z-50 flex items-center justify-center bg-overlay"
-	onclick={handleClose}
-	onkeydown={(e) => e.key === 'Escape' && handleClose()}
-	role="dialog"
-	aria-modal="true"
-	tabindex="-1"
->
-	<!-- Modal Content -->
-	<div
-		class="bg-card rounded-lg shadow-lg w-full max-w-lg p-6 m-4"
-		onclick={(e) => e.stopPropagation()}
-	>
-		<h3 class="font-bold text-lg mb-4 text-foreground">Schedule Details</h3>
-
+	<section>
 		<!-- Schedule Info Box -->
-		<div class="bg-muted border border-border rounded-lg p-4 mb-4">
-			<div class="grid grid-cols-2 gap-3">
+		<div class="info-box">
+			<div class="info-grid">
 				<div>
-					<div class="text-xs font-medium text-muted-foreground uppercase mb-1">Cron Expression</div>
-					<code class="bg-card px-2 py-1 rounded text-sm font-mono border border-input text-foreground">{schedule.cron}</code>
+					<div class="info-label">Cron Expression</div>
+					<code>{schedule.cron}</code>
 				</div>
 				<div>
-					<div class="text-xs font-medium text-muted-foreground uppercase mb-1">Timezone</div>
-					<div class="text-sm text-foreground">{schedule.timezone}</div>
+					<div class="info-label">Timezone</div>
+					<div>{schedule.timezone}</div>
 				</div>
 			</div>
 		</div>
 
 		<!-- Schedule Inputs -->
-		<div class="mb-4">
+		<div>
 			<JsonDisplay data={schedule.inputs} title="Inputs" expanded={true} />
 		</div>
+	</section>
 
-		<!-- Footer -->
-		<div class="flex justify-end">
-			<button
-				type="button"
-				class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-foreground bg-subtle rounded-lg hover:bg-subtle-hover cursor-pointer"
-				onclick={handleClose}
-				use:autofocus
-			>
-				Close
-			</button>
-		</div>
-	</div>
-</div>
+	<footer>
+		<button
+			type="button"
+			data-variant="secondary"
+			onclick={onClose}
+			use:autofocus
+		>
+			Close
+		</button>
+	</footer>
+</dialog>
+
+<style>
+	dialog {
+		max-width: 32rem;
+		width: 100%;
+	}
+	.info-box {
+		background: var(--faint);
+		border: 1px solid var(--border);
+		border-radius: 0.5rem;
+		padding: 1rem;
+		margin-bottom: 1rem;
+	}
+	.info-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.75rem;
+	}
+	.info-label {
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: var(--muted-foreground);
+		text-transform: uppercase;
+		margin-bottom: 0.25rem;
+	}
+</style>

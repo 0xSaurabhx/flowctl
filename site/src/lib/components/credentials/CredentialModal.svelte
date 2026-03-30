@@ -17,7 +17,6 @@
         onClose,
     }: Props = $props();
 
-    // Form state
     let formData = $state({
         name: "",
         key_type: "" as "private_key" | "password" | "",
@@ -26,21 +25,27 @@
 
     let loading = $state(false);
 
-    // Initialize form data when credentialData changes
+    let dialogEl: HTMLDialogElement;
+
     $effect(() => {
         if (isEditMode && credentialData) {
             formData = {
                 name: credentialData.name || "",
                 key_type: credentialData.key_type as "private_key" | "password",
-                key_data: "", // Don't load existing key data for security
+                key_data: "",
             };
         } else if (!isEditMode) {
-            // Reset form for new credential
             formData = {
                 name: "",
                 key_type: "",
                 key_data: "",
             };
+        }
+    });
+
+    $effect(() => {
+        if (dialogEl) {
+            dialogEl.showModal();
         }
     });
 
@@ -66,54 +71,25 @@
             loading = false;
         }
     }
-
-    function handleClose() {
-        onClose();
-    }
-
-    // Close on Escape key
-    function handleKeydown(event: KeyboardEvent) {
-        if (event.key === "Escape") {
-            handleClose();
-        }
-    }
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
-
-<!-- Modal Backdrop -->
-<div
-    class="fixed inset-0 z-50 flex items-center justify-center bg-overlay"
-    onclick={handleClose}
-    onkeydown={(e) => e.key === "Escape" && handleClose()}
-    role="dialog"
-    aria-modal="true"
-    tabindex="-1"
->
-    <!-- Modal Content -->
-    <div
-        class="bg-card rounded-lg shadow-lg w-full max-w-2xl p-6"
-        onclick={(e) => e.stopPropagation()}
+<dialog bind:this={dialogEl} onclose={onClose}>
+    <form
+        onsubmit={(e) => {
+            e.preventDefault();
+            handleSubmit();
+        }}
     >
-        <h3 class="font-bold text-lg mb-4 text-foreground">
-            {isEditMode ? "Edit Credential" : "Add New Credential"}
-        </h3>
+        <header>
+            <h3>{isEditMode ? "Edit Credential" : "Add New Credential"}</h3>
+        </header>
 
-        <form
-            onsubmit={(e) => {
-                e.preventDefault();
-                handleSubmit();
-            }}
-        >
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <!-- Name -->
-                <div>
-                    <label class="block mb-1 font-medium text-foreground"
-                        >Credential Name *</label
-                    >
+        <section>
+            <div class="grid-2">
+                <div data-field>
+                    <label>Credential Name *</label>
                     <input
                         type="text"
-                        class="bg-muted border border-input text-foreground text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent block w-full p-2.5"
                         bind:value={formData.name}
                         use:autofocus
                         placeholder="my-ssh-key"
@@ -122,13 +98,9 @@
                     />
                 </div>
 
-                <!-- Type -->
-                <div>
-                    <label class="block mb-1 font-medium text-foreground"
-                        >Type *</label
-                    >
+                <div data-field>
+                    <label>Type *</label>
                     <select
-                        class="bg-muted border border-input text-foreground text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent block w-full p-2.5"
                         bind:value={formData.key_type}
                         required
                         disabled={loading}
@@ -140,31 +112,25 @@
                 </div>
             </div>
 
-            <!-- SSH Key Fields -->
             {#if formData.key_type === "private_key"}
-                <div class="mb-4">
-                    <label class="block mb-1 font-medium text-foreground"
-                        >Private Key *</label
-                    >
+                <div data-field>
+                    <label>Private Key *</label>
                     <textarea
-                        class="bg-muted border border-input text-foreground text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent block w-full p-2.5 resize-none h-32 font-mono text-xs"
                         bind:value={formData.key_data}
                         placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"
                         required
                         disabled={loading}
+                        rows="5"
+                        class="mono"
                     ></textarea>
                 </div>
             {/if}
 
-            <!-- Password Fields -->
             {#if formData.key_type === "password"}
-                <div class="mb-4">
-                    <label class="block mb-1 font-medium text-foreground"
-                        >Password *</label
-                    >
+                <div data-field>
+                    <label>Password *</label>
                     <input
                         type="password"
-                        class="bg-muted border border-input text-foreground text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent block w-full p-2.5"
                         bind:value={formData.key_data}
                         placeholder="Enter password"
                         required
@@ -172,47 +138,40 @@
                     />
                 </div>
             {/if}
+        </section>
 
-            <!-- Actions -->
-            <div class="flex justify-end gap-2 mt-6">
-                <button
-                    type="button"
-                    class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-foreground bg-subtle rounded-lg hover:bg-subtle-hover disabled:opacity-50 cursor-pointer"
-                    onclick={handleClose}
-                    disabled={loading}
-                >
-                    Cancel
-                </button>
-                <button
-                    type="submit"
-                    class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600 focus:ring-4 focus:outline-none focus:ring-primary-300 disabled:opacity-50 cursor-pointer"
-                    disabled={loading}
-                >
-                    {#if loading}
-                        <svg
-                            class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                        >
-                            <circle
-                                class="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                stroke-width="4"
-                            ></circle>
-                            <path
-                                class="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                        </svg>
-                    {/if}
-                    {isEditMode ? "Update" : "Create"}
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
+        <footer>
+            <button
+                type="button"
+                data-variant="secondary"
+                onclick={onClose}
+                disabled={loading}
+            >
+                Cancel
+            </button>
+            <button
+                type="submit"
+                disabled={loading}
+                aria-busy={loading}
+            >
+                {isEditMode ? "Update" : "Create"}
+            </button>
+        </footer>
+    </form>
+</dialog>
+
+<style>
+    dialog {
+        max-width: 42rem;
+        width: 100%;
+    }
+    .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    .mono {
+        font-family: monospace;
+        font-size: 0.75rem;
+    }
+</style>

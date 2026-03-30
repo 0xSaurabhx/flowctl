@@ -49,15 +49,15 @@
 	{/snippet}
 </Header>
 
-<div class="p-12">
+<div class="page-content">
 	<!-- Page Header -->
-	<PageHeader 
+	<PageHeader
 		title="Settings"
 		subtitle="Manage global application settings and user administration"
 	/>
 
 	<!-- Tab Navigation -->
-	<div class="mb-6">
+	<div class="mb-4">
 		<Tabs
 			{tabs}
 			bind:activeTab
@@ -90,3 +90,9 @@
 		/>
 	{/if}
 </div>
+
+<style>
+	.page-content {
+		padding: 3rem;
+	}
+</style>

@@ -308,9 +308,9 @@
     <title>{readonly ? "View" : "Edit"} Flow - {flow.metadata.name || "Loading..."} | Flowctl</title>
 </svelte:head>
 
-<div class="flex h-screen bg-muted">
+<div class="edit-layout">
     <!-- Main Content -->
-    <div class="flex-1 flex flex-col overflow-hidden">
+    <div class="edit-main">
         <Header
             breadcrumbs={[
                 { label: namespace, url: `/view/${namespace}/flows` },
@@ -324,29 +324,19 @@
         />
 
         <!-- Page Content -->
-        <div class="flex-1 overflow-y-auto bg-muted">
-            <div class="max-w-6xl mx-auto px-6 py-8">
+        <div class="edit-content">
+            <div class="edit-container">
                 {#if loading}
-                    <div
-                        class="bg-card rounded-lg shadow border border-border p-8"
-                    >
-                        <div class="animate-pulse">
-                            <div
-                                class="h-4 bg-subtle rounded w-1/4 mb-4"
-                            ></div>
-                            <div
-                                class="h-4 bg-subtle rounded w-1/2 mb-2"
-                            ></div>
-                            <div class="h-4 bg-subtle rounded w-1/3"></div>
-                        </div>
+                    <div class="card p-4" aria-busy="true">
+                        <div class="skeleton-block skeleton-sm mb-4"></div>
+                        <div class="skeleton-block skeleton-md mb-2"></div>
+                        <div class="skeleton-block skeleton-sm"></div>
                     </div>
                 {:else}
                     <!-- Page Title -->
-                    <div class="mb-8">
-                        <h1 class="text-2xl font-bold text-foreground">
-                            {readonly ? "View Flow Config" : "Edit Flow"}
-                        </h1>
-                        <p class="mt-1 text-sm text-muted-foreground">
+                    <div class="mb-6">
+                        <h1>{readonly ? "View Flow Config" : "Edit Flow"}</h1>
+                        <p class="text-lighter mt-2">
                             {readonly
                                 ? `Viewing read-only configuration for ${flow.metadata.name}`
                                 : `Update workflow configuration for ${flow.metadata.name}`}
@@ -354,14 +344,14 @@
                     </div>
 
                     <!-- Main Card -->
-                    <div class="bg-card rounded-lg border border-input">
+                    <div class="card">
                         <!-- Tab Navigation -->
-                        <div class="border-b border-border">
+                        <div class="card-tabs">
                             <Tabs bind:activeTab {tabs} />
                         </div>
 
                         <!-- Tab Content -->
-                        <form bind:this={formElement} class="p-6">
+                        <form bind:this={formElement} class="p-4">
                             <fieldset disabled={readonly} class="contents">
                                 {#if activeTab === "metadata"}
                                     <FlowMetadata
@@ -402,16 +392,14 @@
 
                         <!-- Action Buttons -->
                         {#if activeTab !== "secrets"}
-                            <div
-                                class="px-6 py-4 bg-muted border-t border-border flex justify-end gap-3"
-                            >
+                            <div class="card-actions hstack gap-2">
                                 <button
                                     type="button"
                                     onclick={() =>
                                         goto(
                                             `/view/${namespace}/flows/${flowId}`,
                                         )}
-                                    class="px-6 py-2 cursor-pointer text-sm font-medium text-foreground bg-card border border-input rounded-md hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-400"
+                                    data-variant="secondary"
                                 >
                                     {readonly ? "Back" : "Cancel"}
                                 </button>
@@ -424,7 +412,7 @@
                                             }
                                         }}
                                         disabled={saving}
-                                        class="px-6 py-2 cursor-pointer text-sm font-medium text-white bg-primary-500 border border-transparent rounded-md hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        aria-busy={saving}
                                     >
                                         {saving ? "Updating..." : "Update"}
                                     </button>
@@ -441,3 +429,66 @@
 {#if showValidation}
     <ValidationModal bind:show={showValidation} {validationResult} />
 {/if}
+
+<style>
+    .edit-layout {
+        display: flex;
+        height: 100vh;
+        background: var(--muted);
+    }
+
+    .edit-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .edit-content {
+        flex: 1;
+        overflow-y: auto;
+        background: var(--muted);
+    }
+
+    .edit-container {
+        max-width: 72rem;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+    }
+
+    .contents {
+        display: contents;
+    }
+
+    .card-tabs {
+        border-bottom: 1px solid var(--border);
+    }
+
+    .card-actions {
+        padding: 1rem 1.5rem;
+        background: var(--muted);
+        border-top: 1px solid var(--border);
+        justify-content: flex-end;
+    }
+
+    .skeleton-block {
+        background: var(--faint);
+        border-radius: 0.25rem;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    .skeleton-sm {
+        height: 1rem;
+        width: 25%;
+    }
+
+    .skeleton-md {
+        height: 1rem;
+        width: 50%;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+</style>

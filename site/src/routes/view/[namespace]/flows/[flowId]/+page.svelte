@@ -150,7 +150,7 @@
             render: (value) => `
         <a
           href="/view/${namespace}/results/${flowId}/${value}"
-          class="text-sm text-link hover:underline font-mono block"
+          class="exec-link"
         >
           ${value.substring(0, 8)}
         </a>
@@ -161,13 +161,13 @@
             header: "Started At",
             width: "w-40",
             render: (_value, row) =>
-                `<div class="text-sm text-muted-foreground">${formatDateTime(getStartTime(row))}</div>`,
+                `<span class="text-lighter text-sm">${formatDateTime(getStartTime(row))}</span>`,
         },
         {
             key: "duration",
             header: "Duration",
             render: (_value, row) =>
-                `<div class="text-sm text-muted-foreground">${formatDuration(getStartTime(row), row.completed_at)}</div>`,
+                `<span class="text-lighter text-sm">${formatDuration(getStartTime(row), row.completed_at)}</span>`,
         },
         {
             key: "status",
@@ -179,17 +179,17 @@
             header: "Triggered By",
             width: "w-32",
             render: (value) =>
-                `<div class="text-sm text-foreground">${value || "System"}</div>`,
+                `<span class="text-sm">${value || "System"}</span>`,
         },
         {
             key: "trigger_type",
             header: "Trigger Type",
             render: (value, row) =>
-                `<div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                `<span class="badge ${
                     row.trigger_type === "manual"
-                        ? "bg-primary-100 text-primary-900"
-                        : "bg-success-100 text-success-900"
-                }">${row.trigger_type}</div>`,
+                        ? ""
+                        : "success"
+                }">${row.trigger_type}</span>`,
         },
     ];
 
@@ -241,24 +241,22 @@
     description={data.flowMeta?.meta?.description || ""}
 />
 
-<div class="bg-card border-b border-border px-6">
-    <div class="max-w-4xl mx-auto">
+<div class="tab-bar">
+    <div class="tab-bar-inner">
         <Tabs {tabs} bind:activeTab />
     </div>
 </div>
 
 <!-- Tab Content -->
-<div class="px-6 py-8 bg-muted">
+<div class="tab-content">
     {#if activeTab === "run"}
-        <div class="max-w-2xl mx-auto">
+        <div class="content-narrow">
             {#if showRerunBanner}
                 <div class="mb-6">
-                    <div
-                        class="bg-info-50 border border-info-100 rounded-lg p-4 flex items-start justify-between dark:bg-info-900/20 dark:border-info-800"
-                    >
-                        <div class="flex items-start gap-3">
+                    <div class="rerun-banner hstack gap-2">
+                        <div class="hstack gap-2 flex-1 items-start">
                             <svg
-                                class="w-5 h-5 text-info-600 dark:text-info-400 mt-0.5"
+                                class="info-icon"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -271,14 +269,14 @@
                                 />
                             </svg>
                             <div class="flex-1">
-                                <h3 class="text-sm font-medium text-info-900 dark:text-info-300">
+                                <h3 class="rerun-title">
                                     Rerunning execution
                                 </h3>
-                                <p class="text-sm text-info-700 dark:text-info-400 mt-1">
+                                <p class="rerun-text mt-2">
                                     Inputs have been prepopulated from execution
                                     <a
                                         href="/view/{namespace}/results/{flowId}/{rerunFromExecId}"
-                                        class="font-mono underline hover:text-info-900 dark:hover:text-info-200"
+                                        class="rerun-link"
                                     >
                                         {rerunFromExecId.substring(0, 8)}
                                     </a>
@@ -287,11 +285,12 @@
                         </div>
                         <button
                             onclick={() => (showRerunBanner = false)}
-                            class="text-info-400 hover:text-info-600 dark:text-info-500 dark:hover:text-info-300"
+                            class="dismiss-btn"
+                            data-variant="secondary"
                             aria-label="Dismiss"
                         >
                             <svg
-                                class="w-5 h-5"
+                                class="icon-action"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -321,8 +320,8 @@
 
     <!-- Schedules Tab -->
     {#if activeTab === "schedule"}
-        <div class="max-w-5xl mx-auto">
-            <div class="space-y-6">
+        <div class="content-wide">
+            <div class="vstack gap-4">
                 <ScheduledExecutionsList
                     schedules={scheduledExecutions}
                     cronSchedules={userSchedules}
@@ -348,7 +347,7 @@
 
     <!-- History Tab -->
     {#if activeTab === "history"}
-        <div class="max-w-6xl mx-auto">
+        <div class="content-max">
             <Table
                 columns={tableColumns}
                 data={flowExecutions}
@@ -360,8 +359,8 @@
             />
 
             {#if historyPageCount > 1}
-                <div class="flex items-center justify-between mt-6">
-                    <div class="text-sm text-foreground">
+                <div class="mt-6 hstack justify-between items-center">
+                    <div class="text-light text-sm">
                         Showing {(historyCurrentPage - 1) *
                             historyItemsPerPage +
                             1} to {Math.min(
@@ -380,3 +379,97 @@
         </div>
     {/if}
 </div>
+
+<style>
+    .tab-bar {
+        background: var(--card);
+        border-bottom: 1px solid var(--border);
+        padding: 0 1.5rem;
+    }
+
+    .tab-bar-inner {
+        max-width: 56rem;
+        margin: 0 auto;
+    }
+
+    .tab-content {
+        padding: 2rem 1.5rem;
+        background: var(--muted);
+    }
+
+    .content-narrow {
+        max-width: 42rem;
+        margin: 0 auto;
+    }
+
+    .content-wide {
+        max-width: 64rem;
+        margin: 0 auto;
+    }
+
+    .content-max {
+        max-width: 72rem;
+        margin: 0 auto;
+    }
+
+    .rerun-banner {
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        background: var(--faint);
+        align-items: flex-start;
+        justify-content: space-between;
+    }
+
+    .info-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+        color: var(--primary);
+        margin-top: 0.125rem;
+    }
+
+    :global(.icon-action) {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+
+    .rerun-title {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--foreground);
+    }
+
+    .rerun-text {
+        font-size: 0.875rem;
+        color: var(--muted-foreground);
+    }
+
+    .rerun-link {
+        font-family: monospace;
+        text-decoration: underline;
+    }
+
+    .dismiss-btn {
+        padding: 0.25rem;
+        border: none;
+        background: none;
+        cursor: pointer;
+        color: var(--muted-foreground);
+    }
+
+    .dismiss-btn:hover {
+        color: var(--foreground);
+    }
+
+    :global(.exec-link) {
+        font-size: 0.875rem;
+        font-family: monospace;
+        color: var(--primary);
+        text-decoration: none;
+        display: block;
+    }
+
+    :global(.exec-link:hover) {
+        text-decoration: underline;
+    }
+</style>

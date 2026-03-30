@@ -5,7 +5,7 @@
   import { resolvedTheme } from '$lib/stores/theme';
 
   let {
-    height = 'h-28',
+    height = '7rem',
     iconOnly = false
   }: {
     height?: string;
@@ -25,6 +25,5 @@
 <img
   src={logoSrc}
   alt="Flowctl"
-  class="{height} w-auto"
-  style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;"
+  style="height: {height}; width: auto; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;"
 />

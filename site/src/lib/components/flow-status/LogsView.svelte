@@ -76,16 +76,16 @@
 
     let nodeColorMap = new Map<string, string>();
     const nodeColors = [
-        "text-blue-400",
-        "text-green-400",
-        "text-yellow-400",
-        "text-purple-400",
-        "text-pink-400",
-        "text-cyan-400",
-        "text-orange-400",
-        "text-teal-400",
-        "text-indigo-400",
-        "text-rose-400",
+        "node-blue",
+        "node-green",
+        "node-yellow",
+        "node-purple",
+        "node-pink",
+        "node-cyan",
+        "node-orange",
+        "node-teal",
+        "node-indigo",
+        "node-rose",
     ];
 
     const getNodeColor = (nodeId: string): string => {
@@ -94,26 +94,6 @@
             nodeColorMap.set(nodeId, nodeColors[colorIndex]);
         }
         return nodeColorMap.get(nodeId)!;
-    };
-
-    const getContainerClasses = () => {
-        const baseClasses = "rounded-lg p-4 font-mono min-h-128 max-h-128 overflow-y-auto overflow-x-auto";
-        const themeClasses =
-            theme === "dark"
-                ? "bg-gray-900 dark:bg-gray-950 text-gray-300"
-                : "bg-muted text-foreground border border-border";
-        const fontClasses = {
-            xs: "text-xs",
-            sm: "text-sm",
-            base: "text-base",
-        };
-        return `${baseClasses} ${themeClasses} ${fontClasses[fontSize]}`;
-    };
-
-    const getCursorClasses = () => {
-        const cursorColor = theme === "dark" ? "text-primary-400" : "text-primary-600";
-        const blinkColor = theme === "dark" ? "text-muted-foreground" : "text-muted-foreground";
-        return { cursor: cursorColor, blink: blinkColor };
     };
 
     const formatLogsWithLineNumbers = (logText: string) => {
@@ -162,7 +142,6 @@
         if (!rawLogsHasAnsi) return '';
         return processedRawLogs.split('\n').map(line => ansiToHtml(line)).join('\n');
     });
-    const cursorClasses = $derived(getCursorClasses());
 
     const totalHeight = $derived(processedLogs.length * ITEM_HEIGHT);
     const startIndex = $derived(Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - BUFFER_SIZE));
@@ -204,25 +183,25 @@
     });
 </script>
 
-<div class="flex flex-col space-y-3">
+<div class="vstack gap-2">
     {#if (logMessages && logMessages.length > 0) || canDownload}
-        <div class="flex items-center justify-between gap-4 text-sm flex-shrink-0">
-            <div class="flex gap-4">
+        <div class="hstack toolbar">
+            <div class="hstack gap-4">
                 {#if logMessages && logMessages.length > 0}
-                    <label class="flex items-center gap-2 cursor-pointer">
+                    <label class="hstack gap-2 checkbox-label">
                         <input
                             type="checkbox"
                             bind:checked={showTimestamp}
-                            class="rounded border-input text-primary-600 focus:ring-primary-500"
                         />
-                        <span class="text-foreground">Show Timestamp</span>
+                        <span>Show Timestamp</span>
                     </label>
                 {/if}
             </div>
             {#if canDownload}
                 <button
+                    data-variant="secondary"
+                    class="download-btn"
                     onclick={downloadLogs}
-                    class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium bg-muted hover:bg-muted/80 text-foreground border border-border transition-colors cursor-pointer"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -235,33 +214,42 @@
         </div>
     {/if}
 
-    <div class={getContainerClasses()} bind:this={scrollContainer} onscroll={handleScroll}>
+    <div
+        class="log-container"
+        class:theme-dark={theme === 'dark'}
+        class:theme-light={theme === 'light'}
+        class:text-xs={fontSize === 'xs'}
+        class:text-sm={fontSize === 'sm'}
+        class:text-base={fontSize === 'base'}
+        bind:this={scrollContainer}
+        onscroll={handleScroll}
+    >
         {#if filterByActionId && processedLogs.length === 0 && !isRunning}
-            <div class="flex items-center justify-center h-full text-muted-foreground text-sm">
+            <div class="centered-msg text-lighter">
                 No logs available for this action
             </div>
         {:else if processedLogs.length > 0}
             <div style="height: {totalHeight}px; width: 100%; position: relative;">
                 <div style="position: absolute; top: 0; left: 0; width: 100%; transform: translateY({offsetY}px);">
                     {#each visibleLogs as logMsg, i (startIndex + i)}
-                        <div class="whitespace-nowrap" style="height: {ITEM_HEIGHT}px; line-height: {ITEM_HEIGHT}px;">
-                            {#if showTimestamp && logMsg.timestamp}<span class="text-muted-foreground">[{logMsg.timestamp}]</span>{/if}{#if logMsg.nodeId}<span class="font-semibold {logMsg.nodeColor}">[{logMsg.nodeId}]</span>{/if}{#if logMsg.hasAnsi}{@html logMsg.html}{:else}{logMsg.value}{/if}
+                        <div class="log-line" style="height: {ITEM_HEIGHT}px; line-height: {ITEM_HEIGHT}px;">
+                            {#if showTimestamp && logMsg.timestamp}<span class="timestamp">[{logMsg.timestamp}]</span>{/if}{#if logMsg.nodeId}<span class="node-id {logMsg.nodeColor}">[{logMsg.nodeId}]</span>{/if}{#if logMsg.hasAnsi}{@html logMsg.html}{:else}{logMsg.value}{/if}
                         </div>
                     {/each}
                 </div>
             </div>
         {:else if logs.length > 0}
-            <div class="whitespace-pre">
+            <div class="raw-logs">
                 {#if rawLogsHasAnsi}{@html processedRawLogsHtml}{:else}{processedRawLogs}{/if}
                 {#if isRunning && showCursor}
-                    <div class="inline-block">
-                        <span class={cursorClasses.cursor}>█</span>
-                        <span class="animate-pulse {cursorClasses.blink}">_</span>
+                    <div class="cursor-block">
+                        <span class="cursor-char">&#x2588;</span>
+                        <span class="cursor-blink">_</span>
                     </div>
                 {/if}
             </div>
         {:else}
-            <div class="flex items-center justify-center h-full text-muted-foreground text-sm">
+            <div class="centered-msg text-lighter">
                 {#if isRunning}
                     Waiting for logs...
                 {:else}
@@ -271,3 +259,86 @@
         {/if}
     </div>
 </div>
+
+<style>
+    .toolbar {
+        justify-content: space-between;
+        gap: 1rem;
+        font-size: 0.875rem;
+        flex-shrink: 0;
+    }
+    .checkbox-label {
+        cursor: pointer;
+    }
+    .download-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        font-size: 0.75rem;
+        padding: 0.25rem 0.625rem;
+    }
+    .log-container {
+        border-radius: 0.5rem;
+        padding: 1rem;
+        font-family: monospace;
+        min-height: 32rem;
+        max-height: 32rem;
+        overflow-y: auto;
+        overflow-x: auto;
+    }
+    .theme-dark {
+        background: #111827;
+        color: #d1d5db;
+    }
+    .theme-light {
+        background: var(--faint);
+        color: var(--foreground);
+        border: 1px solid var(--border);
+    }
+    .text-xs { font-size: 0.75rem; }
+    .text-sm { font-size: 0.875rem; }
+    .text-base { font-size: 1rem; }
+    .log-line {
+        white-space: nowrap;
+    }
+    .timestamp {
+        color: var(--muted-foreground);
+    }
+    .node-id {
+        font-weight: 600;
+    }
+    .node-blue { color: #60a5fa; }
+    .node-green { color: #34d399; }
+    .node-yellow { color: #fbbf24; }
+    .node-purple { color: #a78bfa; }
+    .node-pink { color: #f472b6; }
+    .node-cyan { color: #22d3ee; }
+    .node-orange { color: #fb923c; }
+    .node-teal { color: #2dd4bf; }
+    .node-indigo { color: #818cf8; }
+    .node-rose { color: #fb7185; }
+    .raw-logs {
+        white-space: pre;
+    }
+    .centered-msg {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        font-size: 0.875rem;
+    }
+    .cursor-block {
+        display: inline-block;
+    }
+    .cursor-char {
+        color: var(--primary);
+    }
+    .cursor-blink {
+        animation: pulse 2s infinite;
+        color: var(--muted-foreground);
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+</style>

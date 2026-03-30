@@ -1,166 +1,73 @@
-@import "tailwindcss";
+@import "@knadh/oat/oat.min.css";
 
-@variant dark (&:where(.dark, .dark *));
+:root {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-serif: "Bitter", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 
-@theme {
-    --font-sans:
-        "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
-        "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    --font-serif:
-        "Bitter", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-
-    --color-primary-50: hsl(220.8 100% 95.1%);
-    --color-primary-100: hsl(220.9 95.7% 91%);
-    --color-primary-200: hsl(221.1 97.9% 81%);
-    --color-primary-300: hsl(221.4 97.2% 72%);
-    --color-primary-400: hsl(221.4 97.9% 63.1%);
-    --color-primary-500: hsl(221.3 97.5% 53.5%);
-    --color-primary-600: hsl(221.4 97.3% 44.1%);
-    --color-primary-700: hsl(221.2 97.7% 33.9%);
-    --color-primary-800: hsl(221.3 96.7% 24.1%);
-    --color-primary-900: hsl(221.6 97.4% 15.1%);
-    --color-primary-950: hsl(221.6 96.1% 10%);
-
-    --color-success-50: hsl(151 81% 95.9%);
-    --color-success-100: hsl(149 80.4% 90%);
-    --color-success-200: hsl(152 76% 80.4%);
-    --color-success-300: hsl(156 71.6% 66.9%);
-    --color-success-400: hsl(158 64% 52%);
-    --color-success-500: hsl(160 84.1% 39.4%);
-    --color-success-600: hsl(161 93.5% 30.4%);
-    --color-success-700: hsl(162 93.5% 24.3%);
-    --color-success-800: hsl(163 88.1% 19.8%);
-    --color-success-900: hsl(164 85.7% 16.5%);
-    --color-success-950: hsl(166 91.5% 9%);
-
-    --color-warning-50: hsl(48 100% 96.1%);
-    --color-warning-100: hsl(48 96.5% 88.8%);
-    --color-warning-200: hsl(48 96.6% 76.7%);
-    --color-warning-300: hsl(45.9 96.7% 64.5%);
-    --color-warning-400: hsl(43.3 96.4% 56.3%);
-    --color-warning-500: hsl(37.7 92.1% 50.2%);
-    --color-warning-600: hsl(32.1 94.6% 43.7%);
-    --color-warning-700: hsl(26 90.5% 37.1%);
-    --color-warning-800: hsl(22.7 82.5% 31.4%);
-    --color-warning-900: hsl(21.7 77.8% 26.5%);
-    --color-warning-950: hsl(20.9 91.7% 14.1%);
-
-    --color-danger-50: hsl(0 85.7% 97.3%);
-    --color-danger-100: hsl(0 93.3% 94.1%);
-    --color-danger-200: hsl(0 96.3% 89.4%);
-    --color-danger-300: hsl(0 93.5% 81.8%);
-    --color-danger-400: hsl(0 90.6% 70.8%);
-    --color-danger-500: hsl(0 84.2% 60.2%);
-    --color-danger-600: hsl(0 72.2% 50.6%);
-    --color-danger-700: hsl(0 73.7% 41.8%);
-    --color-danger-800: hsl(0 70% 35.3%);
-    --color-danger-900: hsl(0 62.8% 30.6%);
-    --color-danger-950: hsl(0 75% 15.9%);
-
-    --color-info-50: hsl(186 100% 96.9%);
-    --color-info-100: hsl(185 95.9% 90.4%);
-    --color-info-200: hsl(186 93.5% 81.8%);
-    --color-info-300: hsl(187 92.4% 69%);
-    --color-info-400: hsl(188 85.7% 53.3%);
-    --color-info-500: hsl(189 94.5% 42.7%);
-    --color-info-600: hsl(191 91.4% 36.5%);
-    --color-info-700: hsl(192 82.3% 31%);
-    --color-info-800: hsl(194 69.6% 27.1%);
-    --color-info-900: hsl(196 63.6% 23.7%);
-    --color-info-950: hsl(197 78.7% 15.7%);
-
-    --radius: 0.5rem;
-
-    --color-background: var(--bg);
-    --color-foreground: var(--fg);
-    --color-card: var(--card);
-    --color-card-foreground: var(--card-fg);
-    --color-muted: var(--muted);
-    --color-muted-foreground: var(--muted-fg);
-    --color-subtle: var(--subtle);
-    --color-border: var(--border);
-    --color-input: var(--input);
-    --color-ring: var(--ring);
-    --color-overlay: var(--overlay);
-    --color-link: var(--link);
-    --color-link-hover: var(--link-hover);
-    --color-subtle-hover: var(--subtle-hover);
-
-    --color-badge-success-bg: var(--badge-success-bg);
-    --color-badge-success-text: var(--badge-success-text);
-    --color-badge-warning-bg: var(--badge-warning-bg);
-    --color-badge-warning-text: var(--badge-warning-text);
-    --color-badge-danger-bg: var(--badge-danger-bg);
-    --color-badge-danger-text: var(--badge-danger-text);
-    --color-badge-info-bg: var(--badge-info-bg);
-    --color-badge-info-text: var(--badge-info-text);
+  /* Match old theme colors */
+  --background: #ffffff;
+  --foreground: #111827;
+  --card: #ffffff;
+  --card-foreground: #111827;
+  --primary: hsl(221.3 97.5% 53.5%);
+  --primary-foreground: #fff;
+  --secondary: #f3f4f6;
+  --secondary-foreground: #111827;
+  --muted: #f9fafb;
+  --muted-foreground: #6b7280;
+  --faint: #f3f4f6;
+  --faint-foreground: #9ca3af;
+  --border: #e5e7eb;
+  --danger: hsl(0 72.2% 50.6%);
+  --danger-foreground: #fff;
+  --success: hsl(160 84.1% 39.4%);
+  --success-foreground: #fff;
+  --warning: hsl(37.7 92.1% 50.2%);
+  --warning-foreground: #fff;
+  --radius-medium: 0.5rem;
 }
 
-@layer base {
-    :root {
-        --bg: #ffffff;
-        --fg: #111827;
-        --card: #ffffff;
-        --card-fg: #111827;
-        --muted: #f9fafb;
-        --muted-fg: #6b7280;
-        --subtle: #f3f4f6;
-        --border: #e5e7eb;
-        --input: #d1d5db;
-        --ring: hsl(221.3 97.5% 53.5%);
-        --overlay: rgb(17 24 39 / 0.6);
-        --link: hsl(221.4 97.3% 44.1%);
-        --link-hover: hsl(220.9 95.7% 91%);
-        --subtle-hover: #e5e7eb;
+/* Dark mode */
+[data-theme="dark"] {
+  --background: #030712;
+  --foreground: #f9fafb;
+  --card: #111827;
+  --card-foreground: #f9fafb;
+  --primary: hsl(221.4 97.9% 63.1%);
+  --primary-foreground: #fff;
+  --secondary: #374151;
+  --secondary-foreground: #f9fafb;
+  --muted: #0d1420;
+  --muted-foreground: #9ca3af;
+  --faint: #1f2937;
+  --faint-foreground: #6b7280;
+  --border: #374151;
+  --danger: hsl(0 90.6% 70.8%);
+  --danger-foreground: #fff;
+  --success: hsl(156 71.6% 66.9%);
+  --success-foreground: #fff;
+  --warning: hsl(45.9 96.7% 64.5%);
+  --warning-foreground: #fff;
+}
 
-        --badge-success-bg: hsl(149 80.4% 90%);
-        --badge-success-text: hsl(164 85.7% 16.5%);
-        --badge-warning-bg: hsl(48 96.5% 88.8%);
-        --badge-warning-text: hsl(21.7 77.8% 26.5%);
-        --badge-danger-bg: hsl(0 93.3% 94.1%);
-        --badge-danger-text: hsl(0 62.8% 30.6%);
-        --badge-info-bg: hsl(220.8 100% 95.1%);
-        --badge-info-text: hsl(196 63.6% 23.7%);
-    }
+/* Ensure tabler icons align properly in flex containers */
+svg.icon-tabler {
+  vertical-align: middle;
+  flex-shrink: 0;
+}
 
-    .dark {
-        --bg: #030712;
-        --fg: #f9fafb;
-        --card: #111827;
-        --card-fg: #f9fafb;
-        --muted: #0d1420;
-        --muted-fg: #9ca3af;
-        --subtle: #374151;
-        --border: #374151;
-        --input: #4b5563;
-        --ring: hsl(221.4 97.9% 63.1%);
-        --overlay: rgb(0 0 0 / 0.7);
-        --link: hsl(221.4 97.9% 63.1%);
-        --link-hover: hsl(220.9 95.7% 91%);
-        --subtle-hover: #4b5563;
+/* Utility classes not provided by oat */
+.text-sm { font-size: var(--text-7); }
+.text-xs { font-size: var(--text-8); }
+.font-mono { font-family: var(--font-mono); }
+.font-medium { font-weight: var(--font-medium); }
+.items-start { align-items: flex-start; }
+.flex-1 { flex: 1; }
+.min-w-0 { min-width: 0; }
+.gap-6 { gap: var(--space-6); }
+.shrink-0 { flex-shrink: 0; }
 
-        --badge-success-bg: hsl(164 85.7% 16.5% / 0.3);
-        --badge-success-text: hsl(156 71.6% 66.9%);
-        --badge-warning-bg: hsl(21.7 77.8% 26.5% / 0.3);
-        --badge-warning-text: hsl(45.9 96.7% 64.5%);
-        --badge-danger-bg: hsl(0 62.8% 30.6% / 0.3);
-        --badge-danger-text: hsl(0 93.5% 81.8%);
-        --badge-info-bg: hsl(221.3 97.5% 53.5% / 0.25);
-        --badge-info-text: hsl(221.1 97.9% 81%);
-    }
-
-    ::placeholder {
-        color: var(--muted-fg);
-        opacity: 1;
-    }
-
-    select {
-        color: var(--fg);
-        background-color: var(--card);
-    }
-
-    option {
-        color: var(--fg);
-        background-color: var(--card);
-    }
+/* App shell: remove oat's default main padding in sidebar layouts */
+main.app-content {
+  padding-block-start: 0;
 }

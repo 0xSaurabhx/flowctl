@@ -277,34 +277,30 @@
 <svelte:window on:click={handleOutsideClick} />
 
 <!-- Sidebar Navigation -->
-<nav
-    class="relative bg-card border-r border-border flex flex-col transition-all duration-300 ease-in-out {isCollapsed
-        ? 'w-20'
-        : 'w-60'}"
+<aside
+    class="sidebar"
+    class:collapsed={isCollapsed}
+    data-sidebar
     aria-label="Main navigation"
 >
     <!-- Logo -->
-    <a href="/">
-        <div class="px-6 py-6 flex flex-col items-center">
+    <a href="/" class="logo-link">
+        <div class="logo-area">
             {#if isCollapsed}
-                <Logo height="h-6" iconOnly={true} />
+                <Logo height="1.5rem" iconOnly={true} />
             {:else}
-                <Logo height="h-8" />
-                <div class="text-xs text-muted-foreground mt-1">{APP_VERSION}-{APP_COMMIT}</div>
+                <Logo height="2rem" />
+                <div class="text-lighter version-text">{APP_VERSION}-{APP_COMMIT}</div>
             {/if}
         </div>
     </a>
 
     <!-- Namespace Dropdown -->
     {#if !isCollapsed}
-        <div class="px-4 mb-4 namespace-dropdown">
-            <div class="relative">
-                <label
-                    for="namespace-search"
-                    class="block text-xs font-medium text-muted-foreground mb-1 uppercase"
-                    >Namespace</label
-                >
-                <div class="relative">
+        <div class="namespace-section namespace-dropdown">
+            <div class="namespace-field">
+                <label for="namespace-search" class="namespace-label">Namespace</label>
+                <div class="input-wrapper">
                     <input
                         type="text"
                         id="namespace-search"
@@ -312,40 +308,15 @@
                         oninput={handleSearchInput}
                         onfocus={handleSearchFocus}
                         placeholder={currentNamespace || "Search namespaces..."}
-                        class="w-full px-3 py-2 text-sm font-medium text-foreground bg-card border border-input rounded-lg hover:border-input focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors outline-none pr-8"
+                        aria-busy={searchLoading}
                         autocomplete="off"
                     />
 
                     {#if searchLoading}
-                        <div
-                            class="absolute right-3 top-1/2 transform -translate-y-1/2"
-                        >
-                            <svg
-                                class="animate-spin h-4 w-4 text-muted-foreground"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                            >
-                                <circle
-                                    class="opacity-25"
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    stroke-width="4"
-                                ></circle>
-                                <path
-                                    class="opacity-75"
-                                    fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                ></path>
-                            </svg>
-                        </div>
+                        <span class="input-icon" aria-busy="true"></span>
                     {:else}
                         <IconChevronDown
-                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground transition-transform {namespaceDropdownOpen
-                                ? 'rotate-180'
-                                : ''}"
+                            class="input-icon chevron {namespaceDropdownOpen ? 'open' : ''}"
                             size={16}
                         />
                     {/if}
@@ -354,42 +325,34 @@
                 <!-- Dropdown Menu -->
                 {#if namespaceDropdownOpen}
                     <div
-                        class="absolute z-50 w-full mt-1 bg-card rounded-lg shadow-lg border border-border max-h-48 overflow-y-auto"
+                        class="dropdown-menu"
                         role="listbox"
                         aria-label="Namespace selection"
                     >
-                        <div class="py-1">
-                            {#each searchResults as ns (ns.id)}
-                                <button
-                                    type="button"
-                                    role="option"
-                                    aria-selected={ns.name === namespace}
-                                    onclick={() => selectNamespace(ns)}
-                                    class="w-full text-left px-3 py-2 text-sm text-foreground hover:bg-subtle transition-colors cursor-pointer"
-                                    class:bg-primary-50={ns.name === namespace}
-                                    class:text-primary-600={ns.name ===
-                                        namespace}
-                                >
-                                    {ns.name}
-                                </button>
-                            {/each}
-                            {#if searchResults.length === 0 && !searchLoading}
-                                <div
-                                    class="px-3 py-2 text-sm text-muted-foreground text-center"
-                                >
-                                    {searchQuery
-                                        ? "No namespaces found"
-                                        : "No namespaces available"}
-                                </div>
-                            {/if}
-                            {#if searchLoading}
-                                <div
-                                    class="px-3 py-2 text-sm text-muted-foreground text-center"
-                                >
-                                    Searching...
-                                </div>
-                            {/if}
-                        </div>
+                        {#each searchResults as ns (ns.id)}
+                            <button
+                                type="button"
+                                role="option"
+                                aria-selected={ns.name === namespace}
+                                onclick={() => selectNamespace(ns)}
+                                class="dropdown-item"
+                                class:active={ns.name === namespace}
+                            >
+                                {ns.name}
+                            </button>
+                        {/each}
+                        {#if searchResults.length === 0 && !searchLoading}
+                            <div class="dropdown-empty text-lighter">
+                                {searchQuery
+                                    ? "No namespaces found"
+                                    : "No namespaces available"}
+                            </div>
+                        {/if}
+                        {#if searchLoading}
+                            <div class="dropdown-empty text-lighter">
+                                Searching...
+                            </div>
+                        {/if}
                     </div>
                 {/if}
             </div>
@@ -397,28 +360,17 @@
     {/if}
 
     <!-- Navigation -->
-    <ul class="flex-1 px-4 space-y-1" role="list">
+    <ul class="nav-list" role="list">
         {#if permissions.flows.canRead}
             <li>
                 <a
                     href="/view/{namespace}/flows"
-                    class="flex items-center text-sm font-medium rounded-lg transition-colors {isCollapsed
-                        ? 'justify-center px-4 py-3'
-                        : 'px-4 py-3'}"
-                    class:bg-primary-50={isActiveLink("flows")}
-                    class:text-primary-600={isActiveLink("flows")}
-                    class:text-foreground={!isActiveLink("flows")}
-                    class:hover:bg-subtle={!isActiveLink("flows")}
+                    class="nav-link"
+                    class:icon-only={isCollapsed}
                     aria-current={isActiveLink("flows") ? "page" : undefined}
                     title={isCollapsed ? "Flows" : ""}
                 >
-                    <IconGridDots
-                        class="text-xl flex-shrink-0 {isCollapsed
-                            ? ''
-                            : 'mr-3'}"
-                        size={20}
-                        aria-hidden="true"
-                    />
+                    <IconGridDots size={20} aria-hidden="true" />
                     {#if !isCollapsed}
                         Flows
                     {/if}
@@ -429,23 +381,12 @@
             <li>
                 <a
                     href="/view/{namespace}/nodes"
-                    class="flex items-center text-sm font-medium rounded-lg transition-colors {isCollapsed
-                        ? 'justify-center px-4 py-3'
-                        : 'px-4 py-3'}"
-                    class:bg-primary-50={isActiveLink("nodes")}
-                    class:text-primary-600={isActiveLink("nodes")}
-                    class:text-foreground={!isActiveLink("nodes")}
-                    class:hover:bg-subtle={!isActiveLink("nodes")}
+                    class="nav-link"
+                    class:icon-only={isCollapsed}
                     aria-current={isActiveLink("nodes") ? "page" : undefined}
                     title={isCollapsed ? "Nodes" : ""}
                 >
-                    <IconServer
-                        class="text-xl flex-shrink-0 {isCollapsed
-                            ? ''
-                            : 'mr-3'}"
-                        size={20}
-                        aria-hidden="true"
-                    />
+                    <IconServer size={20} aria-hidden="true" />
                     {#if !isCollapsed}
                         Nodes
                     {/if}
@@ -456,25 +397,12 @@
             <li>
                 <a
                     href="/view/{namespace}/credentials"
-                    class="flex items-center text-sm font-medium rounded-lg transition-colors {isCollapsed
-                        ? 'justify-center px-4 py-3'
-                        : 'px-4 py-3'}"
-                    class:bg-primary-50={isActiveLink("credentials")}
-                    class:text-primary-600={isActiveLink("credentials")}
-                    class:text-foreground={!isActiveLink("credentials")}
-                    class:hover:bg-subtle={!isActiveLink("credentials")}
-                    aria-current={isActiveLink("credentials")
-                        ? "page"
-                        : undefined}
+                    class="nav-link"
+                    class:icon-only={isCollapsed}
+                    aria-current={isActiveLink("credentials") ? "page" : undefined}
                     title={isCollapsed ? "Credentials" : ""}
                 >
-                    <IconKey
-                        class="text-xl flex-shrink-0 {isCollapsed
-                            ? ''
-                            : 'mr-3'}"
-                        size={20}
-                        aria-hidden="true"
-                    />
+                    <IconKey size={20} aria-hidden="true" />
                     {#if !isCollapsed}
                         Credentials
                     {/if}
@@ -485,25 +413,12 @@
             <li>
                 <a
                     href="/view/{namespace}/secrets"
-                    class="flex items-center text-sm font-medium rounded-lg transition-colors {isCollapsed
-                        ? 'justify-center px-4 py-3'
-                        : 'px-4 py-3'}"
-                    class:bg-primary-50={isActiveLink("secrets")}
-                    class:text-primary-600={isActiveLink("secrets")}
-                    class:text-foreground={!isActiveLink("secrets")}
-                    class:hover:bg-subtle={!isActiveLink("secrets")}
-                    aria-current={isActiveLink("secrets")
-                        ? "page"
-                        : undefined}
+                    class="nav-link"
+                    class:icon-only={isCollapsed}
+                    aria-current={isActiveLink("secrets") ? "page" : undefined}
                     title={isCollapsed ? "Secrets" : ""}
                 >
-                    <IconLock
-                        class="text-xl flex-shrink-0 {isCollapsed
-                            ? ''
-                            : 'mr-3'}"
-                        size={20}
-                        aria-hidden="true"
-                    />
+                    <IconLock size={20} aria-hidden="true" />
                     {#if !isCollapsed}
                         Secrets
                     {/if}
@@ -514,23 +429,12 @@
             <li>
                 <a
                     href="/view/{namespace}/members"
-                    class="flex items-center text-sm font-medium rounded-lg transition-colors {isCollapsed
-                        ? 'justify-center px-4 py-3'
-                        : 'px-4 py-3'}"
-                    class:bg-primary-50={isActiveLink("members")}
-                    class:text-primary-600={isActiveLink("members")}
-                    class:text-foreground={!isActiveLink("members")}
-                    class:hover:bg-subtle={!isActiveLink("members")}
+                    class="nav-link"
+                    class:icon-only={isCollapsed}
                     aria-current={isActiveLink("members") ? "page" : undefined}
                     title={isCollapsed ? "Members" : ""}
                 >
-                    <IconUsers
-                        class="text-xl flex-shrink-0 {isCollapsed
-                            ? ''
-                            : 'mr-3'}"
-                        size={20}
-                        aria-hidden="true"
-                    />
+                    <IconUsers size={20} aria-hidden="true" />
                     {#if !isCollapsed}
                         Members
                     {/if}
@@ -541,25 +445,12 @@
             <li>
                 <a
                     href="/view/{namespace}/approvals"
-                    class="flex items-center text-sm font-medium rounded-lg transition-colors {isCollapsed
-                        ? 'justify-center px-4 py-3'
-                        : 'px-4 py-3'}"
-                    class:bg-primary-50={isActiveLink("approvals")}
-                    class:text-primary-600={isActiveLink("approvals")}
-                    class:text-foreground={!isActiveLink("approvals")}
-                    class:hover:bg-subtle={!isActiveLink("approvals")}
-                    aria-current={isActiveLink("approvals")
-                        ? "page"
-                        : undefined}
+                    class="nav-link"
+                    class:icon-only={isCollapsed}
+                    aria-current={isActiveLink("approvals") ? "page" : undefined}
                     title={isCollapsed ? "Approvals" : ""}
                 >
-                    <IconCircleCheck
-                        class="text-xl flex-shrink-0 {isCollapsed
-                            ? ''
-                            : 'mr-3'}"
-                        size={20}
-                        aria-hidden="true"
-                    />
+                    <IconCircleCheck size={20} aria-hidden="true" />
                     {#if !isCollapsed}
                         Approvals
                     {/if}
@@ -570,23 +461,12 @@
             <li>
                 <a
                     href="/view/{namespace}/history"
-                    class="flex items-center text-sm font-medium rounded-lg transition-colors {isCollapsed
-                        ? 'justify-center px-4 py-3'
-                        : 'px-4 py-3'}"
-                    class:bg-primary-50={isActiveLink("history")}
-                    class:text-primary-600={isActiveLink("history")}
-                    class:text-foreground={!isActiveLink("history")}
-                    class:hover:bg-subtle={!isActiveLink("history")}
+                    class="nav-link"
+                    class:icon-only={isCollapsed}
                     aria-current={isActiveLink("history") ? "page" : undefined}
                     title={isCollapsed ? "History" : ""}
                 >
-                    <IconClock
-                        class="text-xl flex-shrink-0 {isCollapsed
-                            ? ''
-                            : 'mr-3'}"
-                        size={20}
-                        aria-hidden="true"
-                    />
+                    <IconClock size={20} aria-hidden="true" />
                     {#if !isCollapsed}
                         History
                     {/if}
@@ -595,16 +475,12 @@
         {/if}
     </ul>
 
-    <div class="px-4 py-2 border-t border-border">
-        <div class="flex items-center {isCollapsed ? 'flex-col gap-2' : 'justify-between'}">
+    <div class="sidebar-footer">
+        <div class="hstack {isCollapsed ? 'footer-collapsed' : ''}">
             {#if $currentUser && $currentUser.role === "superuser"}
                 <a
                     href="/settings"
-                    class="flex items-center justify-center p-2 rounded-lg transition-colors"
-                    class:bg-primary-50={isActiveLink("settings")}
-                    class:text-primary-600={isActiveLink("settings")}
-                    class:text-muted-foreground={!isActiveLink("settings")}
-                    class:hover:bg-subtle={!isActiveLink("settings")}
+                    class="nav-link icon-only"
                     aria-current={isActiveLink("settings") ? "page" : undefined}
                     title="Settings"
                 >
@@ -617,7 +493,8 @@
             <button
                 type="button"
                 onclick={toggleCollapse}
-                class="flex items-center justify-center p-2 text-muted-foreground hover:bg-subtle rounded-lg transition-colors cursor-pointer"
+                data-variant="secondary"
+                class="collapse-btn"
                 aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                 title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
@@ -632,8 +509,202 @@
 
     <!-- User Profile Section -->
     {#if $currentUser}
-        <div class="px-4 py-4 border-t border-border">
+        <div class="user-section">
             <UserDropdown {isCollapsed} />
         </div>
     {/if}
-</nav>
+</aside>
+
+<style>
+    .sidebar {
+        position: relative;
+        background: var(--card);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        transition: width 0.3s ease-in-out;
+        width: 15rem;
+    }
+
+    .sidebar.collapsed {
+        width: 5rem;
+    }
+
+    .logo-link {
+        text-decoration: none;
+    }
+
+    .logo-area {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .version-text {
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+    }
+
+    /* Namespace section */
+    .namespace-section {
+        padding: 0 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .namespace-field {
+        position: relative;
+    }
+
+    .namespace-label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--muted-foreground);
+        margin-bottom: 0.25rem;
+        text-transform: uppercase;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .input-wrapper input {
+        width: 100%;
+        padding-right: 2rem;
+    }
+
+    .input-wrapper :global(.input-icon) {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted-foreground);
+        pointer-events: none;
+    }
+
+    .input-wrapper :global(.input-icon.chevron) {
+        transition: transform 0.2s;
+    }
+
+    .input-wrapper :global(.input-icon.chevron.open) {
+        transform: translateY(-50%) rotate(180deg);
+    }
+
+    /* Dropdown menu */
+    .dropdown-menu {
+        position: absolute;
+        z-index: 50;
+        width: 100%;
+        margin-top: 0.25rem;
+        background: var(--card);
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border: 1px solid var(--border);
+        max-height: 12rem;
+        overflow-y: auto;
+    }
+
+    .dropdown-item {
+        width: 100%;
+        text-align: left;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        color: var(--foreground);
+        background: none;
+        border: none;
+        border-radius: 0;
+        cursor: pointer;
+    }
+
+    .dropdown-item:hover {
+        background: var(--faint);
+    }
+
+    .dropdown-item.active {
+        background: var(--faint);
+        color: var(--primary);
+    }
+
+    .dropdown-empty {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        text-align: center;
+    }
+
+    /* Navigation */
+    .nav-list {
+        flex: 1;
+        padding: 0 1rem;
+        list-style: none;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        color: var(--foreground);
+        text-decoration: none;
+        transition: background 0.15s;
+    }
+
+    .nav-link:hover {
+        background: var(--faint);
+    }
+
+    .nav-link[aria-current="page"] {
+        background: var(--faint);
+        color: var(--primary);
+    }
+
+    .nav-link.icon-only {
+        justify-content: center;
+        padding: 0.75rem;
+    }
+
+    /* Footer */
+    .sidebar-footer {
+        padding: 0.5rem 1rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .sidebar-footer .hstack {
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .footer-collapsed {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .collapse-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+        background: none;
+        border: none;
+        color: var(--muted-foreground);
+        cursor: pointer;
+        border-radius: 0.5rem;
+    }
+
+    .collapse-btn:hover {
+        background: var(--faint);
+    }
+
+    .user-section {
+        padding: 1rem;
+        border-top: 1px solid var(--border);
+    }
+</style>

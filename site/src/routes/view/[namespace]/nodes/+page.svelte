@@ -100,15 +100,15 @@
 			header: 'Node',
 			sortable: true,
 			render: (_value: any, node: NodeResp) => `
-				<div class="flex items-center">
-					<div class="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center mr-3">
-						<svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<div class="node-cell">
+					<div class="node-icon-box">
+						<svg class="node-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2 4h.01M17 16h.01"></path>
 						</svg>
 					</div>
 					<div>
-						<a href="#" class="text-sm hover:underline font-medium text-foreground cursor-pointer hover:text-primary-600 transition-colors" onclick="event.preventDefault(); document.dispatchEvent(new CustomEvent('editNode', {detail: {id: '${node.id}'}}))">${node.name}</a>
-						<div class="text-sm text-muted-foreground">${node.id}</div>
+						<a href="#" class="node-name-link" onclick="event.preventDefault(); document.dispatchEvent(new CustomEvent('editNode', {detail: {id: '${node.id}'}}))">${node.name}</a>
+						<div class="cell-muted">${node.id}</div>
 					</div>
 				</div>
 			`
@@ -122,10 +122,10 @@
 			header: 'Connection Type',
 			sortable: true,
 			render: (_value: any, node: NodeResp) => `
-				<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+				<span class="badge ${
 					node.connection_type === 'qssh'
-						? 'bg-success-100 text-success-800'
-						: 'bg-blue-100 text-blue-800'
+						? 'success'
+						: ''
 				}">${node.connection_type?.toUpperCase() || 'N/A'}</span>
 			`
 		},
@@ -133,12 +133,12 @@
 			key: 'tags',
 			header: 'Tags',
 			render: (_value: any, node: NodeResp) => node.tags && node.tags.length > 0
-				? `<div class="flex flex-wrap gap-1">
+				? `<div class="tags-cell">
 					${node.tags.map(tag =>
-						`<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800">${tag}</span>`
+						`<span class="badge">${tag}</span>`
 					).join('')}
 				</div>`
-				: '<span class="text-xs text-muted-foreground">No tags</span>'
+				: '<span class="cell-muted text-xs">No tags</span>'
 		}
 	];
 
@@ -293,7 +293,7 @@
   {/snippet}
 </Header>
 
-<div class="p-12">
+<div class="page-content">
 	<!-- Page Header -->
 	<PageHeader
 		title="Nodes"
@@ -310,7 +310,7 @@
 	/>
 
 	<!-- Statistics Cards -->
-	<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+	<div class="stat-grid">
 		<StatCard
 			title="Total Hosts"
 			value={stats.total_hosts}
@@ -335,7 +335,7 @@
 	</div>
 
 	<!-- Nodes Table -->
-	<div class="pt-6">
+	<div class="mt-4">
 		<Table
 			data={nodes}
 			columns={tableColumns}
@@ -377,3 +377,67 @@
 		onClose={closeDeleteModal}
 	/>
 {/if}
+
+<style>
+	.page-content {
+		padding: 3rem;
+	}
+
+	.stat-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1.5rem;
+	}
+
+	@media (max-width: 768px) {
+		.stat-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	:global(.node-cell) {
+		display: flex;
+		align-items: center;
+	}
+
+	:global(.node-icon-box) {
+		width: 2.5rem;
+		height: 2.5rem;
+		background: var(--faint);
+		border-radius: 0.5rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-right: 0.75rem;
+	}
+
+	:global(.node-icon) {
+		width: 1.25rem;
+		height: 1.25rem;
+		color: var(--primary);
+	}
+
+	:global(.node-name-link) {
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: var(--foreground);
+		text-decoration: none;
+		cursor: pointer;
+	}
+
+	:global(.node-name-link:hover) {
+		color: var(--primary);
+		text-decoration: underline;
+	}
+
+	:global(.cell-muted) {
+		font-size: 0.875rem;
+		color: var(--muted-foreground);
+	}
+
+	:global(.tags-cell) {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem;
+	}
+</style>

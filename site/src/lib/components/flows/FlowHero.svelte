@@ -2,7 +2,7 @@
   let {
     name,
     description,
-    icon = `<svg class="w-6 h-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    icon = `<svg class="hero-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
     </svg>`
   }: {
@@ -13,18 +13,61 @@
 </script>
 
 <!-- Hero Section -->
-<div class="bg-card border-b border-border px-6 py-6">
-  <div class="max-w-4xl mx-auto">
-    <div class="flex items-start gap-4">
-      <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
+<div class="hero-section">
+  <div class="hero-inner">
+    <div class="hstack gap-4 items-start">
+      <div class="hero-icon-wrapper">
         {@html icon}
       </div>
-      <div class="flex-1 min-w-0">
-        <h1 class="text-2xl font-semibold text-foreground mb-1">{name}</h1>
+      <div class="hero-content">
+        <h1 class="hero-title">{name}</h1>
         {#if description}
-          <p class="text-sm text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">{description}</p>
+          <p class="text-light hero-description">{description}</p>
         {/if}
       </div>
     </div>
   </div>
 </div>
+
+<style>
+  .hero-section {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem;
+  }
+  .hero-inner {
+    max-width: 56rem;
+    margin: 0 auto;
+  }
+  .hero-icon-wrapper {
+    width: 3rem;
+    height: 3rem;
+    background: var(--faint);
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .hero-icon-wrapper :global(svg) {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: var(--muted-foreground);
+  }
+  .hero-content {
+    flex: 1;
+    min-width: 0;
+  }
+  .hero-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin-bottom: 0.25rem;
+  }
+  .hero-description {
+    font-size: 0.875rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+</style>

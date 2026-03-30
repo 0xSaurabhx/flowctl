@@ -23,7 +23,6 @@
 		refreshTrigger: boolean;
 	} = $props();
 
-	// State
 	let namespaces = $state(initialNamespaces);
 	let totalCount = $state(initialTotalCount);
 	let pageCount = $state(initialPageCount);
@@ -37,25 +36,30 @@
 	let editingNamespaceData = $state<NamespaceResp | null>(null);
 	let deleteData = $state<{ id: string; name: string } | null>(null);
 
-	// Table configuration
+	const avatarColors = [
+		{ bg: 'color-mix(in srgb, var(--danger) 15%, transparent)', fg: 'var(--danger)' },
+		{ bg: 'color-mix(in srgb, var(--primary) 15%, transparent)', fg: 'var(--primary)' },
+		{ bg: 'color-mix(in srgb, var(--success) 15%, transparent)', fg: 'var(--success)' },
+		{ bg: 'color-mix(in srgb, var(--warning) 15%, transparent)', fg: 'var(--warning)' },
+		{ bg: 'color-mix(in srgb, var(--primary) 15%, transparent)', fg: 'var(--primary)' },
+	];
+
 	let tableColumns = [
 		{
 			key: 'name',
 			header: 'Name',
 			render: (_value: any, namespace: NamespaceResp) => {
 				const firstLetter = namespace.name.charAt(0).toUpperCase();
-				const colors = ['bg-danger-100 text-danger-600', 'bg-primary-100 text-primary-600', 'bg-success-100 text-success-600', 'bg-warning-100 text-warning-600', 'bg-primary-100 text-primary-600', 'bg-pink-100 text-pink-600', 'bg-indigo-100 text-indigo-600'];
-				const colorIndex = namespace.name.charCodeAt(0) % colors.length;
-				const colorClass = colors[colorIndex];
-				
+				const c = avatarColors[namespace.name.charCodeAt(0) % avatarColors.length];
+
 				return `
-					<div class="flex items-center">
-						<div class="w-10 h-10 rounded-lg flex items-center justify-center mr-3 ${colorClass} font-medium text-sm">
+					<div class="name-cell">
+						<div class="avatar" style="background:${c.bg};color:${c.fg}">
 							${firstLetter}
 						</div>
 						<div>
-							<div class="text-sm font-medium text-foreground cursor-pointer hover:text-primary-600 transition-colors" onclick="document.dispatchEvent(new CustomEvent('editNamespace', {detail: {id: '${namespace.id}'}}))">${namespace.name}</div>
-							<div class="text-sm text-muted-foreground">ID: ${namespace.id}</div>
+							<div class="name-link" onclick="document.dispatchEvent(new CustomEvent('editNamespace', {detail: {id: '${namespace.id}'}}))">${namespace.name}</div>
+							<div class="name-sub">ID: ${namespace.id}</div>
 						</div>
 					</div>
 				`;
@@ -67,19 +71,16 @@
 		{
 			label: 'Edit',
 			onClick: (namespace: NamespaceResp) => handleEdit(namespace.id),
-			className: 'text-link border border-link hover:bg-link-hover rounded px-2 py-1'
 		},
 		{
 			label: 'Delete',
 			onClick: (namespace: NamespaceResp) => handleDelete(namespace.id, namespace.name),
-			className: 'text-danger-600 hover:text-danger-800'
 		}
 	];
 
-	// Functions
 	async function fetchNamespaces(filter: string = '', pageNumber: number = 1) {
 		if (!browser) return;
-		
+
 		loading = true;
 		try {
 			const response = await apiClient.namespaces.list({
@@ -120,7 +121,7 @@
 		try {
 			loading = true;
 			const namespace = await apiClient.namespaces.getById(namespaceId);
-			
+
 			isEditMode = true;
 			editingNamespaceId = namespaceId;
 			editingNamespaceData = namespace;
@@ -175,14 +176,12 @@
 		deleteData = null;
 	}
 
-	// Handle namespace name clicks
 	if (browser) {
 		document.addEventListener('editNamespace', ((event: CustomEvent) => {
 			handleEdit(event.detail.id);
 		}) as EventListener);
 	}
 
-	// Refresh data when refreshTrigger changes
 	$effect(() => {
 		refreshTrigger;
 		fetchNamespaces(searchQuery, currentPage);
@@ -190,8 +189,7 @@
 </script>
 
 <!-- Namespaces Header Actions -->
-<div class="flex items-center justify-between mb-6">
-	<!-- Search -->
+<div class="hstack mb-4 justify-between">
 	<SearchInput
 		bind:value={searchQuery}
 		placeholder="Search namespaces..."
@@ -199,18 +197,14 @@
 		onSearch={handleSearch}
 	/>
 
-	<!-- Add Namespace Button -->
-	<button
-		onclick={handleAdd}
-		class="bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center cursor-pointer"
-	>
-		<IconPlus class="mr-2" size={16} />
+	<button onclick={handleAdd}>
+		<IconPlus size={16} />
 		Add Namespace
 	</button>
 </div>
 
 <!-- Namespaces Table -->
-<div class="mb-6">
+<div class="mb-4">
 	<Table
 		data={namespaces}
 		columns={tableColumns}
@@ -248,3 +242,7 @@
 		onClose={handleModalClose}
 	/>
 {/if}
+
+<style>
+	.mb-4 { margin-bottom: 1.5rem; }
+</style>

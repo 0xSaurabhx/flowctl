@@ -80,7 +80,7 @@
 			header: 'Added',
 			sortable: true,
 			render: (_value: any, member: NamespaceMemberResp) => `
-			  <div class="text-sm text-muted-foreground">${formatDateTime(member.created_at)}</div>
+			  <span class="cell-muted">${formatDateTime(member.created_at)}</span>
 			`
 		}
 	]);
@@ -198,7 +198,7 @@
   {/snippet}
 </Header>
 
-<div class="p-12">
+<div class="page-content">
 	<!-- Page Header -->
 	<PageHeader
 		title="Members"
@@ -214,7 +214,7 @@
 	/>
 
 	<!-- Members Table -->
-	<div class="pt-6">
+	<div class="mt-4">
 		<Table
 			data={members}
 			columns={tableColumns}
@@ -247,3 +247,14 @@
 		onClose={closeDeleteModal}
 	/>
 {/if}
+
+<style>
+	.page-content {
+		padding: 3rem;
+	}
+
+	:global(.cell-muted) {
+		font-size: 0.875rem;
+		color: var(--muted-foreground);
+	}
+</style>

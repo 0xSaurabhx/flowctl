@@ -626,8 +626,8 @@
     <title>Flow Execution - {flowName || "Loading..."}</title>
 </svelte:head>
 
-<div class="flex h-screen bg-muted">
-    <main class="flex-1 flex flex-col overflow-hidden">
+<div class="results-layout">
+    <div class="results-main">
         <Header
             breadcrumbs={[
                 { label: "Flows", url: `/view/${namespace}/flows` },
@@ -671,16 +671,16 @@
             ]}
         >
             {#snippet children()}
-                <div class="flex items-center gap-2">
-                    <span class="text-sm text-muted-foreground">Status:</span>
+                <div class="hstack gap-2 items-center">
+                    <span class="text-lighter text-sm">Status:</span>
                     <StatusBadge value={status} />
                 </div>
             {/snippet}
         </Header>
 
         <!-- Page Content -->
-        <div class="flex-1 overflow-y-auto p-6 bg-muted">
-            <div class="max-w-7xl mx-auto">
+        <div class="results-content">
+            <div class="results-container">
                 <FlowInfoCard
                     flowName={flowName || "Loading..."}
                     {startTime}
@@ -692,7 +692,7 @@
 
                 <!-- Flow Input -->
                 {#if data.executionSummary?.input}
-                    <div class="mb-6">
+                    <div class="mb-4">
                         <JsonDisplay
                             data={data.executionSummary.input}
                             title="Inputs"
@@ -701,9 +701,9 @@
                 {/if}
 
                 <!-- Split Panel Layout: Actions List and Logs -->
-                <div class="mb-6 grid grid-cols-12 gap-6 h-[650px]">
+                <div class="mb-4 split-panel">
                     <!-- Left Panel: Actions List -->
-                    <div class="col-span-12 md:col-span-4 lg:col-span-3 h-full">
+                    <div class="panel-left">
                         <ActionsList
                             actions={actionsList}
                             bind:selectedActionId
@@ -712,14 +712,10 @@
                     </div>
 
                     <!-- Right Panel: Terminal / Logs -->
-                    <div class="col-span-12 md:col-span-8 lg:col-span-9 h-full">
-                        <div
-                            class="bg-card rounded-lg border border-input h-full flex flex-col overflow-hidden"
-                        >
-                            <div class="px-6 py-5 border-b border-input">
-                                <h2
-                                    class="text-base font-semibold text-foreground"
-                                >
+                    <div class="panel-right">
+                        <div class="card logs-card">
+                            <div class="logs-header">
+                                <h2>
                                     {#if selectedActionId}
                                         {actionsList.find(
                                             (a) => a.id === selectedActionId,
@@ -729,8 +725,8 @@
                                     {/if}
                                 </h2>
                             </div>
-                            <div class="flex-1 overflow-hidden p-6">
-                                <div class="h-full">
+                            <div class="logs-body">
+                                <div style="height:100%">
                                     <LogsView
                                         bind:logs={logOutput}
                                         {logMessages}
@@ -751,20 +747,98 @@
 
                 <!-- Execution Output -->
                 {#if Object.keys(results).length > 0}
-                    <div
-                        class="mb-6 bg-card rounded-lg border border-input overflow-hidden"
-                    >
-                        <div class="px-6 py-5 border-b border-input">
-                            <h2 class="text-base font-semibold text-foreground">
-                                Execution Output
-                            </h2>
+                    <div class="mb-4 card">
+                        <div class="output-header">
+                            <h2>Execution Output</h2>
                         </div>
-                        <div class="p-6">
+                        <div class="p-4">
                             <ExecutionOutputTable {results} />
                         </div>
                     </div>
                 {/if}
             </div>
         </div>
-    </main>
+    </div>
 </div>
+
+<style>
+    .results-layout {
+        display: flex;
+        height: 100vh;
+        background: var(--muted);
+    }
+
+    .results-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .results-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.5rem;
+        background: var(--muted);
+    }
+
+    .results-container {
+        max-width: 80rem;
+        margin: 0 auto;
+    }
+
+    .split-panel {
+        display: grid;
+        grid-template-columns: 1fr 3fr;
+        gap: 1.5rem;
+        height: 650px;
+    }
+
+    @media (max-width: 768px) {
+        .split-panel {
+            grid-template-columns: 1fr;
+            height: auto;
+        }
+    }
+
+    .panel-left {
+        height: 100%;
+    }
+
+    .panel-right {
+        height: 100%;
+    }
+
+    .logs-card {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .logs-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .logs-header h2 {
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .logs-body {
+        flex: 1;
+        overflow: hidden;
+        padding: 1.5rem;
+    }
+
+    .output-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .output-header h2 {
+        font-size: 1rem;
+        font-weight: 600;
+    }
+</style>

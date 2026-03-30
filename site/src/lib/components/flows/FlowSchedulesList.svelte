@@ -96,78 +96,77 @@
   }
 </script>
 
-<div class="bg-card rounded-lg border border-border">
-  <div class="px-4 py-4 border-b border-border flex items-center justify-between">
+<div class="card">
+  <div class="card-header hstack justify-between">
     <div>
-      <h3 class="text-sm font-semibold text-foreground">Schedules</h3>
-      <p class="text-xs text-muted-foreground mt-0.5">{schedules.length} {schedules.length === 1 ? 'schedule' : 'schedules'}</p>
+      <h3 class="section-title">Schedules</h3>
+      <p class="text-lighter section-subtitle">{schedules.length} {schedules.length === 1 ? 'schedule' : 'schedules'}</p>
     </div>
     {#if canCreateSchedule}
       <button
         type="button"
         onclick={() => { editSchedule = null; showModal = true; }}
-        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-primary-500 rounded-md hover:bg-primary-600 cursor-pointer"
       >
-        <IconPlus class="w-4 h-4" />
+        <IconPlus size={16} />
         Add
       </button>
     {/if}
   </div>
 
   {#if schedules.length === 0}
-    <div class="flex flex-col items-center py-12">
-      <IconClock class="w-12 h-12 text-muted-foreground mb-3" />
-      <p class="text-sm text-muted-foreground">No schedules configured</p>
+    <div class="vstack empty-state">
+      <IconClock size={48} class="text-lighter" />
+      <p class="text-light">No schedules configured</p>
       {#if canCreateSchedule}
         <button
           type="button"
+          data-variant="secondary"
           onclick={() => { editSchedule = null; showModal = true; }}
-          class="mt-3 text-sm text-primary-600 hover:text-primary-700 font-medium cursor-pointer"
         >
           Create your first schedule
         </button>
       {/if}
     </div>
   {:else}
-    <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-border">
-        <thead class="bg-muted">
+    <div class="table-wrap">
+      <table>
+        <thead>
           <tr>
-            <th scope="col" class="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Cron</th>
-            <th scope="col" class="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Timezone</th>
-            <th scope="col" class="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Type</th>
-            <th scope="col" class="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
-            <th scope="col" class="px-4 py-2.5 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider w-20">Actions</th>
+            <th>Cron</th>
+            <th>Timezone</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th class="actions-col">Actions</th>
           </tr>
         </thead>
-        <tbody class="bg-card divide-y divide-border">
+        <tbody>
           {#each schedules as schedule}
-            <tr class="hover:bg-muted transition-colors">
-              <td class="px-4 py-3 whitespace-nowrap">
-                <code class="bg-subtle px-2 py-0.5 rounded text-xs font-mono text-foreground">{schedule.cron}</code>
+            <tr>
+              <td>
+                <code>{schedule.cron}</code>
               </td>
-              <td class="px-4 py-3 whitespace-nowrap text-sm text-foreground">{schedule.timezone}</td>
-              <td class="px-4 py-3 whitespace-nowrap">
-                <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded {schedule.is_user_created ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}">
+              <td>{schedule.timezone}</td>
+              <td>
+                <span class="badge {schedule.is_user_created ? 'success' : 'info'}">
                   {schedule.is_user_created ? 'User' : 'System'}
                 </span>
               </td>
-              <td class="px-4 py-3 whitespace-nowrap">
+              <td>
                 {#if schedule.is_user_created}
-                  <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded {schedule.is_active ? 'bg-success-100 text-success-800' : 'bg-subtle text-foreground'}">
+                  <span class="badge {schedule.is_active ? 'success' : ''}">
                     {schedule.is_active ? 'Active' : 'Inactive'}
                   </span>
                 {:else}
-                  <span class="text-sm text-muted-foreground">-</span>
+                  <span class="text-lighter">-</span>
                 {/if}
               </td>
-              <td class="px-4 py-3 whitespace-nowrap text-right relative">
+              <td class="actions-col">
                 {#if canCreateSchedule && canEdit(schedule)}
-                  <div class="inline-flex justify-end">
+                  <div class="actions-wrapper">
                     <DropdownMenu items={getMenuItems(schedule)} />
                   </div>
                 {:else}
-                  <span class="text-muted-foreground">-</span>
+                  <span class="text-lighter">-</span>
                 {/if}
               </td>
             </tr>
@@ -205,3 +204,57 @@
     onClose={() => { showViewModal = false; viewSchedule = null; }}
   />
 {/if}
+
+<style>
+  .card {
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--card);
+  }
+  .card-header {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--foreground);
+  }
+  .section-subtitle {
+    font-size: 0.75rem;
+    margin-top: 0.125rem;
+  }
+  .empty-state {
+    align-items: center;
+    padding: 3rem 1rem;
+    gap: 0.75rem;
+  }
+  .table-wrap {
+    overflow-x: auto;
+  }
+  .actions-col {
+    text-align: right;
+    width: 5rem;
+  }
+  .actions-wrapper {
+    display: inline-flex;
+    justify-content: flex-end;
+  }
+  .badge {
+    display: inline-flex;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 0.25rem;
+    background: var(--faint);
+    color: var(--foreground);
+  }
+  .badge.success {
+    background: var(--success);
+    color: white;
+  }
+  .badge.info {
+    background: var(--primary);
+    color: white;
+  }
+</style>

@@ -23,8 +23,6 @@
     onClose
   }: Props = $props();
 
-
-  // Form state
   let memberForm = $state<NamespaceMemberReq>({
     subject_type: 'user',
     subject_id: '',
@@ -34,34 +32,29 @@
   let selectedSubject = $state<User | Group | null>(null);
   let loading = $state(false);
 
-  // Group access state
   let memberPrefixes = $state<FlowGroupResp[]>([]);
   let prefixLoading = $state(false);
   let selectedPrefix = $state('');
+  let dialogEl: HTMLDialogElement;
 
-  // Initialize form data when memberData changes
   $effect(() => {
     if (isEditMode && memberData) {
-      // Pre-populate form with existing member data
       memberForm.subject_type = memberData.subject_type as 'user' | 'group';
       memberForm.subject_id = memberData.subject_id;
       memberForm.role = memberData.role as 'user' | 'operator' | 'reviewer' | 'admin';
 
-      // Create a selectedSubject object for the UserGroupSelector
       selectedSubject = {
         id: memberData.subject_id,
         name: memberData.subject_name,
-        username: memberData.subject_name // For users, this would be the username
+        username: memberData.subject_name
       } as User | Group;
 
-      // Load prefixes for this member
       loadMemberPrefixes();
     } else {
       resetForm();
     }
   });
 
-  // Auto-add prefix when selected via FlowGroupSelector
   $effect(() => {
     if (selectedPrefix) {
       const alreadyAssigned = memberPrefixes.some(p => p.prefix === selectedPrefix);
@@ -72,9 +65,14 @@
     }
   });
 
-  // Update subject_id when selectedSubject changes
   $effect(() => {
     memberForm.subject_id = selectedSubject?.id || '';
+  });
+
+  $effect(() => {
+    if (dialogEl) {
+      dialogEl.showModal();
+    }
   });
 
   async function loadMemberPrefixes() {
@@ -122,7 +120,6 @@
     try {
       loading = true;
 
-      // Basic client-side validation
       if (!selectedSubject) {
         handleInlineError(new Error('Please select a member'), 'Validation Error');
         return;
@@ -141,10 +138,6 @@
     }
   }
 
-  function handleClose() {
-    onClose();
-  }
-
   function resetForm() {
     memberForm = {
       subject_type: 'user',
@@ -155,154 +148,179 @@
     memberPrefixes = [];
     selectedPrefix = '';
   }
-
-  // Close on Escape key
-  function handleKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      handleClose();
-    }
-  }
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
+<dialog bind:this={dialogEl} onclose={onClose}>
+  <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+    <header>
+      <h3>{isEditMode ? 'Edit Member' : 'Add Member'}</h3>
+    </header>
 
-<!-- Modal Backdrop -->
-<div class="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4" onclick={handleClose} onkeydown={(e) => e.key === 'Escape' && handleClose()} role="dialog" aria-modal="true" tabindex="-1">
-  <!-- Modal Content -->
-  <div class="bg-card rounded-lg shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto" onclick={(e) => e.stopPropagation()}>
-      <div class="p-6">
-        <h3 class="font-bold text-lg mb-4 text-foreground">
-          {isEditMode ? 'Edit Member' : 'Add Member'}
-        </h3>
+    <section>
+      <!-- Subject Type Selection -->
+      <div data-field>
+        <label>Member Type *</label>
+        <select
+          bind:value={memberForm.subject_type}
+          onchange={onSubjectTypeChange}
+          required
+          disabled={loading || isEditMode}
+          use:autofocus
+        >
+          <option value="user">User</option>
+          <option value="group">Group</option>
+        </select>
+        {#if isEditMode}
+          <p class="text-lighter hint">Member type cannot be changed when editing.</p>
+        {/if}
+      </div>
 
-
-        <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
-          <!-- Subject Type Selection -->
-          <div class="mb-4">
-            <label class="block mb-1 font-medium text-foreground">Member Type *</label>
-            <select
-              bind:value={memberForm.subject_type}
-              onchange={onSubjectTypeChange}
-              class="bg-muted border border-input text-foreground text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent block w-full p-2.5"
-              required
-              disabled={loading || isEditMode}
-              use:autofocus
-            >
-              <option value="user">User</option>
-              <option value="group">Group</option>
-            </select>
-            {#if isEditMode}
-              <p class="text-xs text-muted-foreground mt-1">Member type cannot be changed when editing.</p>
-            {/if}
-          </div>
-
-          <!-- User/Group Selection -->
-          <div class="mb-4">
-            <label class="block mb-1 font-medium text-foreground">
-              {memberForm.subject_type === 'user' ? 'User' : 'Group'} *
-            </label>
-            {#if isEditMode && memberData}
-              <!-- Show selected member in edit mode -->
-              <div class="p-3 bg-muted rounded-lg border">
-                <div class="flex items-center">
-                  <div class="w-8 h-8 rounded-lg flex items-center justify-center mr-3 bg-primary-100">
-                    {#if memberData.subject_type === 'user'}
-                      <IconUser class="w-4 h-4 text-primary-600" />
-                    {:else}
-                      <IconUsers class="w-4 h-4 text-primary-600" />
-                    {/if}
-                  </div>
-                  <div>
-                    <div class="text-sm font-medium text-foreground">{memberData.subject_name}</div>
-                    <div class="text-xs text-muted-foreground">{memberData.subject_id}</div>
-                  </div>
-                </div>
-              </div>
-              <p class="text-xs text-muted-foreground mt-1">Member cannot be changed when editing.</p>
-            {:else}
-              <UserGroupSelector
-                bind:type={memberForm.subject_type}
-                bind:selectedSubject={selectedSubject}
-                placeholder="Search {memberForm.subject_type}s..."
-                disabled={loading}
-              />
-            {/if}
-          </div>
-
-          <!-- Role Selection -->
-          <div class="mb-4">
-            <label class="block mb-1 font-medium text-foreground">Role *</label>
-            <select
-              bind:value={memberForm.role}
-              class="bg-muted border border-input text-foreground text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent block w-full p-2.5"
-              required
-              disabled={loading}
-            >
-              <option value="user">User - Can view and trigger flows</option>
-              <option value="operator">Operator - Can view and trigger accessible flows and see all executions</option>
-              <option value="reviewer">Reviewer - Can approve flows and view all content</option>
-              <option value="admin">Admin - Full access to namespace management</option>
-            </select>
-          </div>
-
-          <!-- Prefix Access (edit mode, user/operator role only) -->
-          {#if isEditMode && memberData && ['user', 'operator'].includes(memberData.role) && ['user', 'operator'].includes(memberForm.role)}
-            <div class="mb-4">
-              <p class="text-xs text-muted-foreground mb-2">
-                {memberForm.role === 'operator' ? 'Operators' : 'Users'} can only see ungrouped flows by default. Grant access to specific groups below.
-              </p>
-
-              <!-- Current prefixes -->
-              {#if memberPrefixes.length > 0}
-                <div class="flex flex-wrap gap-2 mb-3">
-                  {#each memberPrefixes as prefix}
-                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-sm bg-primary-100 text-primary-700">
-                      <IconFolder class="w-3.5 h-3.5" />
-                      {prefix.prefix}
-                      <button
-                        type="button"
-                        onclick={() => removePrefix(prefix.prefix)}
-                        disabled={prefixLoading}
-                        class="ml-0.5 hover:text-danger-600 cursor-pointer disabled:opacity-50"
-                        title="Remove access"
-                      >
-                        <IconX class="w-3.5 h-3.5" />
-                      </button>
-                    </span>
-                  {/each}
-                </div>
+      <!-- User/Group Selection -->
+      <div data-field>
+        <label>
+          {memberForm.subject_type === 'user' ? 'User' : 'Group'} *
+        </label>
+        {#if isEditMode && memberData}
+          <div class="selected-member hstack gap-2">
+            <div class="member-icon">
+              {#if memberData.subject_type === 'user'}
+                <IconUser size={16} />
+              {:else}
+                <IconUsers size={16} />
               {/if}
+            </div>
+            <div>
+              <div class="member-name">{memberData.subject_name}</div>
+              <div class="text-lighter member-id">{memberData.subject_id}</div>
+            </div>
+          </div>
+          <p class="text-lighter hint">Member cannot be changed when editing.</p>
+        {:else}
+          <UserGroupSelector
+            bind:type={memberForm.subject_type}
+            bind:selectedSubject={selectedSubject}
+            placeholder="Search {memberForm.subject_type}s..."
+            disabled={loading}
+          />
+        {/if}
+      </div>
 
-              <!-- Add group access -->
-              <FlowGroupSelector {namespace} bind:value={selectedPrefix} allowCreate={false} />
+      <!-- Role Selection -->
+      <div data-field>
+        <label>Role *</label>
+        <select
+          bind:value={memberForm.role}
+          required
+          disabled={loading}
+        >
+          <option value="user">User - Can view and trigger flows</option>
+          <option value="operator">Operator - Can view and trigger accessible flows and see all executions</option>
+          <option value="reviewer">Reviewer - Can approve flows and view all content</option>
+          <option value="admin">Admin - Full access to namespace management</option>
+        </select>
+      </div>
+
+      <!-- Prefix Access (edit mode, user/operator role only) -->
+      {#if isEditMode && memberData && ['user', 'operator'].includes(memberData.role) && ['user', 'operator'].includes(memberForm.role)}
+        <div>
+          <p class="text-lighter hint mb-2">
+            {memberForm.role === 'operator' ? 'Operators' : 'Users'} can only see ungrouped flows by default. Grant access to specific groups below.
+          </p>
+
+          {#if memberPrefixes.length > 0}
+            <div class="prefix-list hstack gap-1 mb-2">
+              {#each memberPrefixes as prefix}
+                <span class="prefix-tag hstack gap-1">
+                  <IconFolder size={14} />
+                  {prefix.prefix}
+                  <button
+                    type="button"
+                    data-variant="danger"
+                    class="prefix-remove"
+                    onclick={() => removePrefix(prefix.prefix)}
+                    disabled={prefixLoading}
+                    title="Remove access"
+                  >
+                    <IconX size={14} />
+                  </button>
+                </span>
+              {/each}
             </div>
           {/if}
 
-          <!-- Actions -->
-          <div class="flex justify-end gap-2 mt-6">
-            <button
-              type="button"
-              onclick={handleClose}
-              class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-foreground bg-subtle rounded-lg hover:bg-subtle-hover disabled:opacity-50 cursor-pointer"
-              disabled={loading}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600 focus:ring-4 focus:outline-none focus:ring-primary-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            >
-              {#if loading}
-                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-              {/if}
-              {isEditMode ? 'Update' : 'Add'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-</div>
+          <FlowGroupSelector {namespace} bind:value={selectedPrefix} allowCreate={false} />
+        </div>
+      {/if}
+    </section>
+
+    <footer>
+      <button
+        type="button"
+        data-variant="secondary"
+        onclick={onClose}
+        disabled={loading}
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        disabled={loading}
+        aria-busy={loading}
+      >
+        {isEditMode ? 'Update' : 'Add'}
+      </button>
+    </footer>
+  </form>
+</dialog>
+
+<style>
+  dialog {
+    max-width: 32rem;
+    width: 100%;
+  }
+  .mb-2 { margin-bottom: 0.5rem; }
+  .hint {
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+  }
+  .selected-member {
+    padding: 0.75rem;
+    background: var(--faint);
+    border-radius: 0.5rem;
+    border: 1px solid var(--border);
+  }
+  .member-icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--faint);
+    color: var(--primary);
+  }
+  .member-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--foreground);
+  }
+  .member-id {
+    font-size: 0.75rem;
+  }
+  .prefix-list {
+    flex-wrap: wrap;
+  }
+  .prefix-tag {
+    padding: 0.25rem 0.625rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    background: var(--faint);
+    color: var(--primary);
+  }
+  .prefix-remove {
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+  }
+</style>

@@ -79,7 +79,7 @@
 			header: 'Flow Name',
 			sortable: true,
 			render: (_value: any, approval: ApprovalResp) => `
-				<div class="text-sm font-medium text-foreground">${approval.flow_name}</div>
+				<span class="text-sm font-medium">${approval.flow_name}</span>
 			`
 		},
 		{
@@ -87,7 +87,7 @@
 			header: 'Created',
 			sortable: true,
 			render: (_value: any, approval: ApprovalResp) => `
-			    <div class="text-sm text-muted-foreground">${formatDateTime(approval.created_at)}</div>
+			    <span class="cell-muted">${formatDateTime(approval.created_at)}</span>
 			`
 		},
 		{
@@ -95,7 +95,7 @@
 			header: 'Requested By',
 			sortable: true,
 			render: (_value: any, approval: ApprovalResp) => `
-				<div class="text-sm font-medium text-foreground">${approval.requested_by}</div>
+				<span class="text-sm font-medium">${approval.requested_by}</span>
 			`
 		},
 		{
@@ -103,7 +103,7 @@
 			header: 'Execution',
 			sortable: true,
 			render: (_value: any, approval: ApprovalResp) => `
-				<span class="font-mono text-sm text-muted-foreground">${approval.exec_id.substring(0, 8)}</span>
+				<span class="cell-mono">${approval.exec_id.substring(0, 8)}</span>
 			`
 		},
 		{
@@ -206,7 +206,7 @@
   {/snippet}
 </Header>
 
-<div class="p-12">
+<div class="page-content">
 	<!-- Page Header -->
 	<PageHeader
 		title="Approvals"
@@ -214,7 +214,7 @@
 	/>
 
 	<!-- Statistics Cards -->
-	<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+	<div class="stat-grid mb-4">
 		<StatCard
 			title="Total Approvals"
 			value={totalCount}
@@ -242,13 +242,13 @@
 	</div>
 
 	<!-- Approvals Table -->
-	<div class="pt-6">
+	<div class="mt-4">
 		<Table
 			data={approvals}
 			columns={tableColumns}
 			{loading}
 			emptyMessage="No approvals found. Approvals will appear here when workflows require approval."
-			emptyIcon='<svg class="w-16 h-16 text-muted-foreground mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			emptyIcon='<svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
 			</svg>'
 		/>
@@ -274,3 +274,38 @@
 		onReject={handleReject}
 	/>
 {/if}
+
+<style>
+	.page-content {
+		padding: 3rem;
+	}
+
+	.stat-grid {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 1.5rem;
+	}
+
+	@media (max-width: 768px) {
+		.stat-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	@media (max-width: 480px) {
+		.stat-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	:global(.cell-muted) {
+		font-size: 0.875rem;
+		color: var(--muted-foreground);
+	}
+
+	:global(.cell-mono) {
+		font-family: monospace;
+		font-size: 0.875rem;
+		color: var(--muted-foreground);
+	}
+</style>

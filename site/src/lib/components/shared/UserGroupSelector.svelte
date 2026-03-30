@@ -3,7 +3,7 @@
   import { handleInlineError } from '$lib/utils/errorHandling';
   import type { User, Group } from '$lib/types';
   import { IconUsers, IconUser } from '@tabler/icons-svelte';
-  
+
   let {
     type = $bindable('user'),
     selectedSubject = $bindable(null),
@@ -86,84 +86,77 @@
 <svelte:window onclick={handleOutsideClick} />
 
 <div class="user-group-selector">
-  <div class="relative">
+  <div class="selector-field">
     <input
       type="text"
       bind:value={searchQuery}
       oninput={loadSubjects}
       onfocus={handleFocus}
       {placeholder}
-      class="bg-muted border border-input text-foreground text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent block w-full p-2.5 pr-10"
+      aria-busy={loading}
       autocomplete="off"
       {disabled}
     />
-    
-    {#if loading}
-      <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
-        <svg class="animate-spin h-4 w-4 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-      </div>
-    {:else}
-      <svg class="w-5 h-5 absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+    {#if !loading}
+      <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
       </svg>
     {/if}
-    
+
     <!-- Dropdown -->
     {#if showDropdown}
-      <div class="absolute z-10 w-full mt-1 bg-card border border-input rounded-lg shadow-lg max-h-48 overflow-y-auto">
+      <div class="dropdown-menu">
         {#if searchResults.length > 0}
           {#each searchResults as subject}
             <button
               type="button"
-              class="w-full px-4 py-2 hover:bg-muted cursor-pointer border-b border-border last:border-b-0 text-left"
+              class="dropdown-item"
               onclick={() => selectSubject(subject)}
             >
-              <div class="flex items-center">
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center mr-3 bg-primary-50">
+              <div class="hstack">
+                <div class="item-icon">
                   {#if type === 'user'}
-                    <IconUser class="w-4 h-4 text-primary-600" />
+                    <IconUser size={16} />
                   {:else}
-                    <IconUsers class="w-4 h-4 text-primary-600" />
+                    <IconUsers size={16} />
                   {/if}
                 </div>
                 <div>
-                  <div class="text-sm font-medium text-foreground">{'name' in subject ? subject.name : subject.username}</div>
-                  <div class="text-xs text-muted-foreground">{subject.id}</div>
+                  <div class="item-name">{'name' in subject ? subject.name : subject.username}</div>
+                  <div class="text-lighter item-desc">{subject.id}</div>
                 </div>
               </div>
             </button>
           {/each}
         {:else if !loading}
-          <div class="px-4 py-3 text-sm text-muted-foreground text-center">
+          <div class="dropdown-empty text-lighter">
             {type === 'user' ? 'No users found' : 'No groups found'}
           </div>
         {/if}
       </div>
     {/if}
   </div>
-  
+
   <!-- Selected subject display -->
   {#if selectedSubject}
-    <div class="mt-2 p-2 bg-muted rounded-lg border">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center">
-          <div class="w-8 h-8 rounded-lg flex items-center justify-center mr-3 bg-primary-50">
+    <div class="selected-subject mt-2">
+      <div class="hstack justify-between">
+        <div class="hstack">
+          <div class="item-icon">
             {#if type === 'user'}
-              <IconUser class="w-4 h-4 text-primary-600" />
+              <IconUser size={16} />
             {:else}
-              <IconUsers class="w-4 h-4 text-primary-600" />
+              <IconUsers size={16} />
             {/if}
           </div>
           <div>
-            <div class="text-sm font-medium text-foreground">{'name' in selectedSubject ? selectedSubject.name : selectedSubject.username}</div>
-            <div class="text-xs text-muted-foreground">{selectedSubject.id}</div>
+            <div class="item-name">{'name' in selectedSubject ? selectedSubject.name : selectedSubject.username}</div>
+            <div class="text-lighter item-desc">{selectedSubject.id}</div>
           </div>
         </div>
-        <button type="button" onclick={clearSelection} class="text-muted-foreground hover:text-foreground" {disabled}>
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button type="button" onclick={clearSelection} class="clear-btn" {disabled} aria-label="Clear selection">
+          <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
         </button>
@@ -171,3 +164,111 @@
     </div>
   {/if}
 </div>
+
+<style>
+  .selector-field {
+    position: relative;
+  }
+
+  .selector-field input {
+    width: 100%;
+    padding-right: 2.5rem;
+  }
+
+  .search-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted-foreground);
+    pointer-events: none;
+  }
+
+  .dropdown-menu {
+    position: absolute;
+    z-index: 10;
+    width: 100%;
+    margin-top: 0.25rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-height: 12rem;
+    overflow-y: auto;
+  }
+
+  .dropdown-item {
+    width: 100%;
+    text-align: left;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    background: none;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    border-radius: 0;
+    color: var(--foreground);
+  }
+
+  .dropdown-item:last-child {
+    border-bottom: none;
+  }
+
+  .dropdown-item:hover {
+    background: var(--faint);
+  }
+
+  .item-icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.75rem;
+    background: var(--faint);
+    color: var(--primary);
+  }
+
+  .item-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--foreground);
+  }
+
+  .item-desc {
+    font-size: 0.75rem;
+  }
+
+  .dropdown-empty {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    text-align: center;
+  }
+
+  .selected-subject {
+    padding: 0.5rem;
+    background: var(--faint);
+    border-radius: 0.5rem;
+    border: 1px solid var(--border);
+  }
+
+  .clear-btn {
+    all: unset;
+    cursor: pointer;
+    display: flex;
+    color: var(--muted-foreground);
+  }
+
+  .clear-btn:hover {
+    color: var(--foreground);
+  }
+
+  .icon-sm {
+    width: 1rem;
+    height: 1rem;
+  }
+</style>

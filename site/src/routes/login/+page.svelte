@@ -53,10 +53,10 @@
   <title>Login - Flowctl</title>
 </svelte:head>
 
-<main class="min-h-screen flex items-center justify-center bg-muted px-4 relative">
-  <section class="w-full max-w-md">
+<main class="login-page">
+  <section class="login-container">
     <div class="mb-8 flex justify-center p-4">
-      <Logo height="h-14" />
+      <Logo height="3.5rem" />
     </div>
     <LoginCard
       onSubmit={submit}
@@ -68,7 +68,30 @@
     />
     <Footer />
   </section>
-  <div class="absolute bottom-4 right-4">
+  <div class="theme-toggle-pos">
     <ThemeToggle collapsed={true} />
   </div>
 </main>
+
+<style>
+  .login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--muted);
+    padding-inline: var(--space-4);
+    position: relative;
+  }
+
+  .login-container {
+    width: 100%;
+    max-width: 28rem;
+  }
+
+  .theme-toggle-pos {
+    position: absolute;
+    bottom: var(--space-4);
+    right: var(--space-4);
+  }
+</style>

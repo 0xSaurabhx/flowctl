@@ -37,54 +37,25 @@
     )
   );
 
-  const getStatusClasses = (status: StepStatus) => {
+  const getStatusClass = (status: StepStatus) => {
     switch (status) {
-      case 'failed':
-        return 'bg-danger-50 text-danger-700';
-      case 'completed':
-        return 'bg-success-50 text-success-700';
-      case 'running':
-        return 'bg-primary-50 text-primary-700';
-      case 'awaiting_approval':
-        return 'bg-warning-50 text-warning-700';
-      case 'cancelled':
-        return 'bg-subtle text-foreground';
-      default:
-        return 'bg-muted text-muted-foreground';
-    }
-  };
-
-  const getIconClasses = (status: StepStatus) => {
-    switch (status) {
-      case 'failed':
-        return 'bg-danger-500 text-white';
-      case 'completed':
-        return 'bg-success-500 text-white';
-      case 'running':
-        return 'bg-primary-500 text-white animate-pulse';
-      case 'awaiting_approval':
-        return 'bg-warning-500 text-white';
-      case 'cancelled':
-        return 'bg-muted text-white';
-      default:
-        return 'bg-muted-foreground text-white';
+      case 'failed': return 'status-failed';
+      case 'completed': return 'status-completed';
+      case 'running': return 'status-running';
+      case 'awaiting_approval': return 'status-waiting';
+      case 'cancelled': return 'status-cancelled';
+      default: return 'status-pending';
     }
   };
 
   const getIcon = (status: StepStatus) => {
     switch (status) {
-      case 'failed':
-        return IconX;
-      case 'completed':
-        return IconCheck;
-      case 'running':
-        return IconPlayerPlay;
-      case 'awaiting_approval':
-        return IconClockPause;
-      case 'cancelled':
-        return IconCircle;
-      default:
-        return IconMinus;
+      case 'failed': return IconX;
+      case 'completed': return IconCheck;
+      case 'running': return IconPlayerPlay;
+      case 'awaiting_approval': return IconClockPause;
+      case 'cancelled': return IconCircle;
+      default: return IconMinus;
     }
   };
 
@@ -93,49 +64,44 @@
   };
 </script>
 
-<div class="flex flex-col h-full bg-card rounded-lg border border-input overflow-hidden">
+<div class="actions-panel card">
   <!-- Header with Search -->
-  <div class="flex-shrink-0 sticky top-0 bg-card border-b border-input px-6 py-5 space-y-4 z-10">
-    <h2 class="text-base font-semibold text-foreground">Actions</h2>
+  <div class="panel-header">
+    <h2>Actions</h2>
 
     <!-- Search Input -->
-    <div class="relative">
-      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-        <IconSearch size={18} class="text-muted-foreground" />
+    <div class="search-wrapper">
+      <div class="search-icon">
+        <IconSearch size={18} />
       </div>
       <input
         type="text"
         bind:value={searchQuery}
         placeholder="Search actions..."
-        class="w-full pl-10 pr-4 py-2 text-sm text-foreground bg-card border border-input rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+        class="search-input"
       />
     </div>
   </div>
 
   <!-- Actions List -->
-  <div class="overflow-y-scroll p-4 min-h-128 max-h-128">
+  <div class="actions-list">
     {#if filteredActions.length === 0}
-      <div class="text-center py-8 text-muted-foreground text-sm">
+      <div class="empty-msg text-lighter">
         {searchQuery ? 'No actions found' : 'No actions available'}
       </div>
     {:else}
-      <div class="space-y-3">
+      <div class="vstack gap-2">
         {#each filteredActions as action (action.id)}
           <button
             type="button"
             onclick={() => handleActionClick(action.id)}
-            class="w-full text-left p-4 rounded-lg border transition-all duration-200 cursor-pointer {getStatusClasses(action.status)}"
-            class:border-border={selectedActionId !== action.id}
-            class:border-2={selectedActionId !== action.id}
+            class="action-item {getStatusClass(action.status)}"
+            class:selected={selectedActionId === action.id}
           >
-            <div class="flex items-center justify-between gap-3">
-              <div class="flex-1 min-w-0">
-                <p class="font-medium text-sm truncate">{action.name}</p>
-              </div>
-              <div class="flex-shrink-0">
-                <div class="rounded-full p-1.5 {getIconClasses(action.status)}">
-                  <svelte:component this={getIcon(action.status)} size={16} />
-                </div>
+            <div class="hstack gap-2 justify-between">
+              <div class="action-name">{action.name}</div>
+              <div class="status-icon {getStatusClass(action.status)}">
+                <svelte:component this={getIcon(action.status)} size={16} />
               </div>
             </div>
           </button>
@@ -144,3 +110,145 @@
     {/if}
   </div>
 </div>
+
+<style>
+  .actions-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--card);
+    overflow: hidden;
+  }
+  .panel-header {
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    z-index: 10;
+  }
+  .panel-header h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--foreground);
+  }
+  .search-wrapper {
+    position: relative;
+  }
+  .search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted-foreground);
+    pointer-events: none;
+  }
+  .search-input {
+    width: 100%;
+    padding-left: 2.5rem;
+  }
+  .actions-list {
+    overflow-y: scroll;
+    padding: 1rem;
+    min-height: 32rem;
+    max-height: 32rem;
+  }
+  .empty-msg {
+    text-align: center;
+    padding: 2rem 0;
+    font-size: 0.875rem;
+  }
+  .action-item {
+    all: unset;
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 2px solid var(--border);
+    background: var(--card);
+    color: var(--foreground);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .action-item.selected {
+    border-width: 2px;
+    border-color: var(--primary);
+  }
+  .action-name {
+    font-weight: 500;
+    font-size: 0.875rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    flex: 1;
+  }
+  .status-icon {
+    border-radius: 9999px;
+    padding: 0.375rem;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .status-failed {
+    background: color-mix(in srgb, var(--danger) 10%, transparent);
+    color: var(--danger);
+  }
+  .status-failed.status-icon {
+    background: var(--danger);
+    color: white;
+  }
+  .status-completed {
+    background: color-mix(in srgb, var(--success) 10%, transparent);
+    color: var(--success);
+  }
+  .status-completed.status-icon {
+    background: var(--success);
+    color: white;
+  }
+  .status-running {
+    background: color-mix(in srgb, var(--primary) 10%, transparent);
+    color: var(--primary);
+  }
+  .status-running.status-icon {
+    background: var(--primary);
+    color: white;
+    animation: pulse 2s infinite;
+  }
+  .status-waiting {
+    background: color-mix(in srgb, var(--warning) 10%, transparent);
+    color: var(--warning);
+  }
+  .status-waiting.status-icon {
+    background: var(--warning);
+    color: white;
+  }
+  .status-cancelled {
+    background: var(--faint);
+    color: var(--foreground);
+  }
+  .status-cancelled.status-icon {
+    background: #9ca3af;
+    color: white;
+  }
+  .status-pending {
+    background: var(--faint);
+    color: var(--muted-foreground);
+  }
+  .status-pending.status-icon {
+    background: #6b7280;
+    color: white;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+</style>

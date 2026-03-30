@@ -12,64 +12,108 @@
     };
   } = $props();
 
+  let dialogEl: HTMLDialogElement;
+
   function close() {
     show = false;
+    dialogEl?.close();
   }
+
+  $effect(() => {
+    if (show && dialogEl) {
+      dialogEl.showModal();
+    }
+  });
 </script>
 
 {#if show}
-  <!-- Validation Result Modal -->
-  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-card rounded-xl p-6 max-w-2xl w-full mx-4">
-      <div class="flex items-center mb-4">
-        <div 
-          class="w-12 h-12 rounded-full flex items-center justify-center mr-4 {validationResult.success ? 'bg-success-100' : 'bg-danger-100'}"
-        >
+  <dialog bind:this={dialogEl} onclose={() => show = false}>
+    <header>
+      <div class="hstack gap-4">
+        <div class="result-icon" class:success={validationResult.success} class:danger={!validationResult.success}>
           {#if validationResult.success}
-            <svg class="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           {:else}
-            <svg class="w-6 h-6 text-danger-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           {/if}
         </div>
         <div>
-          <h3 class="text-lg font-semibold text-foreground">
-            {validationResult.success ? 'Validation Passed' : 'Validation Failed'}
-          </h3>
-          <p class="text-sm text-muted-foreground">
+          <h3>{validationResult.success ? 'Validation Passed' : 'Validation Failed'}</h3>
+          <p class="text-light">
             {validationResult.success ? 'Your flow definition is valid.' : 'Please fix the following issues:'}
           </p>
         </div>
       </div>
+    </header>
 
-      {#if !validationResult.success && validationResult.errors.length > 0}
-        <div class="space-y-2 mb-4">
+    {#if !validationResult.success && validationResult.errors.length > 0}
+      <section>
+        <div class="vstack gap-2">
           {#each validationResult.errors as error}
-            <div class="flex items-start gap-2 text-sm">
-              <svg class="w-4 h-4 text-danger-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="hstack gap-2 error-item">
+              <svg class="error-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span class="text-foreground">{error}</span>
+              <span>{error}</span>
             </div>
           {/each}
         </div>
-      {/if}
+      </section>
+    {/if}
 
-      <div class="flex justify-end">
-        <button
-          onclick={close}
-          class="px-4 py-2 bg-subtle text-foreground rounded-md hover:bg-muted transition-colors cursor-pointer"
-          use:autofocus
-        >
-          Close
-        </button>
-      </div>
-    </div>
-  </div>
+    <footer>
+      <button
+        data-variant="secondary"
+        onclick={close}
+        use:autofocus
+      >
+        Close
+      </button>
+    </footer>
+  </dialog>
 {/if}
+
+<style>
+  dialog {
+    max-width: 42rem;
+    width: 100%;
+  }
+  .result-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .result-icon.success {
+    background: var(--success);
+    color: white;
+  }
+  .result-icon.danger {
+    background: var(--danger);
+    color: white;
+  }
+  .icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  .error-item {
+    font-size: 0.875rem;
+    align-items: flex-start;
+  }
+  .error-icon {
+    width: 1rem;
+    height: 1rem;
+    color: var(--danger);
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+  }
+</style>

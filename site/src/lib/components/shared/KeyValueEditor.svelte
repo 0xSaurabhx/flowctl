@@ -67,54 +67,84 @@
     }
 </script>
 
-<div class="space-y-2">
+<div class="vstack gap-2">
     {#each pairs as pair, i}
-        <div class="flex items-center gap-2">
+        <div class="hstack gap-2">
             <input
                 type="text"
                 value={pair.name}
                 oninput={(e) => handleKeyInput(e, i)}
                 placeholder={keyPlaceholder}
-                class="flex-1 px-3 py-2 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm font-mono"
+                class="kv-input font-mono"
             />
-            <span class="text-muted-foreground">=</span>
+            <span class="text-lighter">=</span>
             <input
                 type="text"
                 value={pair.value}
                 oninput={(e) => handleValueInput(e, i)}
                 placeholder={valuePlaceholder}
-                class="flex-1 px-3 py-2 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm font-mono"
+                class="kv-input font-mono"
             />
             {#if pairs.length > 1 || pair.name !== "" || pair.value !== ""}
                 <button
                     onclick={() => removePair(i)}
                     type="button"
-                    class="text-muted-foreground hover:text-danger-600 cursor-pointer"
+                    data-variant="danger"
+                    class="remove-btn"
+                    aria-label="Remove pair"
                 >
-                    <svg
-                        class="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12"
-                        />
+                    <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             {:else}
-                <div class="w-4"></div>
+                <div class="icon-sm"></div>
             {/if}
         </div>
     {/each}
     <button
         onclick={addPair}
         type="button"
-        class="text-xs text-primary-600 hover:text-primary-700 cursor-pointer"
+        data-variant="secondary"
+        class="add-btn"
     >
         + Add
     </button>
 </div>
+
+<style>
+    .kv-input {
+        flex: 1;
+    }
+
+    .remove-btn {
+        padding: 0.25rem;
+        background: none;
+        border: none;
+        color: var(--muted-foreground);
+        cursor: pointer;
+    }
+
+    .remove-btn:hover {
+        color: var(--danger);
+    }
+
+    .icon-sm {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    .add-btn {
+        font-size: 0.75rem;
+        align-self: flex-start;
+        padding: 0.25rem 0.5rem;
+        background: none;
+        border: none;
+        color: var(--primary);
+        cursor: pointer;
+    }
+
+    .add-btn:hover {
+        text-decoration: underline;
+    }
+</style>

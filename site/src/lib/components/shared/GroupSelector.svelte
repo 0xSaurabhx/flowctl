@@ -4,7 +4,7 @@
   import { handleInlineError } from '$lib/utils/errorHandling';
   import type { Group } from '$lib/types';
   import { IconChevronDown, IconUsersGroup, IconX } from '@tabler/icons-svelte';
-  
+
   let {
     selectedGroups = $bindable([]),
     placeholder = 'Search groups...',
@@ -26,7 +26,7 @@
 
   async function loadAllGroups() {
     if (initialized) return;
-    
+
     loading = true;
     try {
       const response = await apiClient.groups.list({
@@ -48,7 +48,7 @@
     if (!searchQuery.trim()) {
       searchResults = allGroups;
     } else {
-      searchResults = allGroups.filter(group => 
+      searchResults = allGroups.filter(group =>
         group.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (group.description && group.description.toLowerCase().includes(searchQuery.toLowerCase()))
       );
@@ -98,75 +98,69 @@
 <svelte:window on:click={handleOutsideClick} />
 
 <div class="group-selector">
-  <div class="relative">
-    <input 
+  <div class="selector-field">
+    <input
       type="text"
       bind:value={searchQuery}
       oninput={handleInput}
       onfocus={handleFocus}
       {placeholder}
-      class="w-full px-3 py-2 text-foreground bg-card border border-input rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 pr-10"
+      aria-busy={loading}
       autocomplete="off"
       {disabled}
     />
-    
+
     {#if loading}
-      <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
-        <svg class="animate-spin h-4 w-4 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-      </div>
+      <span class="field-icon" aria-busy="true"></span>
     {:else}
-      <IconChevronDown class="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
+      <IconChevronDown class="field-icon" size={16} />
     {/if}
-    
+
     <!-- Dropdown -->
     {#if showDropdown}
-      <div class="absolute z-20 w-full mt-2 bg-card border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+      <div class="dropdown-menu" role="listbox">
         {#if searchResults.length > 0}
           {#each searchResults as group}
             <!-- Skip already selected groups -->
             {#if !selectedGroups.some(g => g.id === group.id)}
-              <div 
-                class="px-4 py-2 hover:bg-muted cursor-pointer border-b border-border last:border-b-0"
+              <div
+                class="dropdown-item"
                 onclick={() => selectGroup(group)}
-                role="button"
+                role="option"
                 tabindex="0"
                 onkeydown={(e) => e.key === 'Enter' && selectGroup(group)}
               >
-                <div class="flex items-center">
-                  <div class="w-8 h-8 rounded-lg flex items-center justify-center mr-3 bg-primary-50">
-                    <IconUsersGroup class="text-primary-500" size={16} />
+                <div class="hstack">
+                  <div class="item-icon">
+                    <IconUsersGroup size={16} />
                   </div>
                   <div>
-                    <div class="text-sm font-medium text-foreground">{group.name}</div>
-                    <div class="text-xs text-muted-foreground">{group.description || 'No description'}</div>
+                    <div class="item-name">{group.name}</div>
+                    <div class="text-lighter item-desc">{group.description || 'No description'}</div>
                   </div>
                 </div>
               </div>
             {/if}
           {/each}
         {:else if initialized && !loading}
-          <div class="px-4 py-2 text-sm text-muted-foreground text-center">
+          <div class="dropdown-empty text-lighter">
             {searchQuery ? 'No groups found' : 'No groups available'}
           </div>
         {/if}
       </div>
     {/if}
   </div>
-  
+
   <!-- Selected groups display -->
   {#if selectedGroups.length > 0}
-    <div class="mt-2 flex flex-wrap gap-1">
+    <div class="selected-items mt-2">
       {#each selectedGroups as group (group.id)}
-        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-50 text-primary-900">
+        <span class="badge">
           {group.name}
           {#if !disabled}
             <button
               type="button"
               onclick={() => removeGroup(group.id)}
-              class="ml-1 text-primary-500 hover:text-primary-900 cursor-pointer"
               aria-label="Remove {group.name}"
             >
               <IconX size={12} />
@@ -177,3 +171,101 @@
     </div>
   {/if}
 </div>
+
+<style>
+  .selector-field {
+    position: relative;
+  }
+
+  .selector-field input {
+    width: 100%;
+    padding-right: 2.5rem;
+  }
+
+  .selector-field :global(.field-icon) {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted-foreground);
+    pointer-events: none;
+  }
+
+  .dropdown-menu {
+    position: absolute;
+    z-index: 20;
+    width: 100%;
+    margin-top: 0.5rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-height: 12rem;
+    overflow-y: auto;
+  }
+
+  .dropdown-item {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dropdown-item:last-child {
+    border-bottom: none;
+  }
+
+  .dropdown-item:hover {
+    background: var(--faint);
+  }
+
+  .item-icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.75rem;
+    background: var(--faint);
+    color: var(--primary);
+  }
+
+  .item-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--foreground);
+  }
+
+  .item-desc {
+    font-size: 0.75rem;
+  }
+
+  .dropdown-empty {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    text-align: center;
+  }
+
+  .selected-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .selected-items .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .selected-items .badge button {
+    all: unset;
+    cursor: pointer;
+    display: flex;
+    color: var(--primary);
+  }
+
+  .selected-items .badge button:hover {
+    color: var(--foreground);
+  }
+</style>

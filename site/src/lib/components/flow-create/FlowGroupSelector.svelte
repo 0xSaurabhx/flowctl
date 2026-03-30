@@ -75,31 +75,26 @@
 <svelte:window onclick={handleOutsideClick} />
 
 <div class="flow-group-selector">
-    <label
-        for="flow-group"
-        class="block text-sm font-medium text-foreground mb-2"
-    >
+    <label for="flow-group">
         Group
-        <span class="text-sm text-muted-foreground font-normal">(optional)</span
-        >
+        <span class="text-lighter label-hint">(optional)</span>
     </label>
 
     {#if value}
-        <div
-            class="flex items-center gap-2 px-3 py-2 bg-card border border-input rounded-md"
-        >
-            <IconFolder class="w-4 h-4 text-muted-foreground" />
-            <span class="text-sm text-foreground flex-1">{value}</span>
+        <div class="selected-group hstack gap-2">
+            <IconFolder size={16} class="text-lighter" />
+            <span class="selected-name">{value}</span>
             <button
                 type="button"
+                data-variant="secondary"
+                class="clear-btn"
                 onclick={clear}
-                class="text-muted-foreground hover:text-foreground cursor-pointer"
             >
-                <IconX class="w-4 h-4" />
+                <IconX size={16} />
             </button>
         </div>
     {:else}
-        <div class="relative">
+        <div class="dropdown-wrapper">
             <input
                 type="text"
                 id="flow-group"
@@ -107,89 +102,45 @@
                 oninput={loadGroups}
                 onfocus={handleFocus}
                 placeholder={allowCreate ? "Search or create a group..." : "Search groups..."}
-                class="w-full px-3 py-2 text-sm text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 autocomplete="off"
             />
 
             {#if loading}
-                <div
-                    class="absolute right-3 top-1/2 transform -translate-y-1/2"
-                >
-                    <svg
-                        class="animate-spin h-4 w-4 text-muted-foreground"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                    >
-                        <circle
-                            class="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            stroke-width="4"
-                        ></circle>
-                        <path
-                            class="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                    </svg>
-                </div>
+                <div class="spinner-overlay" aria-busy="true"></div>
             {/if}
 
             {#if showDropdown}
-                <div
-                    class="absolute z-10 w-full mt-1 bg-card border border-input rounded-lg shadow-lg max-h-48 overflow-y-auto"
-                >
+                <div class="dropdown-menu">
                     {#if showCreateOption}
                         <button
                             type="button"
-                            class="w-full px-4 py-2 hover:bg-muted cursor-pointer border-b border-border text-left"
+                            class="dropdown-item create-item"
                             onclick={() => selectGroup(searchQuery.trim())}
                         >
-                            <div class="flex items-center gap-2">
-                                <IconPlus
-                                    class="w-4 h-4 text-primary-600"
-                                />
-                                <span class="text-sm text-foreground"
-                                    >Create "{searchQuery.trim()}"</span
-                                >
-                            </div>
+                            <IconPlus size={16} class="create-icon" />
+                            <span>Create "{searchQuery.trim()}"</span>
                         </button>
                     {/if}
                     {#if filteredGroups.length > 0}
                         {#each filteredGroups as group}
                             <button
                                 type="button"
-                                class="w-full px-4 py-2 hover:bg-muted cursor-pointer border-b border-border last:border-b-0 text-left"
+                                class="dropdown-item"
                                 onclick={() => selectGroup(group.prefix)}
                             >
-                                <div class="flex items-center gap-2">
-                                    <IconFolder
-                                        class="w-4 h-4 text-muted-foreground"
-                                    />
-                                    <div>
-                                        <div
-                                            class="text-sm font-medium text-foreground"
-                                        >
-                                            {group.prefix}
+                                <IconFolder size={16} class="text-lighter" />
+                                <div>
+                                    <div class="group-name">{group.prefix}</div>
+                                    {#if group.flow_count > 0}
+                                        <div class="text-lighter group-count">
+                                            {group.flow_count} flow{group.flow_count !== 1 ? "s" : ""}
                                         </div>
-                                        {#if group.flow_count > 0}
-                                            <div
-                                                class="text-xs text-muted-foreground"
-                                            >
-                                                {group.flow_count} flow{group.flow_count !== 1 ? "s" : ""}
-                                            </div>
-                                        {/if}
-                                    </div>
+                                    {/if}
                                 </div>
                             </button>
                         {/each}
                     {:else if !loading && !showCreateOption}
-                        <div
-                            class="px-4 py-3 text-sm text-muted-foreground text-center"
-                        >
+                        <div class="dropdown-empty text-lighter">
                             {allowCreate ? "No groups found. Type to create one." : "No groups found."}
                         </div>
                     {/if}
@@ -198,8 +149,103 @@
         </div>
     {/if}
 
-    <p class="text-xs text-muted-foreground mt-1">
+    <p class="text-lighter field-hint">
         Assign this flow to a group for organization. Groups are created
         automatically.
     </p>
 </div>
+
+<style>
+    .flow-group-selector {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    .label-hint {
+        font-weight: normal;
+        font-size: 0.875rem;
+    }
+    .selected-group {
+        padding: 0.5rem 0.75rem;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 0.375rem;
+    }
+    .selected-name {
+        flex: 1;
+        font-size: 0.875rem;
+        color: var(--foreground);
+    }
+    .clear-btn {
+        padding: 0.125rem;
+        border: none;
+        background: none;
+        color: var(--muted-foreground);
+        cursor: pointer;
+    }
+    .clear-btn:hover {
+        color: var(--foreground);
+    }
+    .dropdown-wrapper {
+        position: relative;
+    }
+    .spinner-overlay {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    .dropdown-menu {
+        position: absolute;
+        z-index: 10;
+        width: 100%;
+        margin-top: 0.25rem;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        max-height: 12rem;
+        overflow-y: auto;
+    }
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+        padding: 0.5rem 1rem;
+        border: none;
+        background: none;
+        cursor: pointer;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+    }
+    .dropdown-item:last-child {
+        border-bottom: none;
+    }
+    .dropdown-item:hover {
+        background: var(--faint);
+    }
+    .create-item {
+        border-bottom: 1px solid var(--border);
+    }
+    .create-icon {
+        color: var(--primary);
+    }
+    .group-name {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--foreground);
+    }
+    .group-count {
+        font-size: 0.75rem;
+    }
+    .dropdown-empty {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+        text-align: center;
+    }
+    .field-hint {
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+    }
+</style>

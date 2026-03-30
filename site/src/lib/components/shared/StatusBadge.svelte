@@ -6,47 +6,25 @@
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
-  const getStatusClasses = (status: string) => {
+  const getBadgeClass = (status: string) => {
     switch (status) {
       case 'completed':
       case 'approved':
-        return 'bg-badge-success-bg text-badge-success-text';
+        return 'success';
       case 'pending':
       case 'cancelled':
-        return 'bg-badge-warning-bg text-badge-warning-text';
+        return 'warning';
       case 'running':
-        return 'bg-badge-info-bg text-badge-info-text';
+        return '';
       case 'errored':
       case 'rejected':
-        return 'bg-badge-danger-bg text-badge-danger-text';
+        return 'danger';
       default:
-        return 'bg-subtle text-foreground';
-    }
-  };
-
-  const getDotClasses = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'bg-success-500';
-      case 'approved':
-        return 'bg-success-500';
-      case 'pending':
-        return 'bg-warning-500';
-      case 'running':
-        return 'bg-primary-500';
-      case 'cancelled':
-        return 'bg-warning-500';
-      case 'errored':
-        return 'bg-danger-500';
-      case 'rejected':
-        return 'bg-danger-500';
-      default:
-        return 'bg-muted-foreground';
+        return '';
     }
   };
 </script>
 
-<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getStatusClasses(value)}">
-  <span class="w-1.5 h-1.5 mr-1.5 rounded-full {getDotClasses(value)}"></span>
-  <span>{capitalizeStatus(value)}</span>
+<span class="badge {getBadgeClass(value)}">
+  {capitalizeStatus(value)}
 </span>

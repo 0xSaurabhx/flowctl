@@ -52,35 +52,89 @@
 
 <svelte:window on:click={handleOutsideClick} on:scroll={updateDropdownPosition} on:resize={updateDropdownPosition} />
 
-<div class="relative dropdown-menu-container">
+<div class="dropdown-menu-container">
   <button
     type="button"
     bind:this={buttonElement}
     onclick={toggleDropdown}
-    class="p-1 hover:bg-subtle rounded cursor-pointer"
+    class="dropdown-trigger"
     aria-label="Actions menu"
   >
-    <IconDotsVertical class="w-5 h-5 text-muted-foreground" />
+    <IconDotsVertical class="icon" />
   </button>
 
   {#if isOpen}
     <div
-      class="fixed w-36 bg-card rounded-md shadow-lg border border-border z-50"
+      class="dropdown-panel"
       style="top: {dropdownPosition.top}px; {position === 'right' ? `right: ${dropdownPosition.right}px` : `left: ${dropdownPosition.left}px`}"
       role="menu"
     >
-      <div class="py-1 flex flex-col">
-        {#each items as item}
-          <button
-            type="button"
-            onclick={() => handleItemClick(item)}
-            class="w-full text-left px-4 py-2 text-sm cursor-pointer block {item.variant === 'danger' ? 'text-danger-600 hover:bg-danger-50' : 'text-foreground hover:bg-subtle'}"
-            role="menuitem"
-          >
-            {item.label}
-          </button>
-        {/each}
-      </div>
+      {#each items as item}
+        <button
+          type="button"
+          onclick={() => handleItemClick(item)}
+          class="dropdown-item {item.variant === 'danger' ? 'danger' : ''}"
+          role="menuitem"
+        >
+          {item.label}
+        </button>
+      {/each}
     </div>
   {/if}
 </div>
+
+<style>
+  .dropdown-menu-container {
+    position: relative;
+  }
+
+  .dropdown-trigger {
+    all: unset;
+    cursor: pointer;
+    padding: var(--space-1);
+    border-radius: var(--radius-small);
+    display: inline-flex;
+    color: var(--muted-foreground);
+  }
+
+  .dropdown-trigger:hover {
+    background: var(--muted);
+  }
+
+  .dropdown-panel {
+    position: fixed;
+    z-index: 50;
+    width: 9rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-medium);
+    box-shadow: var(--shadow-large);
+    padding: var(--space-1) 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dropdown-item {
+    all: unset;
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: var(--space-2) var(--space-4);
+    font-size: 0.875rem;
+    color: var(--foreground);
+    cursor: pointer;
+    box-sizing: border-box;
+  }
+
+  .dropdown-item:hover {
+    background: var(--muted);
+  }
+
+  .dropdown-item.danger {
+    color: var(--danger);
+  }
+
+  .dropdown-item.danger:hover {
+    background: color-mix(in srgb, var(--danger) 10%, transparent);
+  }
+</style>

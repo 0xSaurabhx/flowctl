@@ -11,24 +11,15 @@
 	}
 
 	let { title, value, icon, IconComponent, iconSize = 24, color = 'blue' }: Props = $props();
-
-	const colorClasses = {
-		blue: 'bg-info-100 text-info-600',
-		green: 'bg-success-100 text-success-600',
-		purple: 'bg-primary-100 text-primary-600',
-		red: 'bg-danger-100 text-danger-600',
-		yellow: 'bg-warning-100 text-warning-600',
-		gray: 'bg-subtle text-muted-foreground'
-	};
 </script>
 
-<div class="bg-card rounded-lg border border-border p-6">
-	<div class="flex items-center justify-between">
+<div class="card">
+	<div class="hstack justify-between">
 		<div>
-			<p class="text-sm font-medium text-muted-foreground">{title}</p>
-			<p class="text-2xl font-bold text-foreground">{value}</p>
+			<p class="text-sm text-light">{title}</p>
+			<p class="stat-value">{value}</p>
 		</div>
-		<div class="w-12 h-12 {colorClasses[color]} rounded-lg flex items-center justify-center">
+		<div class="stat-icon {color}">
 			{#if IconComponent}
 				<IconComponent size={iconSize} />
 			{:else if icon}
@@ -37,3 +28,53 @@
 		</div>
 	</div>
 </div>
+
+<style>
+	.card {
+		padding: var(--space-6);
+	}
+
+	.stat-value {
+		font-size: 1.5rem;
+		font-weight: 700;
+	}
+
+	.stat-icon {
+		width: 3rem;
+		height: 3rem;
+		border-radius: var(--radius-medium);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.stat-icon.blue {
+		background: color-mix(in srgb, var(--primary) 15%, transparent);
+		color: var(--primary);
+	}
+
+	.stat-icon.green {
+		background: color-mix(in srgb, var(--success) 15%, transparent);
+		color: var(--success);
+	}
+
+	.stat-icon.purple {
+		background: color-mix(in srgb, var(--primary) 15%, transparent);
+		color: var(--primary);
+	}
+
+	.stat-icon.red {
+		background: color-mix(in srgb, var(--danger) 15%, transparent);
+		color: var(--danger);
+	}
+
+	.stat-icon.yellow {
+		background: color-mix(in srgb, var(--warning) 15%, transparent);
+		color: var(--warning);
+	}
+
+	.stat-icon.gray {
+		background: var(--muted);
+		color: var(--muted-foreground);
+	}
+</style>

@@ -57,6 +57,8 @@
   );
   const timezones = getTimezones();
 
+  let dialogEl: HTMLDialogElement;
+
   function validateCron() {
     if (!formData.cron.trim()) {
       cronError = 'Cron expression is required';
@@ -89,49 +91,48 @@
     }
   }
 
-  function handleKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape') onClose();
-  }
+  $effect(() => {
+    if (dialogEl) {
+      dialogEl.showModal();
+    }
+  });
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<dialog bind:this={dialogEl} onclose={onClose}>
+  <form onsubmit={handleSubmit}>
+    <header>
+      <h3>{isEditMode ? 'Edit Schedule' : 'Create Schedule'}</h3>
+    </header>
 
-<div class="fixed inset-0 z-50 flex items-center justify-center bg-overlay" onclick={onClose}>
-  <div class="bg-card rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4" onclick={(e) => e.stopPropagation()}>
-    <div class="px-6 py-4 border-b border-border">
-      <h2 class="text-xl font-semibold text-foreground">
-        {isEditMode ? 'Edit Schedule' : 'Create Schedule'}
-      </h2>
-    </div>
-
-    <form onsubmit={handleSubmit} class="p-6 space-y-4">
-      <div>
-        <label class="block mb-1 text-sm font-medium text-foreground">Cron Expression *</label>
+    <section>
+      <div data-field>
+        <label for="cron-expr">Cron Expression *</label>
         <input
+          id="cron-expr"
           type="text"
           bind:value={formData.cron}
           onblur={validateCron}
-          class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 text-foreground bg-card {cronError ? 'border-danger-300 focus:ring-danger-500' : 'border-input focus:ring-primary-500'}"
+          class:error={!!cronError}
           placeholder="0 2 * * *"
           required
           use:autofocus
         />
         {#if cronError}
-          <p class="text-sm text-danger-600 mt-1">{cronError}</p>
+          <p class="field-error">{cronError}</p>
         {/if}
-        <p class="text-xs text-muted-foreground mt-1">
-          Examples: <code class="bg-subtle px-1 rounded">0 2 * * *</code> (daily 2AM),
-          <code class="bg-subtle px-1 rounded">0 */6 * * *</code> (every 6 hours)
+        <p class="text-lighter field-hint">
+          Examples: <code>0 2 * * *</code> (daily 2AM),
+          <code>0 */6 * * *</code> (every 6 hours)
         </p>
       </div>
 
-      <div>
-        <label class="block mb-1 text-sm font-medium text-foreground">Timezone *</label>
+      <div data-field>
+        <label for="tz-input">Timezone *</label>
         <input
+          id="tz-input"
           type="text"
           list="tz-list"
           bind:value={formData.timezone}
-          class="w-full px-3 py-2 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
           required
         />
         <datalist id="tz-list">
@@ -142,44 +143,75 @@
       </div>
 
       {#if isEditMode}
-        <div class="flex items-center justify-between py-2 border-t border-border">
-          <span class="text-sm font-medium text-foreground">Active</span>
-          <button
-            type="button"
-            onclick={() => formData.is_active = !formData.is_active}
-            class="relative inline-flex h-6 w-11 rounded-full border-2 border-transparent transition-colors {formData.is_active ? 'bg-primary-500' : 'bg-input'}"
+        <div class="hstack toggle-row">
+          <span>Active</span>
+          <input
+            type="checkbox"
             role="switch"
-            aria-checked={formData.is_active}
-          >
-            <span class="inline-block h-5 w-5 transform rounded-full bg-card shadow transition {formData.is_active ? 'translate-x-5' : 'translate-x-0'}"></span>
-          </button>
+            checked={formData.is_active}
+            onchange={() => formData.is_active = !formData.is_active}
+          />
         </div>
       {/if}
 
       {#if flowInputs.length > 0}
-        <div class="pt-4 border-t border-border">
-          <h3 class="text-sm font-semibold text-foreground mb-3">Flow Inputs</h3>
+        <div class="inputs-section">
+          <h3>Flow Inputs</h3>
           <FlowInputFields inputs={flowInputs} bind:values={formData.inputs} />
         </div>
       {/if}
+    </section>
 
-      <div class="flex justify-end gap-2 pt-4 border-t border-border">
-        <button
-          type="button"
-          onclick={onClose}
-          disabled={loading}
-          class="px-4 py-2 text-sm font-medium text-foreground bg-subtle rounded-md hover:bg-subtle-hover disabled:opacity-50 cursor-pointer"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={loading}
-          class="px-4 py-2 text-sm font-medium text-white bg-primary-500 rounded-md hover:bg-primary-600 disabled:opacity-50 cursor-pointer"
-        >
-          {loading ? 'Saving...' : (isEditMode ? 'Update' : 'Create')}
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
+    <footer>
+      <button
+        type="button"
+        data-variant="secondary"
+        onclick={onClose}
+        disabled={loading}
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        disabled={loading}
+        aria-busy={loading}
+      >
+        {loading ? 'Saving...' : (isEditMode ? 'Update' : 'Create')}
+      </button>
+    </footer>
+  </form>
+</dialog>
+
+<style>
+  dialog {
+    max-width: 42rem;
+    width: 100%;
+  }
+  .error {
+    border-color: var(--danger) !important;
+  }
+  .field-error {
+    font-size: 0.875rem;
+    color: var(--danger);
+    margin-top: 0.25rem;
+  }
+  .field-hint {
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+  }
+  .toggle-row {
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--border);
+  }
+  .inputs-section {
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+  .inputs-section h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin-bottom: 0.75rem;
+  }
+</style>

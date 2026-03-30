@@ -1,26 +1,50 @@
 <script lang="ts">
   let { value }: { value: string } = $props();
-  
-  function getRoleClasses(role: string) {
+
+  function getRoleClass(role: string) {
     switch (role) {
-      case 'user':
-        return 'bg-success-100 text-success-800 dark:bg-success-900/30 dark:text-success-300';
-      case 'operator':
-        return 'bg-info-100 text-info-800 dark:bg-info-900/30 dark:text-info-300';
-      case 'reviewer':
-        return 'bg-warning-100 text-warning-800 dark:bg-warning-900/30 dark:text-warning-300';
-      case 'admin':
-        return 'bg-danger-100 text-danger-800 dark:bg-danger-900/30 dark:text-danger-300';
-      default:
-        return 'bg-subtle text-foreground';
+      case 'user': return 'success';
+      case 'operator': return 'info';
+      case 'reviewer': return 'warning';
+      case 'admin': return 'danger';
+      default: return '';
     }
   }
-  
+
   function capitalizeRole(role: string) {
     return role.charAt(0).toUpperCase() + role.slice(1);
   }
 </script>
 
-<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getRoleClasses(value)}">
+<span class="badge {getRoleClass(value)}">
   {capitalizeRole(value)}
 </span>
+
+<style>
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: var(--faint);
+    color: var(--foreground);
+  }
+  .badge.success {
+    background: color-mix(in srgb, var(--success) 15%, transparent);
+    color: var(--success);
+  }
+  .badge.info {
+    background: color-mix(in srgb, var(--primary) 15%, transparent);
+    color: var(--primary);
+  }
+  .badge.warning {
+    background: color-mix(in srgb, var(--warning) 15%, transparent);
+    color: var(--warning);
+  }
+  .badge.danger {
+    background: color-mix(in srgb, var(--danger) 15%, transparent);
+    color: var(--danger);
+  }
+</style>

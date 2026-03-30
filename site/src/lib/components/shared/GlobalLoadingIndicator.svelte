@@ -3,7 +3,6 @@
 	import { page } from '$app/stores';
 	import { isLoading } from '$lib/stores/auth';
 	import Logo from './Logo.svelte';
-	import LoadingSpinner from './LoadingSpinner.svelte';
 
 	let navigating = $state(false);
 
@@ -28,11 +27,11 @@
 		role="status"
 		aria-live="polite"
 		aria-label="Loading application"
-		class="fixed inset-0 z-50 flex items-center justify-center bg-card"
+		class="loading-overlay"
 	>
-		<div class="flex flex-col items-center gap-6">
-			<Logo height="h-16" />
-			<LoadingSpinner label="Loading..." />
+		<div class="vstack items-center gap-6">
+			<Logo height="4rem" />
+			<div aria-busy="true"></div>
 		</div>
 	</div>
 {:else if !isRootPage && !isLoginPage && navigating}
@@ -41,10 +40,27 @@
 		role="status"
 		aria-live="polite"
 		aria-label="Loading page"
-		class="fixed inset-0 z-50 flex items-center justify-center bg-card/60 backdrop-blur-sm transition-opacity duration-200"
+		class="loading-overlay translucent"
 	>
-		<div class="flex flex-col items-center gap-3">
-			<LoadingSpinner size="lg" />
+		<div class="vstack items-center gap-3">
+			<div aria-busy="true"></div>
 		</div>
 	</div>
 {/if}
+
+<style>
+	.loading-overlay {
+		position: fixed;
+		inset: 0;
+		z-index: 50;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--card);
+	}
+
+	.loading-overlay.translucent {
+		background: color-mix(in srgb, var(--card) 60%, transparent);
+		backdrop-filter: blur(4px);
+	}
+</style>

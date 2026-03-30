@@ -242,9 +242,9 @@
     <title>Create Flow - {namespace} | Flowctl</title>
 </svelte:head>
 
-<div class="flex h-screen bg-muted">
+<div class="create-layout">
     <!-- Main Content -->
-    <div class="flex-1 flex flex-col overflow-hidden">
+    <div class="create-main">
         <Header
             breadcrumbs={[
                 { label: namespace, url: `/view/${namespace}/flows` },
@@ -254,34 +254,32 @@
         />
 
         <!-- Page Content -->
-        <div class="flex-1 overflow-y-auto bg-muted">
-            <div class="max-w-6xl mx-auto px-6 py-8">
+        <div class="create-content">
+            <div class="create-container">
                 <!-- Page Title -->
-                <div class="mb-8">
-                    <h1 class="text-2xl font-bold text-foreground">
-                        Create Flow
-                    </h1>
-                    <p class="mt-1 text-sm text-muted-foreground">
+                <div class="mb-6">
+                    <h1>Create Flow</h1>
+                    <p class="text-lighter mt-2">
                         Define a new workflow
                     </p>
                 </div>
 
                 {#if data.prefillFlow}
-                    <div class="mb-6 flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-200">
-                        <IconInfoCircle class="mt-0.5 h-4 w-4 shrink-0" />
+                    <div class="info-banner mb-4 hstack gap-2">
+                        <IconInfoCircle class="shrink-0" style="margin-top: var(--space-1);" size={16} />
                         <span>Secrets are not copied. You will need to re-add any secrets under the <strong>Secrets</strong> tab after creating this flow.</span>
                     </div>
                 {/if}
 
                 <!-- Main Card -->
-                <div class="bg-card rounded-lg border border-input">
+                <div class="card">
                     <!-- Tab Navigation -->
-                    <div class="border-b border-border">
+                    <div class="card-tabs">
                         <Tabs bind:activeTab {tabs} />
                     </div>
 
                     <!-- Tab Content -->
-                    <form bind:this={formElement} class="p-6">
+                    <form bind:this={formElement} class="p-4">
                         {#if activeTab === "metadata"}
                             <FlowMetadata
                                 bind:metadata={flow.metadata}
@@ -311,13 +309,11 @@
                     </form>
 
                     <!-- Action Buttons -->
-                    <div
-                        class="px-6 py-4 bg-muted border-t border-border flex justify-end gap-3"
-                    >
+                    <div class="card-actions hstack gap-2">
                         <button
                             type="button"
                             onclick={() => goto(`/view/${namespace}/flows`)}
-                            class="px-6 py-2 text-sm font-medium cursor-pointer text-foreground bg-card border border-input rounded-md hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-400"
+                            data-variant="secondary"
                         >
                             Cancel
                         </button>
@@ -329,7 +325,7 @@
                                 }
                             }}
                             disabled={saving}
-                            class="px-6 py-2 text-sm font-medium cursor-pointer text-white bg-primary-500 border border-transparent rounded-md hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                            aria-busy={saving}
                         >
                             {saving ? "Creating..." : "Create"}
                         </button>
@@ -343,3 +339,51 @@
 {#if showValidation}
     <ValidationModal bind:show={showValidation} {validationResult} />
 {/if}
+
+<style>
+    .create-layout {
+        display: flex;
+        height: 100vh;
+        background: var(--muted);
+    }
+
+    .create-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .create-content {
+        flex: 1;
+        overflow-y: auto;
+        background: var(--muted);
+    }
+
+    .create-container {
+        max-width: 72rem;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+    }
+
+    .card-tabs {
+        border-bottom: 1px solid var(--border);
+    }
+
+    .card-actions {
+        padding: 1rem 1.5rem;
+        background: var(--muted);
+        border-top: 1px solid var(--border);
+        justify-content: flex-end;
+    }
+
+    .info-banner {
+        font-size: 0.875rem;
+        border: 1px solid var(--border);
+        background: var(--faint);
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        color: var(--foreground);
+        align-items: flex-start;
+    }
+</style>

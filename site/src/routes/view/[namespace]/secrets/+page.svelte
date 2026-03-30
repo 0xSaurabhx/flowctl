@@ -133,7 +133,7 @@
   {/snippet}
 </Header>
 
-<div class="p-12">
+<div class="page-content">
 	<!-- Page Header -->
 	<PageHeader
 		title="Namespace Secrets"
@@ -151,63 +151,55 @@
 
 	<!-- Secrets List -->
 	{#if loading}
-		<div class="flex items-center justify-center py-8">
-			<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+		<div class="loading-center" aria-busy="true">
+			<p>Loading secrets...</p>
 		</div>
 	{:else if secrets.length === 0}
-		<div class="text-center py-8">
-			<div class="text-muted-foreground">
-				<IconLock size={48} class="mx-auto h-12 w-12 text-muted-foreground" />
-				<h3 class="mt-2 text-sm font-medium text-foreground">No namespace secrets yet</h3>
-				<p class="mt-1 text-sm text-muted-foreground">Add secrets that will be available to all flows in this namespace.</p>
-			</div>
+		<div class="empty-state">
+			<IconLock size={48} class="empty-icon" />
+			<h3 class="mt-2">No namespace secrets yet</h3>
+			<p class="text-lighter mt-2">Add secrets that will be available to all flows in this namespace.</p>
 		</div>
 	{:else}
-		<div class="bg-card border border-border shadow overflow-hidden sm:rounded-md">
-			<ul role="list" class="divide-y divide-border">
+		<div class="card">
+			<ul role="list" class="secrets-list">
 				{#each secrets as secret}
-					<li class="px-4 py-4 flex items-center justify-between">
-						<div class="flex-1 min-w-0">
-							<div class="flex items-center space-x-3">
-								<div class="flex-shrink-0">
-									<svg class="h-5 w-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-									</svg>
-								</div>
-								<div class="min-w-0 flex-1">
-									<p class="text-sm font-medium text-foreground truncate">
-										{secret.key}
-									</p>
-									{#if secret.description}
-										<p class="text-sm text-muted-foreground truncate">
-											{secret.description}
-										</p>
-									{/if}
-									<p class="text-xs text-muted-foreground">
-										Created: {formatDateTime(secret.created_at)}
-									</p>
-								</div>
+					<li class="secret-item hstack">
+						<div class="hstack gap-2 flex-1 min-w-0">
+							<div class="secret-icon-wrap">
+								<svg class="secret-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+								</svg>
+							</div>
+							<div class="min-w-0 flex-1">
+								<p class="secret-key">{secret.key}</p>
+								{#if secret.description}
+									<p class="text-lighter secret-desc">{secret.description}</p>
+								{/if}
+								<p class="secret-meta">Created: {formatDateTime(secret.created_at)}</p>
 							</div>
 						</div>
 
-						<div class="flex items-center space-x-2">
+						<div class="hstack gap-1">
 							<button
 								onclick={() => handleEdit(secret)}
 								disabled={!data.permissions?.canUpdate}
-								class="text-primary-600 hover:text-primary-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+								class="icon-btn edit-btn"
 								title="Edit secret"
+								data-variant="secondary"
 							>
-								<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<svg class="secret-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
 								</svg>
 							</button>
 							<button
 								onclick={() => handleDelete(secret)}
 								disabled={!data.permissions?.canDelete}
-								class="text-danger-600 hover:text-danger-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+								class="icon-btn delete-btn"
 								title="Delete secret"
+								data-variant="danger"
 							>
-								<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<svg class="secret-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
 								</svg>
 							</button>
@@ -239,3 +231,100 @@
 		onClose={closeDeleteModal}
 	/>
 {/if}
+
+<style>
+	.page-content {
+		padding: 3rem;
+	}
+
+	.loading-center {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 2rem 0;
+	}
+
+	.empty-state {
+		text-align: center;
+		padding: 2rem 0;
+	}
+
+	:global(.empty-icon) {
+		color: var(--muted-foreground);
+	}
+
+	.secrets-list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	.secret-item {
+		padding: 1rem;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.secret-item + .secret-item {
+		border-top: 1px solid var(--border);
+	}
+
+	.secret-icon-wrap {
+		flex-shrink: 0;
+	}
+
+	.secret-icon {
+		width: 1.25rem;
+		height: 1.25rem;
+		color: var(--muted-foreground);
+	}
+
+	.secret-key {
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: var(--foreground);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.secret-desc {
+		font-size: 0.875rem;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.secret-meta {
+		font-size: 0.75rem;
+		color: var(--muted-foreground);
+	}
+
+	.icon-btn {
+		padding: 0.25rem;
+		border: none;
+		background: none;
+		cursor: pointer;
+	}
+
+	.edit-btn {
+		color: var(--primary);
+	}
+
+	.edit-btn:hover {
+		color: color-mix(in srgb, var(--primary) 80%, black);
+	}
+
+	.delete-btn {
+		color: var(--danger);
+	}
+
+	.delete-btn:hover {
+		color: color-mix(in srgb, var(--danger) 80%, black);
+	}
+
+	.icon-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+</style>
