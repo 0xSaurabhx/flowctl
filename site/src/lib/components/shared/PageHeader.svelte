@@ -34,7 +34,7 @@
           onclick={action.onClick}
           data-variant={action.variant === 'secondary' ? 'secondary' : undefined}
           aria-label={action.label}
-          class="action-btn"
+          class="hstack gap-2"
         >
           {#if action.IconComponent}
             <action.IconComponent size={action.iconSize || 16} aria-hidden="true" />
@@ -47,11 +47,3 @@
     </div>
   {/if}
 </header>
-
-<style>
-  .action-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-</style>

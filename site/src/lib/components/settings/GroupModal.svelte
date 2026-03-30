@@ -92,14 +92,14 @@
                     {#if users.length > 0}
                         <div class="members-list">
                             {#each users as user}
-                                <div class="member-row hstack justify-between">
+                                <div class="member-row hstack justify-between text-sm">
                                     <span>{user.name}</span>
                                     <span class="text-lighter">{user.username}</span>
                                 </div>
                             {/each}
                         </div>
                     {:else}
-                        <p class="text-lighter italic">No members in this group</p>
+                        <p class="text-lighter text-sm" style="font-style:italic">No members in this group</p>
                     {/if}
                 </div>
             {/if}
@@ -138,13 +138,8 @@
     }
     .member-row {
         padding: 0.5rem 0.75rem;
-        font-size: 0.875rem;
     }
     .members-list > :not(:last-child) {
         border-bottom: 1px solid var(--border);
-    }
-    .italic {
-        font-style: italic;
-        font-size: 0.875rem;
     }
 </style>

@@ -118,9 +118,9 @@
           use:autofocus
         />
         {#if cronError}
-          <p class="field-error">{cronError}</p>
+          <p class="field-error text-sm">{cronError}</p>
         {/if}
-        <p class="text-lighter field-hint">
+        <p class="text-lighter text-xs field-hint">
           Examples: <code>0 2 * * *</code> (daily 2AM),
           <code>0 */6 * * *</code> (every 6 hours)
         </p>
@@ -143,7 +143,7 @@
       </div>
 
       {#if isEditMode}
-        <div class="hstack toggle-row">
+        <div class="hstack justify-between toggle-row">
           <span>Active</span>
           <input
             type="checkbox"
@@ -156,7 +156,7 @@
 
       {#if flowInputs.length > 0}
         <div class="inputs-section">
-          <h3>Flow Inputs</h3>
+          <h3 class="text-sm font-medium">Flow Inputs</h3>
           <FlowInputFields inputs={flowInputs} bind:values={formData.inputs} />
         </div>
       {/if}
@@ -191,16 +191,13 @@
     border-color: var(--danger) !important;
   }
   .field-error {
-    font-size: 0.875rem;
     color: var(--danger);
     margin-top: 0.25rem;
   }
   .field-hint {
-    font-size: 0.75rem;
     margin-top: 0.25rem;
   }
   .toggle-row {
-    justify-content: space-between;
     padding: 0.5rem 0;
     border-top: 1px solid var(--border);
   }
@@ -209,9 +206,6 @@
     border-top: 1px solid var(--border);
   }
   .inputs-section h3 {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--foreground);
     margin-bottom: 0.75rem;
   }
 </style>

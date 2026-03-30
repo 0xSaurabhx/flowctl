@@ -15,7 +15,7 @@
 	import { handleInlineError, showSuccess } from '$lib/utils/errorHandling';
 	import type { TableAction } from '$lib/types';
 	import { formatDateTime } from '$lib/utils';
-	import { IconUsers } from '@tabler/icons-svelte';
+	import { IconUsers, IconPlus } from '@tabler/icons-svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -208,7 +208,8 @@
 				label: 'Add',
 				onClick: handleAdd,
 				variant: 'primary',
-				icon: '<svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>'
+				IconComponent: IconPlus,
+				iconSize: 16
 			}
 		] : []}
 	/>
@@ -247,14 +248,3 @@
 		onClose={closeDeleteModal}
 	/>
 {/if}
-
-<style>
-	.page-content {
-		padding: 3rem;
-	}
-
-	:global(.cell-muted) {
-		font-size: 0.875rem;
-		color: var(--muted-foreground);
-	}
-</style>

@@ -21,11 +21,12 @@
 
   let searchQuery = $state('');
   let searchResults = $state<NodeResp[]>([]);
-  let showDropdown = $state(false);
   let loading = $state(false);
   let searchTimeout: ReturnType<typeof setTimeout> | null = null;
   let isTagSearch = $state(false);
   let currentTagQuery = $state('');
+  let inputEl: HTMLInputElement;
+  let popoverEl: HTMLDivElement;
 
   async function searchNodes(filter: string = '') {
     loading = true;
@@ -77,6 +78,23 @@
     return item.startsWith('tag:');
   }
 
+  function positionPopover() {
+    if (!inputEl || !popoverEl) return;
+    const r = inputEl.getBoundingClientRect();
+    popoverEl.style.top = `${r.bottom + 4}px`;
+    popoverEl.style.left = `${r.left}px`;
+    popoverEl.style.width = `${r.width}px`;
+  }
+
+  function openDropdown() {
+    try { popoverEl?.showPopover(); } catch {}
+    positionPopover();
+  }
+
+  function closeDropdown() {
+    try { popoverEl?.hidePopover(); } catch {}
+  }
+
   async function handleInput() {
     // Debounce search
     if (searchTimeout) {
@@ -87,13 +105,13 @@
       searchNodes(searchQuery);
     }, 300);
 
-    showDropdown = true;
+    openDropdown();
   }
 
   async function handleFocus() {
     if (disabled) return;
     await searchNodes(searchQuery);
-    showDropdown = true;
+    openDropdown();
   }
 
   function selectNode(node: NodeResp) {
@@ -105,7 +123,7 @@
       selectedNodes = [node.name];
     }
     searchQuery = '';
-    showDropdown = false;
+    closeDropdown();
   }
 
   function selectTag(tagName: string) {
@@ -118,7 +136,7 @@
       selectedNodes = [tagValue];
     }
     searchQuery = '';
-    showDropdown = false;
+    closeDropdown();
   }
 
   function removeNode(nodeName: string) {
@@ -136,8 +154,8 @@
   // Close dropdown when clicking outside
   function handleOutsideClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
-    if (!target.closest('.node-selector')) {
-      showDropdown = false;
+    if (!target.closest('.node-selector') && !target.closest('[popover]')) {
+      closeDropdown();
     }
   }
 </script>
@@ -148,6 +166,7 @@
   <div class="selector-field">
     <input
       type="text"
+      bind:this={inputEl}
       bind:value={searchQuery}
       oninput={handleInput}
       onfocus={handleFocus}
@@ -162,64 +181,65 @@
     {:else}
       <IconChevronDown class="field-icon" size={16} />
     {/if}
+  </div>
 
-    <!-- Dropdown -->
-    {#if showDropdown}
-      <div class="dropdown-menu" role="listbox">
-        <!-- Tag selection option when searching by tag -->
-        {#if isTagSearch && currentTagQuery && !selectedNodes.includes(`tag:${currentTagQuery}`)}
-          <div
-            class="dropdown-item tag-select"
-            onclick={() => selectTag(currentTagQuery)}
+  <!-- Popover dropdown — renders in top layer, escapes dialog overflow -->
+  <div
+    bind:this={popoverEl}
+    popover="manual"
+    class="selector-popover"
+    role="listbox"
+  >
+    <!-- Tag selection option when searching by tag -->
+    {#if isTagSearch && currentTagQuery && !selectedNodes.includes(`tag:${currentTagQuery}`)}
+      <button
+        type="button"
+        class="selector-item tag-select"
+        onclick={() => selectTag(currentTagQuery)}
+        role="option"
+      >
+        <div class="hstack">
+          <div class="item-icon success">
+            <IconTag size={16} />
+          </div>
+          <div>
+            <div class="item-name">Select tag: {currentTagQuery}</div>
+            <div class="text-lighter item-desc">{searchResults.length} node{searchResults.length !== 1 ? 's' : ''} with this tag</div>
+          </div>
+        </div>
+      </button>
+    {/if}
+
+    {#if searchResults.length > 0}
+      {#if isTagSearch}
+        <div class="selector-divider text-lighter">
+          Or select individual nodes:
+        </div>
+      {/if}
+      {#each searchResults as node}
+        <!-- Skip already selected nodes -->
+        {#if !selectedNodes.includes(node.name)}
+          <button
+            type="button"
+            class="selector-item"
+            onclick={() => selectNode(node)}
             role="option"
-            tabindex="0"
-            onkeydown={(e) => e.key === 'Enter' && selectTag(currentTagQuery)}
           >
             <div class="hstack">
-              <div class="item-icon success">
-                <IconTag size={16} />
+              <div class="item-icon">
+                <IconServer size={16} />
               </div>
               <div>
-                <div class="item-name">Select tag: {currentTagQuery}</div>
-                <div class="text-lighter item-desc">{searchResults.length} node{searchResults.length !== 1 ? 's' : ''} with this tag</div>
+                <div class="item-name">{node.name}</div>
+                <div class="text-lighter item-desc">{node.hostname}:{node.port}</div>
               </div>
             </div>
-          </div>
+          </button>
         {/if}
-
-        {#if searchResults.length > 0}
-          {#if isTagSearch}
-            <div class="dropdown-divider text-lighter">
-              Or select individual nodes:
-            </div>
-          {/if}
-          {#each searchResults as node}
-            <!-- Skip already selected nodes -->
-            {#if !selectedNodes.includes(node.name)}
-              <div
-                class="dropdown-item"
-                onclick={() => selectNode(node)}
-                role="option"
-                tabindex="0"
-                onkeydown={(e) => e.key === 'Enter' && selectNode(node)}
-              >
-                <div class="hstack">
-                  <div class="item-icon">
-                    <IconServer size={16} />
-                  </div>
-                  <div>
-                    <div class="item-name">{node.name}</div>
-                    <div class="text-lighter item-desc">{node.hostname}:{node.port}</div>
-                  </div>
-                </div>
-              </div>
-            {/if}
-          {/each}
-        {:else if !loading}
-          <div class="dropdown-empty text-lighter">
-            {searchQuery ? 'No nodes found' : 'No nodes available'}
-          </div>
-        {/if}
+      {/each}
+    {:else if !loading}
+      <div class="selector-empty text-lighter">
+        {searchQuery ? 'No nodes found' : 'No nodes available'}
       </div>
     {/if}
   </div>
@@ -280,34 +300,38 @@
     pointer-events: none;
   }
 
-  .dropdown-menu {
-    position: absolute;
-    z-index: 20;
-    width: 100%;
-    margin-top: 0.5rem;
+  .selector-popover {
+    position: fixed;
+    margin: 0;
+    padding: 0;
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    max-height: 12rem;
+    border-radius: var(--radius-medium);
+    box-shadow: var(--shadow-large);
+    max-height: 14rem;
     overflow-y: auto;
   }
 
-  .dropdown-item {
-    padding: 0.5rem 1rem;
+  .selector-item {
+    all: unset;
+    box-sizing: border-box;
+    display: flex;
+    width: 100%;
+    padding: var(--space-2) var(--space-4);
     cursor: pointer;
     border-bottom: 1px solid var(--border);
+    font-size: var(--text-7);
   }
 
-  .dropdown-item:last-child {
+  .selector-item:last-child {
     border-bottom: none;
   }
 
-  .dropdown-item:hover {
+  .selector-item:hover {
     background: var(--faint);
   }
 
-  .dropdown-item.tag-select:hover {
+  .selector-item.tag-select:hover {
     background: color-mix(in srgb, var(--success) 10%, transparent);
   }
 
@@ -338,16 +362,16 @@
     font-size: 0.75rem;
   }
 
-  .dropdown-divider {
+  .selector-divider {
     padding: 0.25rem 1rem;
     font-size: 0.75rem;
     background: var(--faint);
     border-bottom: 1px solid var(--border);
   }
 
-  .dropdown-empty {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
+  .selector-empty {
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--text-7);
     text-align: center;
   }
 

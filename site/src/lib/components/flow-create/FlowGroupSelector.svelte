@@ -16,8 +16,9 @@
 
     let searchQuery = $state("");
     let groups = $state<FlowGroupResp[]>([]);
-    let showDropdown = $state(false);
     let loading = $state(false);
+    let inputEl: HTMLInputElement;
+    let popoverEl: HTMLDivElement;
 
     let filteredGroups = $derived(
         groups.filter((g) =>
@@ -46,17 +47,39 @@
         }
     }
 
+    function positionPopover() {
+        if (!inputEl || !popoverEl) return;
+        const r = inputEl.getBoundingClientRect();
+        popoverEl.style.top = `${r.bottom + 4}px`;
+        popoverEl.style.left = `${r.left}px`;
+        popoverEl.style.width = `${r.width}px`;
+    }
+
+    function openDropdown() {
+        try { popoverEl?.showPopover(); } catch {}
+        positionPopover();
+    }
+
+    function closeDropdown() {
+        try { popoverEl?.hidePopover(); } catch {}
+    }
+
+    async function handleInput() {
+        await loadGroups();
+        openDropdown();
+    }
+
     async function handleFocus() {
         if (groups.length === 0) {
             await loadGroups();
         }
-        showDropdown = true;
+        openDropdown();
     }
 
     function selectGroup(name: string) {
         value = name;
         searchQuery = "";
-        showDropdown = false;
+        closeDropdown();
     }
 
     function clear() {
@@ -66,8 +89,8 @@
 
     function handleOutsideClick(event: MouseEvent) {
         const target = event.target as HTMLElement;
-        if (!target.closest(".flow-group-selector")) {
-            showDropdown = false;
+        if (!target.closest(".flow-group-selector") && !target.closest('[popover]')) {
+            closeDropdown();
         }
     }
 </script>
@@ -98,8 +121,9 @@
             <input
                 type="text"
                 id="flow-group"
+                bind:this={inputEl}
                 bind:value={searchQuery}
-                oninput={loadGroups}
+                oninput={handleInput}
                 onfocus={handleFocus}
                 placeholder={allowCreate ? "Search or create a group..." : "Search groups..."}
                 autocomplete="off"
@@ -108,42 +132,48 @@
             {#if loading}
                 <div class="spinner-overlay" aria-busy="true"></div>
             {/if}
+        </div>
 
-            {#if showDropdown}
-                <div class="dropdown-menu">
-                    {#if showCreateOption}
-                        <button
-                            type="button"
-                            class="dropdown-item create-item"
-                            onclick={() => selectGroup(searchQuery.trim())}
-                        >
-                            <IconPlus size={16} class="create-icon" />
-                            <span>Create "{searchQuery.trim()}"</span>
-                        </button>
-                    {/if}
-                    {#if filteredGroups.length > 0}
-                        {#each filteredGroups as group}
-                            <button
-                                type="button"
-                                class="dropdown-item"
-                                onclick={() => selectGroup(group.prefix)}
-                            >
-                                <IconFolder size={16} class="text-lighter" />
-                                <div>
-                                    <div class="group-name">{group.prefix}</div>
-                                    {#if group.flow_count > 0}
-                                        <div class="text-lighter group-count">
-                                            {group.flow_count} flow{group.flow_count !== 1 ? "s" : ""}
-                                        </div>
-                                    {/if}
+        <!-- Popover dropdown — renders in top layer, escapes dialog overflow -->
+        <div
+            bind:this={popoverEl}
+            popover="manual"
+            class="selector-popover"
+            role="listbox"
+        >
+            {#if showCreateOption}
+                <button
+                    type="button"
+                    class="selector-item create-item"
+                    onclick={() => selectGroup(searchQuery.trim())}
+                    role="option"
+                >
+                    <IconPlus size={16} class="create-icon" />
+                    <span>Create "{searchQuery.trim()}"</span>
+                </button>
+            {/if}
+            {#if filteredGroups.length > 0}
+                {#each filteredGroups as group}
+                    <button
+                        type="button"
+                        class="selector-item"
+                        onclick={() => selectGroup(group.prefix)}
+                        role="option"
+                    >
+                        <IconFolder size={16} class="text-lighter" />
+                        <div>
+                            <div class="group-name">{group.prefix}</div>
+                            {#if group.flow_count > 0}
+                                <div class="text-lighter group-count">
+                                    {group.flow_count} flow{group.flow_count !== 1 ? "s" : ""}
                                 </div>
-                            </button>
-                        {/each}
-                    {:else if !loading && !showCreateOption}
-                        <div class="dropdown-empty text-lighter">
-                            {allowCreate ? "No groups found. Type to create one." : "No groups found."}
+                            {/if}
                         </div>
-                    {/if}
+                    </button>
+                {/each}
+            {:else if !loading && !showCreateOption}
+                <div class="selector-empty text-lighter">
+                    {allowCreate ? "No groups found. Type to create one." : "No groups found."}
                 </div>
             {/if}
         </div>
@@ -195,34 +225,33 @@
         top: 50%;
         transform: translateY(-50%);
     }
-    .dropdown-menu {
-        position: absolute;
-        z-index: 10;
-        width: 100%;
-        margin-top: 0.25rem;
+    .selector-popover {
+        position: fixed;
+        margin: 0;
+        padding: 0;
         background: var(--card);
         border: 1px solid var(--border);
-        border-radius: 0.5rem;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        max-height: 12rem;
+        border-radius: var(--radius-medium);
+        box-shadow: var(--shadow-large);
+        max-height: 14rem;
         overflow-y: auto;
     }
-    .dropdown-item {
+    .selector-item {
+        all: unset;
+        box-sizing: border-box;
         display: flex;
         align-items: center;
         gap: 0.5rem;
         width: 100%;
-        padding: 0.5rem 1rem;
-        border: none;
-        background: none;
+        padding: var(--space-2) var(--space-4);
         cursor: pointer;
-        text-align: left;
         border-bottom: 1px solid var(--border);
+        font-size: var(--text-7);
     }
-    .dropdown-item:last-child {
+    .selector-item:last-child {
         border-bottom: none;
     }
-    .dropdown-item:hover {
+    .selector-item:hover {
         background: var(--faint);
     }
     .create-item {
@@ -239,9 +268,9 @@
     .group-count {
         font-size: 0.75rem;
     }
-    .dropdown-empty {
-        padding: 0.75rem 1rem;
-        font-size: 0.875rem;
+    .selector-empty {
+        padding: var(--space-3) var(--space-4);
+        font-size: var(--text-7);
         text-align: center;
     }
     .field-hint {

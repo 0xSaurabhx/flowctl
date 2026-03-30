@@ -182,7 +182,7 @@
         </label>
         {#if isEditMode && memberData}
           <div class="selected-member hstack gap-2">
-            <div class="member-icon">
+            <div class="icon-box">
               {#if memberData.subject_type === 'user'}
                 <IconUser size={16} />
               {:else}
@@ -228,7 +228,7 @@
           </p>
 
           {#if memberPrefixes.length > 0}
-            <div class="prefix-list hstack gap-1 mb-2">
+            <div class="prefix-list hstack gap-1 mb-2" style="flex-wrap:wrap">
               {#each memberPrefixes as prefix}
                 <span class="prefix-tag hstack gap-1">
                   <IconFolder size={14} />
@@ -278,49 +278,33 @@
     max-width: 32rem;
     width: 100%;
   }
-  .mb-2 { margin-bottom: 0.5rem; }
   .hint {
-    font-size: 0.75rem;
-    margin-top: 0.25rem;
+    font-size: var(--text-8);
+    margin-top: var(--space-1);
   }
   .selected-member {
-    padding: 0.75rem;
+    padding: var(--space-3);
     background: var(--faint);
-    border-radius: 0.5rem;
+    border-radius: var(--radius-medium);
     border: 1px solid var(--border);
   }
-  .member-icon {
-    width: 2rem;
-    height: 2rem;
-    border-radius: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--faint);
-    color: var(--primary);
-  }
   .member-name {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--foreground);
+    font-size: var(--text-7);
+    font-weight: var(--font-medium);
   }
   .member-id {
-    font-size: 0.75rem;
-  }
-  .prefix-list {
-    flex-wrap: wrap;
+    font-size: var(--text-8);
   }
   .prefix-tag {
-    padding: 0.25rem 0.625rem;
-    border-radius: 0.375rem;
-    font-size: 0.875rem;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-medium);
+    font-size: var(--text-7);
     background: var(--faint);
     color: var(--primary);
   }
   .prefix-remove {
-    padding: 0;
-    border: none;
-    background: none;
+    all: unset;
     cursor: pointer;
+    display: inline-flex;
   }
 </style>

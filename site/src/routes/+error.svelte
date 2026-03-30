@@ -151,32 +151,16 @@
     width: 6rem;
     height: 6rem;
     border-radius: 50%;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
   }
 
-  .icon-bg-warning {
-    background: color-mix(in srgb, var(--warning) 15%, transparent);
-  }
+  .icon-bg-warning { background: color-mix(in srgb, var(--warning) 15%, transparent); }
+  .icon-bg-danger  { background: color-mix(in srgb, var(--danger) 15%, transparent); }
+  .icon-bg-muted   { background: var(--faint); }
 
-  .icon-bg-danger {
-    background: color-mix(in srgb, var(--danger) 15%, transparent);
-  }
-
-  .icon-bg-muted {
-    background: var(--faint);
-  }
-
-  :global(.icon-warning) {
-    color: var(--warning);
-  }
-
-  :global(.icon-danger) {
-    color: var(--danger);
-  }
-
-  :global(.icon-muted) {
-    color: var(--muted-foreground);
-  }
+  :global(.icon-warning) { color: var(--warning); }
+  :global(.icon-danger)  { color: var(--danger); }
+  :global(.icon-muted)   { color: var(--muted-foreground); }
 </style>

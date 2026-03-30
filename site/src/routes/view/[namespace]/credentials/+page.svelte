@@ -365,10 +365,6 @@
 {/if}
 
 <style>
-    .page-content {
-        padding: 3rem;
-    }
-
     :global(.credential-cell) {
         display: flex;
         align-items: center;
@@ -418,8 +414,4 @@
         text-decoration: underline;
     }
 
-    :global(.cell-muted) {
-        font-size: 0.875rem;
-        color: var(--muted-foreground);
-    }
 </style>

@@ -29,11 +29,11 @@
 		<div class="info-box">
 			<div class="info-grid">
 				<div>
-					<div class="info-label">Cron Expression</div>
+					<div class="info-label text-xs font-medium text-lighter">Cron Expression</div>
 					<code>{schedule.cron}</code>
 				</div>
 				<div>
-					<div class="info-label">Timezone</div>
+					<div class="info-label text-xs font-medium text-lighter">Timezone</div>
 					<div>{schedule.timezone}</div>
 				</div>
 			</div>
@@ -75,9 +75,6 @@
 		gap: 0.75rem;
 	}
 	.info-label {
-		font-size: 0.75rem;
-		font-weight: 500;
-		color: var(--muted-foreground);
 		text-transform: uppercase;
 		margin-bottom: 0.25rem;
 	}

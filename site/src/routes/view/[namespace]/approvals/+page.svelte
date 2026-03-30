@@ -17,6 +17,7 @@
 	import Header from '$lib/components/shared/Header.svelte';
 	import { handleInlineError, showSuccess } from '$lib/utils/errorHandling';
 	import { formatDateTime } from '$lib/utils';
+	import { IconCircleCheck, IconClock, IconCheck, IconX } from '@tabler/icons-svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -218,25 +219,25 @@
 		<StatCard
 			title="Total Approvals"
 			value={totalCount}
-			icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+			IconComponent={IconCircleCheck}
 			color="blue"
 		/>
 		<StatCard
 			title="Pending"
 			value={pendingCount}
-			icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+			IconComponent={IconClock}
 			color="yellow"
 		/>
 		<StatCard
 			title="Approved"
 			value={approvedCount}
-			icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>'
+			IconComponent={IconCheck}
 			color="green"
 		/>
 		<StatCard
 			title="Rejected"
 			value={rejectedCount}
-			icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>'
+			IconComponent={IconX}
 			color="red"
 		/>
 	</div>
@@ -248,9 +249,8 @@
 			columns={tableColumns}
 			{loading}
 			emptyMessage="No approvals found. Approvals will appear here when workflows require approval."
-			emptyIcon='<svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-			</svg>'
+			EmptyIconComponent={IconCircleCheck}
+			emptyIconSize={64}
 		/>
 	</div>
 
@@ -274,38 +274,3 @@
 		onReject={handleReject}
 	/>
 {/if}
-
-<style>
-	.page-content {
-		padding: 3rem;
-	}
-
-	.stat-grid {
-		display: grid;
-		grid-template-columns: repeat(4, 1fr);
-		gap: 1.5rem;
-	}
-
-	@media (max-width: 768px) {
-		.stat-grid {
-			grid-template-columns: repeat(2, 1fr);
-		}
-	}
-
-	@media (max-width: 480px) {
-		.stat-grid {
-			grid-template-columns: 1fr;
-		}
-	}
-
-	:global(.cell-muted) {
-		font-size: 0.875rem;
-		color: var(--muted-foreground);
-	}
-
-	:global(.cell-mono) {
-		font-family: monospace;
-		font-size: 0.875rem;
-		color: var(--muted-foreground);
-	}
-</style>

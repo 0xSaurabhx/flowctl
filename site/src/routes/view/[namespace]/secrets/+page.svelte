@@ -233,10 +233,6 @@
 {/if}
 
 <style>
-	.page-content {
-		padding: 3rem;
-	}
-
 	.loading-center {
 		display: flex;
 		align-items: center;

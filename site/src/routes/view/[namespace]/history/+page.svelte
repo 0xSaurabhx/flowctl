@@ -236,10 +236,6 @@
 </div>
 
 <style>
-	.page-content {
-		padding: 3rem;
-	}
-
 	:global(.flow-name-link) {
 		font-size: 0.875rem;
 		font-weight: 500;
@@ -261,11 +257,6 @@
 
 	:global(.exec-id-link:hover) {
 		text-decoration: underline;
-	}
-
-	:global(.cell-muted) {
-		font-size: 0.875rem;
-		color: var(--muted-foreground);
 	}
 
 	:global(.triggered-by-cell) {

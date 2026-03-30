@@ -330,16 +330,17 @@
                         aria-label="Namespace selection"
                     >
                         {#each searchResults as ns (ns.id)}
-                            <button
-                                type="button"
+                            <div
                                 role="option"
+                                tabindex="0"
                                 aria-selected={ns.name === namespace}
                                 onclick={() => selectNamespace(ns)}
+                                onkeydown={(e) => e.key === 'Enter' && selectNamespace(ns)}
                                 class="dropdown-item"
                                 class:active={ns.name === namespace}
                             >
                                 {ns.name}
-                            </button>
+                            </div>
                         {/each}
                         {#if searchResults.length === 0 && !searchLoading}
                             <div class="dropdown-empty text-lighter">
@@ -476,7 +477,7 @@
     </ul>
 
     <div class="sidebar-footer">
-        <div class="hstack {isCollapsed ? 'footer-collapsed' : ''}">
+        <div class="hstack justify-between items-center {isCollapsed ? 'footer-collapsed' : ''}">
             {#if $currentUser && $currentUser.role === "superuser"}
                 <a
                     href="/settings"
@@ -535,21 +536,21 @@
     }
 
     .logo-area {
-        padding: 1.5rem;
+        padding: var(--space-6);
         display: flex;
         flex-direction: column;
         align-items: center;
     }
 
     .version-text {
-        font-size: 0.75rem;
-        margin-top: 0.25rem;
+        font-size: var(--text-8);
+        margin-top: var(--space-1);
     }
 
     /* Namespace section */
     .namespace-section {
-        padding: 0 1rem;
-        margin-bottom: 1rem;
+        padding: 0 var(--space-4);
+        margin-bottom: var(--space-4);
     }
 
     .namespace-field {
@@ -558,10 +559,10 @@
 
     .namespace-label {
         display: block;
-        font-size: 0.75rem;
-        font-weight: 500;
+        font-size: var(--text-8);
+        font-weight: var(--font-medium);
         color: var(--muted-foreground);
-        margin-bottom: 0.25rem;
+        margin-bottom: var(--space-1);
         text-transform: uppercase;
     }
 
@@ -576,7 +577,7 @@
 
     .input-wrapper :global(.input-icon) {
         position: absolute;
-        right: 0.75rem;
+        right: var(--space-3);
         top: 50%;
         transform: translateY(-50%);
         color: var(--muted-foreground);
@@ -594,26 +595,21 @@
     /* Dropdown menu */
     .dropdown-menu {
         position: absolute;
-        z-index: 50;
+        z-index: var(--z-dropdown);
         width: 100%;
-        margin-top: 0.25rem;
+        margin-top: var(--space-1);
         background: var(--card);
-        border-radius: 0.5rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border-radius: var(--radius-medium);
+        box-shadow: var(--shadow-large);
         border: 1px solid var(--border);
         max-height: 12rem;
         overflow-y: auto;
     }
 
     .dropdown-item {
-        width: 100%;
-        text-align: left;
-        padding: 0.5rem 0.75rem;
-        font-size: 0.875rem;
+        padding: var(--space-2) var(--space-3);
+        font-size: var(--text-7);
         color: var(--foreground);
-        background: none;
-        border: none;
-        border-radius: 0;
         cursor: pointer;
     }
 
@@ -627,30 +623,30 @@
     }
 
     .dropdown-empty {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.875rem;
+        padding: var(--space-2) var(--space-3);
+        font-size: var(--text-7);
         text-align: center;
     }
 
     /* Navigation */
     .nav-list {
         flex: 1;
-        padding: 0 1rem;
+        padding: 0 var(--space-4);
         list-style: none;
         margin: 0;
         display: flex;
         flex-direction: column;
-        gap: 0.25rem;
+        gap: var(--space-1);
     }
 
     .nav-link {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        font-size: 0.875rem;
-        font-weight: 500;
-        padding: 0.75rem 1rem;
-        border-radius: 0.5rem;
+        gap: var(--space-3);
+        font-size: var(--text-7);
+        font-weight: var(--font-medium);
+        padding: var(--space-3) var(--space-4);
+        border-radius: var(--radius-medium);
         color: var(--foreground);
         text-decoration: none;
         transition: background 0.15s;
@@ -667,36 +663,31 @@
 
     .nav-link.icon-only {
         justify-content: center;
-        padding: 0.75rem;
+        padding: var(--space-3);
     }
 
     /* Footer */
     .sidebar-footer {
-        padding: 0.5rem 1rem;
+        padding: var(--space-2) var(--space-4);
         border-top: 1px solid var(--border);
-    }
-
-    .sidebar-footer .hstack {
-        justify-content: space-between;
-        align-items: center;
     }
 
     .footer-collapsed {
         flex-direction: column;
         align-items: center;
-        gap: 0.5rem;
+        gap: var(--space-2);
     }
 
     .collapse-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 0.5rem;
+        padding: var(--space-2);
         background: none;
         border: none;
         color: var(--muted-foreground);
         cursor: pointer;
-        border-radius: 0.5rem;
+        border-radius: var(--radius-medium);
     }
 
     .collapse-btn:hover {
@@ -704,7 +695,7 @@
     }
 
     .user-section {
-        padding: 1rem;
+        padding: var(--space-4);
         border-top: 1px solid var(--border);
     }
 </style>

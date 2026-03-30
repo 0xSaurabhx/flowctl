@@ -30,7 +30,7 @@
 </script>
 
 {#if hasData}
-  <div class="card">
+  <article class="card">
     <button
       class="json-toggle"
       onclick={toggleExpanded}
@@ -55,7 +55,7 @@
         <pre><code>{jsonString}</code></pre>
       </div>
     {/if}
-  </div>
+  </article>
 {/if}
 
 <style>
@@ -92,7 +92,7 @@
   pre {
     padding: var(--space-4);
     border-radius: var(--radius-medium);
-    font-size: 0.875rem;
+    font-size: var(--text-7);
     overflow-x: auto;
     line-height: 1.6;
     white-space: pre-wrap;

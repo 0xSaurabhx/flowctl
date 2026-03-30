@@ -48,7 +48,7 @@
     >
       <div class="hstack gap-3">
         <IconComponent size={18} aria-hidden="true" />
-        <div class="toast-body">
+        <div class="flex-1">
           <h3 class="text-sm">{notification.title}</h3>
           <p class="text-sm text-light">{notification.message}</p>
         </div>
@@ -56,7 +56,7 @@
           <button
             onclick={() => handleDismiss(notification.id)}
             aria-label="Dismiss notification"
-            class="toast-dismiss"
+            class="ghost small"
           >
             <IconX size={16} aria-hidden="true" />
           </button>
@@ -65,20 +65,3 @@
     </div>
   {/each}
 </div>
-
-<style>
-  .toast-body {
-    flex: 1;
-  }
-
-  .toast-dismiss {
-    all: unset;
-    cursor: pointer;
-    margin-left: auto;
-    opacity: 0.7;
-  }
-
-  .toast-dismiss:hover {
-    opacity: 1;
-  }
-</style>

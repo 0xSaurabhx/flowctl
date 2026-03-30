@@ -11,15 +11,24 @@
 	}
 
 	let { title, value, icon, IconComponent, iconSize = 24, color = 'blue' }: Props = $props();
+
+	const colorMap: Record<string, string> = {
+		blue: '',
+		green: 'success',
+		purple: '',
+		red: 'danger',
+		yellow: 'warning',
+		gray: 'muted'
+	};
 </script>
 
-<div class="card">
+<article class="card p-4">
 	<div class="hstack justify-between">
 		<div>
 			<p class="text-sm text-light">{title}</p>
 			<p class="stat-value">{value}</p>
 		</div>
-		<div class="stat-icon {color}">
+		<div class="stat-icon {colorMap[color] || ''}">
 			{#if IconComponent}
 				<IconComponent size={iconSize} />
 			{:else if icon}
@@ -27,54 +36,18 @@
 			{/if}
 		</div>
 	</div>
-</div>
+</article>
 
 <style>
-	.card {
-		padding: var(--space-6);
-	}
-
 	.stat-value {
-		font-size: 1.5rem;
+		font-size: var(--text-3);
 		font-weight: 700;
 	}
-
 	.stat-icon {
-		width: 3rem;
-		height: 3rem;
-		border-radius: var(--radius-medium);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.stat-icon.blue {
-		background: color-mix(in srgb, var(--primary) 15%, transparent);
 		color: var(--primary);
 	}
-
-	.stat-icon.green {
-		background: color-mix(in srgb, var(--success) 15%, transparent);
-		color: var(--success);
-	}
-
-	.stat-icon.purple {
-		background: color-mix(in srgb, var(--primary) 15%, transparent);
-		color: var(--primary);
-	}
-
-	.stat-icon.red {
-		background: color-mix(in srgb, var(--danger) 15%, transparent);
-		color: var(--danger);
-	}
-
-	.stat-icon.yellow {
-		background: color-mix(in srgb, var(--warning) 15%, transparent);
-		color: var(--warning);
-	}
-
-	.stat-icon.gray {
-		background: var(--muted);
-		color: var(--muted-foreground);
-	}
+	.stat-icon.success { color: var(--success); }
+	.stat-icon.danger { color: var(--danger); }
+	.stat-icon.warning { color: var(--warning); }
+	.stat-icon.muted { color: var(--muted-foreground); }
 </style>

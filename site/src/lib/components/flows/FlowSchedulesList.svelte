@@ -96,7 +96,7 @@
   }
 </script>
 
-<div class="card">
+<article class="card">
   <div class="card-header hstack justify-between">
     <div>
       <h3 class="section-title">Schedules</h3>
@@ -175,7 +175,7 @@
       </table>
     </div>
   {/if}
-</div>
+</article>
 
 {#if showModal}
   <ScheduleModal
@@ -206,28 +206,22 @@
 {/if}
 
 <style>
-  .card {
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    background: var(--card);
-  }
   .card-header {
-    padding: 1rem;
+    padding: var(--space-4);
     border-bottom: 1px solid var(--border);
   }
   .section-title {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--foreground);
+    font-size: var(--text-7);
+    font-weight: var(--font-semibold);
   }
   .section-subtitle {
-    font-size: 0.75rem;
+    font-size: var(--text-8);
     margin-top: 0.125rem;
   }
   .empty-state {
     align-items: center;
-    padding: 3rem 1rem;
-    gap: 0.75rem;
+    padding: var(--space-12) var(--space-4);
+    gap: var(--space-3);
   }
   .table-wrap {
     overflow-x: auto;
@@ -239,19 +233,6 @@
   .actions-wrapper {
     display: inline-flex;
     justify-content: flex-end;
-  }
-  .badge {
-    display: inline-flex;
-    padding: 0.125rem 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-    border-radius: 0.25rem;
-    background: var(--faint);
-    color: var(--foreground);
-  }
-  .badge.success {
-    background: var(--success);
-    color: white;
   }
   .badge.info {
     background: var(--primary);

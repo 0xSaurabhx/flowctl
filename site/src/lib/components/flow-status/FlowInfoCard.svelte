@@ -25,8 +25,8 @@
 </script>
 
 <!-- Flow Info Card -->
-<div class="card p-4 mb-4">
-  <div class="info-layout">
+<article class="card p-4 mb-4">
+  <div class="hstack justify-between items-start">
     <div>
       <div class="hstack gap-2">
         <h1 class="flow-title">{flowName}</h1>
@@ -36,65 +36,26 @@
           </span>
         {/if}
       </div>
-      <p class="text-light mt-1">Started at {startTime}</p>
+      <p class="text-light mt-2">Started at {startTime}</p>
       {#if triggeredBy}
-        <p class="text-lighter label mt-2">Triggered By</p>
+        <p class="text-lighter text-sm mt-2">Triggered By</p>
         <p>{extractName(triggeredBy)}</p>
       {/if}
     </div>
-    <div class="info-right">
-      <p class="text-lighter label">Execution ID</p>
-      <p class="mono">{executionId}</p>
+    <div class="align-right">
+      <p class="text-lighter text-sm">Execution ID</p>
+      <p class="font-mono text-sm">{executionId}</p>
       {#if scheduledAt}
-        <p class="text-lighter label mt-2">Scheduled At</p>
+        <p class="text-lighter text-sm mt-2">Scheduled At</p>
         <p>{scheduledAt}</p>
       {/if}
     </div>
   </div>
-</div>
+</article>
 
 <style>
-  .card {
-    background: var(--card);
-    border-radius: 0.5rem;
-    border: 1px solid var(--border);
-  }
-  .info-layout {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-  }
   .flow-title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--foreground);
+    font-size: var(--text-3);
+    font-weight: var(--font-semibold);
   }
-  .info-right {
-    text-align: right;
-  }
-  .label {
-    font-size: 0.875rem;
-  }
-  .mono {
-    font-family: monospace;
-    font-size: 0.875rem;
-  }
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.125rem 0.625rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    background: var(--faint);
-    color: var(--foreground);
-  }
-  .badge.success {
-    background: var(--success);
-    color: white;
-  }
-  .p-4 { padding: 1.5rem; }
-  .mb-4 { margin-bottom: 1.5rem; }
-  .mt-1 { margin-top: 0.25rem; }
-  .mt-2 { margin-top: 0.75rem; }
 </style>

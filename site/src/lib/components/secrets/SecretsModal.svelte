@@ -94,7 +94,7 @@
 					use:autofocus
 				/>
 				{#if isEditMode}
-					<p class="text-lighter hint">Key cannot be changed. Delete and recreate the secret to use a different key.</p>
+					<p class="text-lighter text-xs hint">Key cannot be changed. Delete and recreate the secret to use a different key.</p>
 				{/if}
 			</div>
 
@@ -107,12 +107,12 @@
 					bind:value={formData.value}
 					required
 					disabled={loading}
-					class="mono"
+					class="font-mono text-xs"
 					rows="5"
 					placeholder={isEditMode ? 'Enter new value to update' : 'Enter value'}
 				></textarea>
 				{#if isEditMode}
-					<p class="text-lighter hint">Enter a new value to update. Previous value is not shown for security.</p>
+					<p class="text-lighter text-xs hint">Enter a new value to update. Previous value is not shown for security.</p>
 				{/if}
 			</div>
 
@@ -156,12 +156,7 @@
 	.required {
 		color: var(--danger);
 	}
-	.mono {
-		font-family: monospace;
-		font-size: 0.75rem;
-	}
 	.hint {
-		font-size: 0.75rem;
 		margin-top: 0.25rem;
 	}
 </style>

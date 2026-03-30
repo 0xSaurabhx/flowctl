@@ -59,7 +59,7 @@
 </script>
 
 {#if upcomingRuns.length > 0}
-  <div class="card">
+  <article class="card">
     <div class="card-header">
       <h3 class="section-title">{title}</h3>
       <p class="text-lighter section-subtitle">{upcomingRuns.length} {upcomingRuns.length === 1 ? 'run' : 'runs'} scheduled</p>
@@ -100,33 +100,27 @@
         </tbody>
       </table>
     </div>
-  </div>
+  </article>
 {/if}
 
 <style>
-  .card {
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    background: var(--card);
-  }
   .card-header {
-    padding: 1rem;
+    padding: var(--space-4);
     border-bottom: 1px solid var(--border);
   }
   .section-title {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--foreground);
+    font-size: var(--text-7);
+    font-weight: var(--font-semibold);
   }
   .section-subtitle {
-    font-size: 0.75rem;
+    font-size: var(--text-8);
     margin-top: 0.125rem;
   }
   .table-wrap {
     overflow-x: auto;
   }
   .mono-link {
-    font-family: monospace;
-    font-size: 0.875rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-7);
   }
 </style>

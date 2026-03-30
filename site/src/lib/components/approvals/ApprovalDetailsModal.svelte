@@ -89,7 +89,7 @@
     <dialog bind:this={dialogEl} onclose={() => { open = false; approval = null; error = null; }}>
         <header>
             <div class="hstack gap-2">
-                <div class="header-icon">
+                <div class="icon-box">
                     <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -100,9 +100,9 @@
 
         <section>
             {#if loading}
-                <div class="centered-msg" aria-busy="true">Loading...</div>
+                <div class="vstack items-center gap-2 centered-msg" aria-busy="true">Loading...</div>
             {:else if error}
-                <div class="centered-msg">
+                <div class="vstack items-center gap-2 centered-msg">
                     <div class="error-text">{error}</div>
                     <button data-variant="secondary" onclick={fetchApprovalDetails}>
                         Try again
@@ -114,34 +114,34 @@
                     <div class="info-box">
                         <div class="info-grid">
                             <div>
-                                <span class="info-label">Action ID</span>
-                                <span>{approval.action_id}</span>
+                                <span class="info-label text-sm font-medium">Action ID</span>
+                                <span class="text-sm">{approval.action_id}</span>
                             </div>
                             <div>
-                                <span class="info-label">Status</span>
-                                <span class="capitalize">{approval.status}</span>
+                                <span class="info-label text-sm font-medium">Status</span>
+                                <span class="text-sm capitalize">{approval.status}</span>
                             </div>
                             <div>
-                                <span class="info-label">Execution ID</span>
+                                <span class="info-label text-sm font-medium">Execution ID</span>
                                 <a href="/view/{namespace}/results/{approval.flow_id}/{approval.exec_id}">
-                                    <span class="mono-link">{approval.exec_id}</span>
+                                    <span class="font-mono text-sm">{approval.exec_id}</span>
                                 </a>
                             </div>
                             <div>
-                                <span class="info-label">Requested By</span>
-                                <span>{approval.requested_by}</span>
+                                <span class="info-label text-sm font-medium">Requested By</span>
+                                <span class="text-sm">{approval.requested_by}</span>
                             </div>
                             <div>
-                                <span class="info-label">Reviewer</span>
-                                <span>{approval.approved_by || "N/A"}</span>
+                                <span class="info-label text-sm font-medium">Reviewer</span>
+                                <span class="text-sm">{approval.approved_by || "N/A"}</span>
                             </div>
                             <div>
-                                <span class="info-label">Flow</span>
-                                <span>{approval.flow_name}</span>
+                                <span class="info-label text-sm font-medium">Flow</span>
+                                <span class="text-sm">{approval.flow_name}</span>
                             </div>
                             <div>
-                                <span class="info-label">Created</span>
-                                <span>{formatDateTime(approval.created_at, "Never")}</span>
+                                <span class="info-label text-sm font-medium">Created</span>
+                                <span class="text-sm">{formatDateTime(approval.created_at, "Never")}</span>
                             </div>
                         </div>
                     </div>
@@ -194,25 +194,7 @@
         max-width: 56rem;
         width: 100%;
     }
-    .header-icon {
-        width: 2rem;
-        height: 2rem;
-        background: var(--faint);
-        border-radius: 0.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .header-icon .icon {
-        width: 1.25rem;
-        height: 1.25rem;
-        color: var(--primary);
-    }
     .centered-msg {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.5rem;
         padding: 2rem;
     }
     .error-text {
@@ -235,29 +217,14 @@
     }
     .info-label {
         display: block;
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: var(--foreground);
         margin-bottom: 0.25rem;
-    }
-    .info-grid span:not(.info-label) {
-        font-size: 0.875rem;
-        color: var(--foreground);
     }
     .capitalize {
         text-transform: capitalize;
     }
-    .mono-link {
-        font-family: monospace;
-        font-size: 0.875rem;
-    }
-    .mono-link:hover {
-        text-decoration: underline;
-    }
     h4 {
         font-size: 1rem;
         font-weight: 600;
-        color: var(--foreground);
         margin-bottom: 0.75rem;
     }
 </style>

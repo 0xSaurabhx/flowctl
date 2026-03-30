@@ -52,7 +52,7 @@
 </script>
 
 {#if totalPages > 1}
-  <div class="pagination-wrapper">
+  <div class="flex justify-center mt-6">
     <nav class="hstack gap-2">
       <button
         onclick={() => handlePageChange(currentPage - 1)}
@@ -83,11 +83,3 @@
     </nav>
   </div>
 {/if}
-
-<style>
-  .pagination-wrapper {
-    display: flex;
-    justify-content: center;
-    margin-top: var(--space-8);
-  }
-</style>

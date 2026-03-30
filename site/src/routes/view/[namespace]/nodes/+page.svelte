@@ -379,22 +379,6 @@
 {/if}
 
 <style>
-	.page-content {
-		padding: 3rem;
-	}
-
-	.stat-grid {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 1.5rem;
-	}
-
-	@media (max-width: 768px) {
-		.stat-grid {
-			grid-template-columns: 1fr;
-		}
-	}
-
 	:global(.node-cell) {
 		display: flex;
 		align-items: center;
@@ -428,11 +412,6 @@
 	:global(.node-name-link:hover) {
 		color: var(--primary);
 		text-decoration: underline;
-	}
-
-	:global(.cell-muted) {
-		font-size: 0.875rem;
-		color: var(--muted-foreground);
 	}
 
 	:global(.tags-cell) {

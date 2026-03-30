@@ -257,13 +257,13 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		padding: 2rem;
+		padding: var(--space-8);
 	}
 	.empty-state {
 		text-align: center;
-		padding: 2rem;
+		padding: var(--space-8);
 		align-items: center;
-		gap: 0.5rem;
+		gap: var(--space-2);
 	}
 	.empty-icon {
 		width: 3rem;
@@ -271,21 +271,20 @@
 		color: var(--muted-foreground);
 	}
 	.empty-state h4 {
-		font-size: 0.875rem;
-		font-weight: 500;
-		color: var(--foreground);
+		font-size: var(--text-7);
+		font-weight: var(--font-medium);
 	}
 	.secrets-list {
 		background: var(--card);
 		border: 1px solid var(--border);
-		border-radius: 0.375rem;
+		border-radius: var(--radius-medium);
 		overflow: hidden;
 	}
 	.secrets-list > :not(:last-child) {
 		border-bottom: 1px solid var(--border);
 	}
 	.secret-item {
-		padding: 1rem;
+		padding: var(--space-4);
 	}
 	.lock-icon {
 		width: 1.25rem;
@@ -300,53 +299,37 @@
 		flex-shrink: 0;
 	}
 	.secret-key {
-		font-size: 0.875rem;
-		font-weight: 500;
-		color: var(--foreground);
+		font-size: var(--text-7);
+		font-weight: var(--font-medium);
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
 	.secret-desc {
-		font-size: 0.875rem;
+		font-size: var(--text-7);
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
 	.secret-date {
-		font-size: 0.75rem;
-	}
-	.icon-btn {
-		padding: 0.25rem;
-		border: none;
-		background: none;
+		font-size: var(--text-8);
 	}
 	.icon-sm {
 		width: 1.25rem;
 		height: 1.25rem;
 	}
 	.ns-secrets-section {
-		margin-top: 2rem;
-		padding-top: 2rem;
+		margin-top: var(--space-8);
+		padding-top: var(--space-8);
 		border-top: 1px solid var(--border);
 	}
 	.ns-secrets-list {
 		background: var(--faint);
-		border-radius: 0.375rem;
+		border-radius: var(--radius-medium);
 		border: 1px solid var(--border);
 	}
 	.ns-secrets-list > :not(:last-child) {
 		border-bottom: 1px solid var(--border);
 	}
 	.ns-secret-item {
-		padding: 0.75rem 1rem;
+		padding: var(--space-3) var(--space-4);
 	}
-	.badge {
-		padding: 0.125rem 0.5rem;
-		font-size: 0.75rem;
-		font-weight: 500;
-		background: var(--faint);
-		color: var(--muted-foreground);
-		border-radius: 0.25rem;
-		margin-left: 0.5rem;
-	}
-	.mb-4 { margin-bottom: 1rem; }
 </style>

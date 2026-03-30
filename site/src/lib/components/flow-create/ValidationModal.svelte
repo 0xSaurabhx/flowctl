@@ -56,8 +56,8 @@
       <section>
         <div class="vstack gap-2">
           {#each validationResult.errors as error}
-            <div class="hstack gap-2 error-item">
-              <svg class="error-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="hstack gap-2 items-start text-sm error-item">
+              <svg class="error-icon shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -105,15 +105,10 @@
     width: 1.5rem;
     height: 1.5rem;
   }
-  .error-item {
-    font-size: 0.875rem;
-    align-items: flex-start;
-  }
   .error-icon {
     width: 1rem;
     height: 1rem;
     color: var(--danger);
-    flex-shrink: 0;
     margin-top: 0.125rem;
   }
 </style>

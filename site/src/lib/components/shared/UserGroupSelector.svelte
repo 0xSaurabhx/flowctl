@@ -18,12 +18,12 @@
 
   let searchQuery = $state('');
   let searchResults = $state<(User | Group)[]>([]);
-  let showDropdown = $state(false);
   let loading = $state(false);
+  let inputEl: HTMLInputElement;
+  let popoverEl: HTMLDivElement;
 
   async function loadSubjects() {
     loading = true;
-    showDropdown = true;
     try {
       if (type === 'user') {
         const response = await apiClient.users.list({
@@ -41,24 +41,45 @@
     } catch (error) {
       handleInlineError(error, type === 'user' ? 'Unable to Load Users' : 'Unable to Load Groups');
       searchResults = [];
-      showDropdown = false;
+      closeDropdown();
     } finally {
       loading = false;
     }
   }
 
+  function positionPopover() {
+    if (!inputEl || !popoverEl) return;
+    const r = inputEl.getBoundingClientRect();
+    popoverEl.style.top = `${r.bottom + 4}px`;
+    popoverEl.style.left = `${r.left}px`;
+    popoverEl.style.width = `${r.width}px`;
+  }
+
+  function openDropdown() {
+    try { popoverEl?.showPopover(); } catch {}
+    positionPopover();
+  }
+
+  function closeDropdown() {
+    try { popoverEl?.hidePopover(); } catch {}
+  }
+
+  async function handleInput() {
+    await loadSubjects();
+    openDropdown();
+  }
+
   async function handleFocus() {
     if (searchResults.length === 0) {
       await loadSubjects();
-    } else {
-      showDropdown = true;
     }
+    openDropdown();
   }
 
   function selectSubject(subject: User | Group) {
     selectedSubject = subject;
     searchQuery = '';
-    showDropdown = false;
+    closeDropdown();
     searchResults = [];
   }
 
@@ -66,7 +87,7 @@
     selectedSubject = null;
     searchQuery = '';
     searchResults = [];
-    showDropdown = false;
+    closeDropdown();
   }
 
   // Reset when type changes
@@ -77,8 +98,8 @@
   // Close dropdown when clicking outside
   function handleOutsideClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
-    if (!target.closest('.user-group-selector')) {
-      showDropdown = false;
+    if (!target.closest('.user-group-selector') && !target.closest('[popover]')) {
+      closeDropdown();
     }
   }
 </script>
@@ -89,8 +110,9 @@
   <div class="selector-field">
     <input
       type="text"
+      bind:this={inputEl}
       bind:value={searchQuery}
-      oninput={loadSubjects}
+      oninput={handleInput}
       onfocus={handleFocus}
       {placeholder}
       aria-busy={loading}
@@ -103,37 +125,41 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
       </svg>
     {/if}
+  </div>
 
-    <!-- Dropdown -->
-    {#if showDropdown}
-      <div class="dropdown-menu">
-        {#if searchResults.length > 0}
-          {#each searchResults as subject}
-            <button
-              type="button"
-              class="dropdown-item"
-              onclick={() => selectSubject(subject)}
-            >
-              <div class="hstack">
-                <div class="item-icon">
-                  {#if type === 'user'}
-                    <IconUser size={16} />
-                  {:else}
-                    <IconUsers size={16} />
-                  {/if}
-                </div>
-                <div>
-                  <div class="item-name">{'name' in subject ? subject.name : subject.username}</div>
-                  <div class="text-lighter item-desc">{subject.id}</div>
-                </div>
-              </div>
-            </button>
-          {/each}
-        {:else if !loading}
-          <div class="dropdown-empty text-lighter">
-            {type === 'user' ? 'No users found' : 'No groups found'}
+  <!-- Popover dropdown — renders in top layer, escapes dialog overflow -->
+  <div
+    bind:this={popoverEl}
+    popover="manual"
+    class="selector-popover"
+    role="listbox"
+  >
+    {#if searchResults.length > 0}
+      {#each searchResults as subject}
+        <button
+          type="button"
+          class="selector-item"
+          onclick={() => selectSubject(subject)}
+          role="option"
+        >
+          <div class="hstack">
+            <div class="item-icon">
+              {#if type === 'user'}
+                <IconUser size={16} />
+              {:else}
+                <IconUsers size={16} />
+              {/if}
+            </div>
+            <div>
+              <div class="item-name">{'name' in subject ? subject.name : subject.username}</div>
+              <div class="text-lighter item-desc">{subject.id}</div>
+            </div>
           </div>
-        {/if}
+        </button>
+      {/each}
+    {:else if !loading}
+      <div class="selector-empty text-lighter">
+        {type === 'user' ? 'No users found' : 'No groups found'}
       </div>
     {/if}
   </div>
@@ -186,38 +212,34 @@
     pointer-events: none;
   }
 
-  .dropdown-menu {
-    position: absolute;
-    z-index: 10;
-    width: 100%;
-    margin-top: 0.25rem;
+  .selector-popover {
+    position: fixed;
+    margin: 0;
+    padding: 0;
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    max-height: 12rem;
+    border-radius: var(--radius-medium);
+    box-shadow: var(--shadow-large);
+    max-height: 14rem;
     overflow-y: auto;
   }
 
-  .dropdown-item {
+  .selector-item {
+    all: unset;
+    box-sizing: border-box;
+    display: flex;
     width: 100%;
-    text-align: left;
-    padding: 0.5rem 1rem;
+    padding: var(--space-2) var(--space-4);
     cursor: pointer;
     border-bottom: 1px solid var(--border);
-    background: none;
-    border-left: none;
-    border-right: none;
-    border-top: none;
-    border-radius: 0;
-    color: var(--foreground);
+    font-size: var(--text-7);
   }
 
-  .dropdown-item:last-child {
+  .selector-item:last-child {
     border-bottom: none;
   }
 
-  .dropdown-item:hover {
+  .selector-item:hover {
     background: var(--faint);
   }
 
@@ -243,9 +265,9 @@
     font-size: 0.75rem;
   }
 
-  .dropdown-empty {
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
+  .selector-empty {
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--text-7);
     text-align: center;
   }
 

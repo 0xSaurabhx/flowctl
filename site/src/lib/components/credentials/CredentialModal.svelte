@@ -121,7 +121,7 @@
                         required
                         disabled={loading}
                         rows="5"
-                        class="mono"
+                        class="font-mono text-xs"
                     ></textarea>
                 </div>
             {/if}
@@ -169,9 +169,5 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 1rem;
-    }
-    .mono {
-        font-family: monospace;
-        font-size: 0.75rem;
     }
 </style>

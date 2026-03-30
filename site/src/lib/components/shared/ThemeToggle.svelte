@@ -16,9 +16,8 @@
 <button
     type="button"
     onclick={cycle}
-    data-variant="secondary"
-    class="theme-btn"
-    class:full-width={!collapsed}
+    class="ghost hstack gap-3"
+    class:w-100={!collapsed}
     title="{$theme} theme"
 >
     <svelte:component this={icons[$theme]} size={20} />
@@ -28,29 +27,7 @@
 </button>
 
 <style>
-    .theme-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0.5rem;
-        background: none;
-        border: none;
-        color: var(--muted-foreground);
-        cursor: pointer;
-        border-radius: 0.5rem;
-    }
-
-    .theme-btn:hover {
-        background: var(--faint);
-    }
-
-    .theme-btn.full-width {
-        width: 100%;
-        padding: 0.5rem 1rem;
-    }
-
     .theme-label {
-        margin-left: 0.75rem;
         text-transform: capitalize;
     }
 </style>

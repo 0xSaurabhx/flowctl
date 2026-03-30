@@ -98,11 +98,12 @@
   .breadcrumb-link:hover {
     color: var(--primary);
     text-decoration: underline;
+    text-underline-offset: 0.2em;
   }
 
   .action-btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--space-2);
   }
 </style>

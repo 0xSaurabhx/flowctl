@@ -6,7 +6,7 @@
 </script>
 
 <div class="hstack gap-2">
-  <div class="cell-icon">
+  <div class="icon-box cell-icon">
     {#if row.subject_type === 'user'}
       <IconUser size={20} />
     {:else}
@@ -17,9 +17,9 @@
     {#if onClick}
       <a href="#" class="cell-link" onclick={(e) => { e.preventDefault(); onClick(row); }}>{row.subject_name}</a>
     {:else}
-      <div class="cell-name">{row.subject_name}</div>
+      <div class="cell-name font-medium">{row.subject_name}</div>
     {/if}
-    <div class="text-lighter cell-id">{row.subject_id}</div>
+    <div class="text-lighter text-sm">{row.subject_id}</div>
   </div>
 </div>
 
@@ -27,16 +27,10 @@
   .cell-icon {
     width: 2.5rem;
     height: 2.5rem;
-    border-radius: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--faint);
-    color: var(--primary);
   }
   .cell-link {
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: var(--text-7);
+    font-weight: var(--font-medium);
     color: var(--foreground);
   }
   .cell-link:hover {
@@ -44,11 +38,6 @@
     text-decoration: underline;
   }
   .cell-name {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--foreground);
-  }
-  .cell-id {
-    font-size: 0.875rem;
+    font-size: var(--text-7);
   }
 </style>

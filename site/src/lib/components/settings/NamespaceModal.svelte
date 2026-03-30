@@ -72,7 +72,7 @@
                     placeholder="Enter namespace name"
                     use:autofocus
                 />
-                <p class="text-lighter hint">
+                <p class="text-lighter text-xs hint">
                     Namespace names should be unique and descriptive.
                 </p>
             </div>
@@ -104,7 +104,6 @@
         width: 100%;
     }
     .hint {
-        font-size: 0.75rem;
         margin-top: 0.25rem;
     }
 </style>

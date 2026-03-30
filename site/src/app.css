@@ -71,3 +71,117 @@ svg.icon-tabler {
 main.app-content {
   padding-block-start: 0;
 }
+
+/* ── Dialog form layout: scrollable content with sticky footer ── */
+dialog > form {
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+}
+dialog > form > section {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+dialog > form > footer {
+  flex-shrink: 0;
+}
+
+/* ── Shared page layout ── */
+.page-content {
+  padding: var(--space-12);
+}
+
+/* ── Stat cards grid ── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-6);
+}
+
+/* ── Table cell helpers (used by render() template strings) ── */
+.cell-muted {
+  font-size: var(--text-7);
+  color: var(--muted-foreground);
+}
+
+.cell-mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-7);
+  color: var(--muted-foreground);
+}
+
+/* ── Selector dropdown (shared by Node/Group/User/Multi selectors) ── */
+.selector-dropdown {
+  position: absolute;
+  z-index: var(--z-dropdown);
+  width: 100%;
+  margin-top: var(--space-1);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-medium);
+  box-shadow: var(--shadow-large);
+  max-height: 12rem;
+  overflow-y: auto;
+}
+
+.selector-dropdown-item {
+  width: 100%;
+  text-align: left;
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  background: none;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  border-radius: 0;
+  color: var(--foreground);
+}
+.selector-dropdown-item:last-child { border-bottom: none; }
+.selector-dropdown-item:hover { background: var(--faint); }
+
+.selector-dropdown-empty {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-7);
+  text-align: center;
+}
+
+/* ── Icon box used inside selector items & table cells ── */
+.icon-box {
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: var(--space-3);
+  background: var(--faint);
+  color: var(--primary);
+  flex-shrink: 0;
+}
+.icon-box.success {
+  background: color-mix(in srgb, var(--success) 15%, transparent);
+  color: var(--success);
+}
+.icon-box.danger {
+  background: color-mix(in srgb, var(--danger) 15%, transparent);
+  color: var(--danger);
+}
+.icon-box.warning {
+  background: color-mix(in srgb, var(--warning) 15%, transparent);
+  color: var(--warning);
+}
+
+/* ── Small icon button (actions in lists) ── */
+.icon-btn {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1);
+  border-radius: var(--radius-small);
+  color: var(--muted-foreground);
+}
+.icon-btn:hover { background: var(--faint); }

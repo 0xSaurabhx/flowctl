@@ -90,9 +90,3 @@
 		/>
 	{/if}
 </div>
-
-<style>
-	.page-content {
-		padding: 3rem;
-	}
-</style>

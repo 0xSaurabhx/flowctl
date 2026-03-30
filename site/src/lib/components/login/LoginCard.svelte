@@ -126,6 +126,6 @@
     background: color-mix(in srgb, var(--danger) 10%, transparent);
     border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
     color: var(--danger);
-    font-size: var(--font-size-small);
+    font-size: var(--text-7);
   }
 </style>

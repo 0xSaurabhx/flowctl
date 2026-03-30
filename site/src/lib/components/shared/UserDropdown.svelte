@@ -89,13 +89,13 @@
     width: 100%;
     display: flex;
     align-items: center;
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: var(--text-7);
+    font-weight: var(--font-medium);
     color: var(--foreground);
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-medium);
+    padding: var(--space-2) var(--space-3);
     cursor: pointer;
     transition: background 0.15s;
   }
@@ -106,7 +106,7 @@
 
   .user-btn.icon-only {
     justify-content: center;
-    padding: 0.5rem;
+    padding: var(--space-2);
   }
 
   .avatar {
@@ -120,23 +120,23 @@
     flex-shrink: 0;
     color: white;
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: var(--text-7);
   }
 
   .user-info {
-    margin-left: 0.75rem;
+    margin-left: var(--space-3);
     flex: 1;
     text-align: left;
   }
 
   .user-name {
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: var(--text-7);
+    font-weight: var(--font-medium);
     color: var(--foreground);
   }
 
   .user-role {
-    font-size: 0.75rem;
+    font-size: var(--text-8);
     text-transform: capitalize;
   }
 
@@ -155,12 +155,12 @@
     bottom: 100%;
     left: 0;
     width: 100%;
-    margin-bottom: 0.25rem;
+    margin-bottom: var(--space-1);
     background: var(--card);
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: var(--radius-medium);
+    box-shadow: var(--shadow-large);
     border: 1px solid var(--border);
-    padding: 0.25rem 0;
+    padding: var(--space-1) 0;
   }
 
   .user-menu.narrow {
@@ -170,8 +170,8 @@
   .user-menu button {
     width: 100%;
     text-align: left;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--text-7);
     color: var(--foreground);
     background: none;
     border: none;

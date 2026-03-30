@@ -36,6 +36,5 @@
   .app-content {
     flex: 1;
     overflow-y: auto;
-    padding-block-start: 0;
   }
 </style>

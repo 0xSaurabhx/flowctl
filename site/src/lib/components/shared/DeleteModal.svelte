@@ -49,7 +49,7 @@
 <dialog bind:this={dialogEl} onclose={handleClose}>
 	<header>
 		<div class="hstack gap-4">
-			<div class="danger-icon">
+			<div class="icon-box danger" style="width:3rem;height:3rem">
 				<IconAlertTriangle size={24} />
 			</div>
 			<div>
@@ -90,16 +90,3 @@
 		</button>
 	</footer>
 </dialog>
-
-<style>
-	.danger-icon {
-		width: 3rem;
-		height: 3rem;
-		background: color-mix(in srgb, var(--danger) 15%, transparent);
-		border-radius: var(--radius-medium);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: var(--danger);
-	}
-</style>
