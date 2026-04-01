@@ -44,9 +44,6 @@
 </svelte:head>
 
 <Header breadcrumbs={[{ label: "Settings" }]}>
-	{#snippet children()}
-		<!-- Search will be handled within each tab -->
-	{/snippet}
 </Header>
 
 <div class="page-content">

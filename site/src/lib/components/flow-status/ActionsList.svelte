@@ -137,6 +137,7 @@
     font-size: 1rem;
     font-weight: 600;
     color: var(--foreground);
+    margin: 0;
   }
   .search-wrapper {
     position: relative;

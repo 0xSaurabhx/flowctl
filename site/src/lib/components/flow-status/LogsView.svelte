@@ -273,9 +273,8 @@
     .download-btn {
         display: flex;
         align-items: center;
-        gap: 0.375rem;
-        font-size: 0.75rem;
-        padding: 0.25rem 0.625rem;
+        gap: var(--space-2);
+        font-size: var(--text-7);
     }
     .log-container {
         border-radius: 0.5rem;
@@ -287,7 +286,7 @@
         overflow-x: auto;
     }
     .theme-dark {
-        background: #111827;
+        background: #030712;
         color: #d1d5db;
     }
     .theme-light {

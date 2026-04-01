@@ -193,9 +193,7 @@
   { label: page.params.namespace!, url: `/view/${page.params.namespace}/flows` },
   { label: "Members" }
 ]}>
-  {#snippet children()}
-    <div class="mb-10"></div>
-  {/snippet}
+
 </Header>
 
 <div class="page-content">

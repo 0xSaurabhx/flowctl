@@ -414,7 +414,7 @@
 </Header>
 
 <!-- Page Content -->
-<div class="p-4 page-content">
+<div class="page-content">
     <PageHeader
         title={activeGroup ? activeGroup : "Flows"}
         subtitle={activeGroup ? `Flows in the ${activeGroup} group` : "Manage and run your workflows"}

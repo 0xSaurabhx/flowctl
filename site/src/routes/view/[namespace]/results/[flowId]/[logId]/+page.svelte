@@ -824,6 +824,7 @@
     .logs-header h2 {
         font-size: 1rem;
         font-weight: 600;
+        margin: 0;
     }
 
     .logs-body {
@@ -840,5 +841,6 @@
     .output-header h2 {
         font-size: 1rem;
         font-weight: 600;
+        margin: 0;
     }
 </style>

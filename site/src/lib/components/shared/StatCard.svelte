@@ -10,7 +10,7 @@
 		color?: 'blue' | 'green' | 'purple' | 'red' | 'yellow' | 'gray';
 	}
 
-	let { title, value, icon, IconComponent, iconSize = 24, color = 'blue' }: Props = $props();
+	let { title, value, icon, IconComponent, iconSize = 40, color = 'blue' }: Props = $props();
 
 	const colorMap: Record<string, string> = {
 		blue: '',

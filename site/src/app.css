@@ -66,6 +66,7 @@ svg.icon-tabler {
 .min-w-0 { min-width: 0; }
 .gap-6 { gap: var(--space-6); }
 .shrink-0 { flex-shrink: 0; }
+.nowrap { flex-wrap: nowrap; }
 
 /* App shell: remove oat's default main padding in sidebar layouts */
 main.app-content {

@@ -26,35 +26,10 @@
   };
 </script>
 
-<div class="search-wrapper">
-  <div class="search-field">
-    <input
-      type="search"
-      {placeholder}
-      {value}
-      oninput={handleInput}
-    />
-    {#if loading}
-      <div class="search-spinner" aria-busy="true"></div>
-    {/if}
-  </div>
-</div>
-
-<style>
-  .search-wrapper {
-    max-width: 28rem;
-  }
-
-  .search-field {
-    position: relative;
-  }
-
-  .search-spinner {
-    position: absolute;
-    right: var(--space-3);
-    top: 50%;
-    transform: translateY(-50%);
-    width: 1rem;
-    height: 1rem;
-  }
-</style>
+<input
+  type="search"
+  {placeholder}
+  {value}
+  oninput={handleInput}
+  style="min-width: 16rem"
+/>

@@ -57,5 +57,6 @@
   .flow-title {
     font-size: var(--text-3);
     font-weight: var(--font-semibold);
+    margin: 0;
   }
 </style>
