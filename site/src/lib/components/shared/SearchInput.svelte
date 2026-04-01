@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { IconSearch } from '@tabler/icons-svelte';
+
   let {
     value = $bindable(''),
     placeholder = 'Search...',
@@ -26,10 +28,13 @@
   };
 </script>
 
-<input
-  type="search"
-  {placeholder}
-  {value}
-  oninput={handleInput}
-  style="min-width: 16rem"
-/>
+<fieldset class="group" style="margin: 0;">
+  <legend><IconSearch size={16} /></legend>
+  <input
+    type="search"
+    {placeholder}
+    {value}
+    oninput={handleInput}
+    style="min-width: 16rem"
+  />
+</fieldset>

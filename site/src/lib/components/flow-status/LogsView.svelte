@@ -183,7 +183,7 @@
     });
 </script>
 
-<div class="vstack gap-2">
+<div class="vstack gap-2" style="height: 100%;">
     {#if (logMessages && logMessages.length > 0) || canDownload}
         <div class="hstack toolbar">
             <div class="hstack gap-4">
@@ -277,11 +277,10 @@
         font-size: var(--text-7);
     }
     .log-container {
-        border-radius: 0.5rem;
-        padding: 1rem;
+        border-radius: var(--radius-medium);
+        padding: var(--space-3);
         font-family: monospace;
-        min-height: 32rem;
-        max-height: 32rem;
+        height: 100%;
         overflow-y: auto;
         overflow-x: auto;
     }

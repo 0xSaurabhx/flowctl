@@ -6,7 +6,7 @@
     IconClockPause,
     IconCircle,
     IconMinus,
-    IconSearch
+    IconSearch,
   } from '@tabler/icons-svelte';
 
   type StepStatus = 'pending' | 'running' | 'completed' | 'failed' | 'awaiting_approval' | 'cancelled';
@@ -64,23 +64,18 @@
   };
 </script>
 
-<div class="actions-panel card">
+<div class="actions-panel card" style="padding: 0;">
   <!-- Header with Search -->
   <div class="panel-header">
     <h2>Actions</h2>
-
-    <!-- Search Input -->
-    <div class="search-wrapper">
-      <div class="search-icon">
-        <IconSearch size={18} />
-      </div>
+    <fieldset class="group">
+      <legend><IconSearch size={16} /></legend>
       <input
-        type="text"
+        type="search"
         bind:value={searchQuery}
         placeholder="Search actions..."
-        class="search-input"
       />
-    </div>
+    </fieldset>
   </div>
 
   <!-- Actions List -->
@@ -90,7 +85,7 @@
         {searchQuery ? 'No actions found' : 'No actions available'}
       </div>
     {:else}
-      <div class="vstack gap-2">
+      <div class="vstack gap-1">
         {#each filteredActions as action (action.id)}
           <button
             type="button"
@@ -101,7 +96,7 @@
             <div class="hstack gap-2 justify-between">
               <div class="action-name">{action.name}</div>
               <div class="status-icon {getStatusClass(action.status)}">
-                <svelte:component this={getIcon(action.status)} size={16} />
+                <svelte:component this={getIcon(action.status)} size={14} />
               </div>
             </div>
           </button>
@@ -116,9 +111,6 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    background: var(--card);
     overflow: hidden;
   }
   .panel-header {
@@ -127,64 +119,51 @@
     top: 0;
     background: var(--card);
     border-bottom: 1px solid var(--border);
-    padding: 1.25rem 1.5rem;
+    padding: var(--space-3) var(--space-4);
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: var(--space-2);
     z-index: 10;
   }
   .panel-header h2 {
-    font-size: 1rem;
+    font-size: var(--text-6);
     font-weight: 600;
     color: var(--foreground);
     margin: 0;
   }
-  .search-wrapper {
-    position: relative;
-  }
-  .search-icon {
-    position: absolute;
-    left: 0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--muted-foreground);
-    pointer-events: none;
-  }
-  .search-input {
-    width: 100%;
-    padding-left: 2.5rem;
+  .panel-header fieldset {
+    margin: 0;
   }
   .actions-list {
-    overflow-y: scroll;
-    padding: 1rem;
+    overflow-y: auto;
+    padding: var(--space-2);
     min-height: 32rem;
     max-height: 32rem;
   }
   .empty-msg {
     text-align: center;
-    padding: 2rem 0;
-    font-size: 0.875rem;
+    padding: var(--space-4) 0;
+    font-size: var(--text-7);
   }
   .action-item {
     all: unset;
     display: block;
     box-sizing: border-box;
     width: 100%;
-    padding: 1rem;
-    border-radius: 0.5rem;
+    padding: var(--space-3) var(--space-3);
+    border-radius: var(--radius-medium);
     border: 2px solid var(--border);
     background: var(--card);
     color: var(--foreground);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.15s;
   }
   .action-item.selected {
-    border-width: 2px;
     border-color: var(--primary);
   }
   .action-name {
     font-weight: 500;
-    font-size: 0.875rem;
+    font-size: var(--text-7);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -193,7 +172,7 @@
   }
   .status-icon {
     border-radius: 9999px;
-    padding: 0.375rem;
+    padding: 0.25rem;
     flex-shrink: 0;
     display: flex;
     align-items: center;

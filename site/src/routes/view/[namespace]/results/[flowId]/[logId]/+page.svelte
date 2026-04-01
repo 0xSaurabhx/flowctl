@@ -713,7 +713,7 @@
 
                     <!-- Right Panel: Terminal / Logs -->
                     <div class="panel-right">
-                        <div class="card logs-card">
+                        <div class="card logs-card" style="padding: 0;">
                             <div class="logs-header">
                                 <h2>
                                     {#if selectedActionId}
@@ -817,12 +817,12 @@
     }
 
     .logs-header {
-        padding: 1.25rem 1.5rem;
+        padding: var(--space-3) var(--space-4);
         border-bottom: 1px solid var(--border);
     }
 
     .logs-header h2 {
-        font-size: 1rem;
+        font-size: var(--text-6);
         font-weight: 600;
         margin: 0;
     }
@@ -830,7 +830,7 @@
     .logs-body {
         flex: 1;
         overflow: hidden;
-        padding: 1.5rem;
+        padding: var(--space-2);
     }
 
     .output-header {

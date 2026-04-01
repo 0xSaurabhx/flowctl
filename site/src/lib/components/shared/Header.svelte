@@ -84,8 +84,11 @@
   .header-bar {
     background: var(--card);
     border-bottom: 1px solid var(--border);
-    padding: var(--space-4) var(--space-6);
-    min-height: 4.75rem;
+    padding: var(--space-3) var(--space-6);
+    height: 3.75rem;
+    align-items: center;
+    align-content: center;
+    flex-wrap: nowrap;
   }
 
   .breadcrumb-link {

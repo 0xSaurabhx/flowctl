@@ -30,7 +30,7 @@
 </script>
 
 {#if hasData}
-  <article class="card">
+  <article class="card" style="padding:0">
     <button
       class="json-toggle"
       onclick={toggleExpanded}
@@ -66,7 +66,7 @@
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    padding: var(--space-3) var(--space-6);
+    padding: var(--space-2) var(--space-4);
     box-sizing: border-box;
   }
 

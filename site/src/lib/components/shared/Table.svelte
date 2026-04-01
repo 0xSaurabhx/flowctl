@@ -28,7 +28,7 @@
         emptyMessage = "No data available",
         emptyIcon,
         EmptyIconComponent,
-        emptyIconSize = 64,
+        emptyIconSize = 48,
         title,
         subtitle,
     }: Props = $props();
@@ -351,13 +351,22 @@
         justify-content: center;
         height: 16rem;
         text-align: center;
+        font-size: var(--text-6);
+        color: var(--muted-foreground);
+    }
+
+    .empty-state h3 {
+        font-size: var(--text-6);
+        font-weight: var(--font-medium);
+        margin: 0;
+        color: var(--muted-foreground);
     }
 
     .empty-icon {
-        width: 4rem;
-        height: 4rem;
+        width: 3rem;
+        height: 3rem;
         color: var(--muted-foreground);
-        margin-bottom: var(--space-4);
+        margin-bottom: var(--space-3);
     }
 
     th.sortable {
