@@ -222,6 +222,8 @@
 			emptyMessage="No members found. Get started by adding users or groups to this namespace."
 			EmptyIconComponent={IconUsers}
 			emptyIconSize={64}
+			emptyActionLabel={permissions.canCreate ? "Add your first member" : undefined}
+			onEmptyAction={permissions.canCreate ? handleAdd : undefined}
 		/>
 	</div>
 </div>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import OatSelect from '$lib/components/shared/OatSelect.svelte';
 	import type { FlowInput } from '$lib/types';
 
 	let {
@@ -65,31 +66,13 @@
 					{/if}
 				</div>
 			{:else if input.type === 'select' && input.options}
-				{#if useFormData}
-					<select
-						id={input.name}
-						name={input.name}
-						required={input.required}
-						value={values[input.name] ?? input.default ?? ''}
-					>
-						<option value="">Select an option</option>
-						{#each input.options as option}
-							<option value={option} selected={option === (values[input.name] ?? input.default)}
-								>{option}</option
-							>
-						{/each}
-					</select>
-				{:else}
-					<select
-						bind:value={values[input.name]}
-						required={input.required}
-					>
-						<option value="">Select an option</option>
-						{#each input.options as option}
-							<option value={option}>{option}</option>
-						{/each}
-					</select>
-				{/if}
+				<OatSelect
+					bind:value={values[input.name]}
+					options={input.options.map((o: string) => ({ value: o, label: o }))}
+					placeholder="Select an option"
+					required={input.required}
+					id={input.name}
+				/>
 			{:else if input.type === 'file'}
 				<div class="vstack">
 					<input

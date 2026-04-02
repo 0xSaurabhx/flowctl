@@ -60,11 +60,11 @@
 
 {#if upcomingRuns.length > 0}
   <article class="card">
-    <div class="card-header">
-      <h3 class="section-title">{title}</h3>
-      <p class="text-lighter section-subtitle">{upcomingRuns.length} {upcomingRuns.length === 1 ? 'run' : 'runs'} scheduled</p>
-    </div>
-    <div class="table-wrap">
+    <header>
+      <h3>{title}</h3>
+      <p class="text-lighter text-xs">{upcomingRuns.length} {upcomingRuns.length === 1 ? 'run' : 'runs'} scheduled</p>
+    </header>
+    <div class="table">
       <table>
         <thead>
           <tr>
@@ -88,7 +88,7 @@
               </td>
               <td>
                 {#if run.execId}
-                  <a href="/view/{namespace}/results/{flowId}/{run.execId}" class="mono-link">
+                  <a href="/view/{namespace}/results/{flowId}/{run.execId}" style="font-family: var(--font-mono); font-size: var(--text-7)">
                     {run.execId.substring(0, 8)}
                   </a>
                 {:else}
@@ -102,25 +102,3 @@
     </div>
   </article>
 {/if}
-
-<style>
-  .card-header {
-    padding: var(--space-4);
-    border-bottom: 1px solid var(--border);
-  }
-  .section-title {
-    font-size: var(--text-7);
-    font-weight: var(--font-semibold);
-  }
-  .section-subtitle {
-    font-size: var(--text-8);
-    margin-top: 0.125rem;
-  }
-  .table-wrap {
-    overflow-x: auto;
-  }
-  .mono-link {
-    font-family: var(--font-mono);
-    font-size: var(--text-7);
-  }
-</style>

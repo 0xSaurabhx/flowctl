@@ -175,7 +175,7 @@
 		subtitle="Manage encrypted secrets available to all flows in this namespace."
 		actions={data.permissions?.canCreate ? [
 			{
-				label: 'Add Secret',
+				label: 'Add',
 				onClick: handleAdd,
 				variant: 'primary',
 				IconComponent: IconPlus,
@@ -191,6 +191,8 @@
 		{loading}
 		emptyMessage="No secrets found. Get started by adding your first secret."
 		EmptyIconComponent={IconLock}
+		emptyActionLabel={data.permissions?.canCreate ? "Add your first secret" : undefined}
+		onEmptyAction={data.permissions?.canCreate ? handleAdd : undefined}
 	/>
 </div>
 

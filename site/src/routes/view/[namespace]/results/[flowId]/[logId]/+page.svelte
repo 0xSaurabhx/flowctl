@@ -5,9 +5,7 @@
     import StatusBadge from "$lib/components/shared/StatusBadge.svelte";
     import ActionsList from "$lib/components/flow-status/ActionsList.svelte";
     import LogsView from "$lib/components/flow-status/LogsView.svelte";
-    import FlowInfoCard from "$lib/components/flow-status/FlowInfoCard.svelte";
     import ExecutionOutputTable from "$lib/components/flow-status/ExecutionOutputTable.svelte";
-    import JsonDisplay from "$lib/components/shared/JsonDisplay.svelte";
     import type { FlowMetaResp, ExecutionSummary } from "$lib/types";
     import { apiClient, ApiError } from "$lib/apiClient";
     import {
@@ -678,84 +676,83 @@
             {/snippet}
         </Header>
 
-        <!-- Page Content -->
-        <div class="results-content">
-            <div class="results-container">
-                <FlowInfoCard
-                    flowName={flowName || "Loading..."}
-                    {startTime}
-                    executionId={logId}
-                    scheduledAt={scheduledTime}
-                    triggerType={data.executionSummary?.trigger_type}
-                    triggeredBy={data.executionSummary?.triggered_by}
-                />
+        <!-- Compact info bar -->
+        <div class="info-bar hstack nowrap justify-between text-sm">
+            <div class="hstack nowrap gap-4">
+                <span class="font-medium">{flowName || "Loading..."}</span>
+                {#if data.executionSummary?.trigger_type}
+                    <span class="badge {data.executionSummary.trigger_type === 'manual' ? '' : 'success'}">{data.executionSummary.trigger_type}</span>
+                {/if}
+                {#if startTime}
+                    <span class="text-light">Started {startTime}</span>
+                {/if}
+                {#if data.executionSummary?.triggered_by}
+                    <span class="text-light">by <strong>{data.executionSummary.triggered_by.replace(/<.*>/, '').trim()}</strong></span>
+                {/if}
+            </div>
+            <div class="hstack nowrap gap-2 shrink-0">
+                <span class="text-light">ID</span>
+                <code class="text-xs">{logId}</code>
+            </div>
+        </div>
 
-                <!-- Flow Input -->
+        <!-- Collapsible sections -->
+        {#if data.executionSummary?.input || Object.keys(results).length > 0}
+            <div class="collapsible-sections">
                 {#if data.executionSummary?.input}
-                    <div class="mb-4">
-                        <JsonDisplay
-                            data={data.executionSummary.input}
-                            title="Inputs"
-                        />
-                    </div>
+                    <details>
+                        <summary>Inputs</summary>
+                        <pre><code>{JSON.stringify(data.executionSummary.input, null, 2)}</code></pre>
+                    </details>
                 {/if}
 
-                <!-- Split Panel Layout: Actions List and Logs -->
-                <div class="mb-4 split-panel">
-                    <!-- Left Panel: Actions List -->
-                    <div class="panel-left">
-                        <ActionsList
-                            actions={actionsList}
-                            bind:selectedActionId
-                            onActionSelect={handleActionSelect}
-                        />
-                    </div>
-
-                    <!-- Right Panel: Terminal / Logs -->
-                    <div class="panel-right">
-                        <div class="card logs-card" style="padding: 0;">
-                            <div class="logs-header">
-                                <h2>
-                                    {#if selectedActionId}
-                                        {actionsList.find(
-                                            (a) => a.id === selectedActionId,
-                                        )?.name || "Action Logs"}
-                                    {:else}
-                                        Action Logs
-                                    {/if}
-                                </h2>
-                            </div>
-                            <div class="logs-body">
-                                <div style="height:100%">
-                                    <LogsView
-                                        bind:logs={logOutput}
-                                        {logMessages}
-                                        isRunning={status === "running"}
-                                        height="h-full"
-                                        theme="dark"
-                                        autoScroll={true}
-                                        showCursor={true}
-                                        filterByActionId={selectedActionId}
-                                        {logId}
-                                        {namespace}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Execution Output -->
                 {#if Object.keys(results).length > 0}
-                    <div class="mb-4 card">
-                        <div class="output-header">
-                            <h2>Execution Output</h2>
-                        </div>
-                        <div class="p-4">
+                    <details>
+                        <summary>Outputs</summary>
+                        <div>
                             <ExecutionOutputTable {results} />
                         </div>
-                    </div>
+                    </details>
                 {/if}
+            </div>
+        {/if}
+
+        <!-- Split Panel: Actions + Terminal (fills remaining height) -->
+        <div class="split-panel">
+            <div class="panel-left">
+                <ActionsList
+                    actions={actionsList}
+                    bind:selectedActionId
+                    onActionSelect={handleActionSelect}
+                />
+            </div>
+
+            <div class="panel-right">
+                <div class="card logs-card" style="padding: 0;">
+                    <div class="logs-header hstack justify-between">
+                        <h5>
+                            {#if selectedActionId}
+                                {actionsList.find((a) => a.id === selectedActionId)?.name || "Action Logs"}
+                            {:else}
+                                Action Logs
+                            {/if}
+                        </h5>
+                    </div>
+                    <div class="logs-body">
+                        <LogsView
+                            bind:logs={logOutput}
+                            {logMessages}
+                            isRunning={status === "running"}
+                            height="h-full"
+                            theme="dark"
+                            autoScroll={true}
+                            showCursor={true}
+                            filterByActionId={selectedActionId}
+                            {logId}
+                            {namespace}
+                        />
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -764,8 +761,7 @@
 <style>
     .results-layout {
         display: flex;
-        height: 100vh;
-        background: var(--muted);
+        height: 100%;
     }
 
     .results-main {
@@ -775,38 +771,62 @@
         overflow: hidden;
     }
 
-    .results-content {
-        flex: 1;
-        overflow-y: auto;
-        padding: 1.5rem;
-        background: var(--muted);
+    .info-bar {
+        padding: var(--space-2) var(--space-4);
+        border-bottom: 1px solid var(--border);
+        background: var(--card);
+        flex-shrink: 0;
     }
 
-    .results-container {
-        max-width: 80rem;
-        margin: 0 auto;
+    .collapsible-sections {
+        flex-shrink: 0;
+        padding: var(--space-2) var(--space-3);
+    }
+
+    .collapsible-sections details {
+        margin: 0;
+        background: var(--card);
+    }
+
+    .collapsible-sections summary {
+        padding: var(--space-2) var(--space-3);
+        font-size: var(--text-7);
+        color: var(--foreground);
+        font-weight: var(--font-semibold);
     }
 
     .split-panel {
+        flex: 1;
         display: grid;
-        grid-template-columns: 1fr 3fr;
-        gap: 1.5rem;
-        height: 650px;
+        grid-template-columns: 280px 1fr;
+        min-height: 0;
+        margin: var(--space-2) var(--space-3);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-medium);
+        overflow: hidden;
     }
 
     @media (max-width: 768px) {
         .split-panel {
             grid-template-columns: 1fr;
-            height: auto;
         }
     }
 
     .panel-left {
-        height: 100%;
+        min-height: 0;
+        overflow: hidden;
+        border-right: 1px solid var(--border);
+    }
+
+    .panel-left :global(.actions-panel) {
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
     }
 
     .panel-right {
-        height: 100%;
+        min-height: 0;
+        overflow: hidden;
     }
 
     .logs-card {
@@ -814,16 +834,18 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
     }
 
     .logs-header {
-        padding: var(--space-3) var(--space-4);
+        padding: var(--space-2) var(--space-4);
         border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
     }
 
-    .logs-header h2 {
-        font-size: var(--text-6);
-        font-weight: 600;
+    .logs-header h5 {
         margin: 0;
     }
 
@@ -831,16 +853,5 @@
         flex: 1;
         overflow: hidden;
         padding: var(--space-2);
-    }
-
-    .output-header {
-        padding: 1.25rem 1.5rem;
-        border-bottom: 1px solid var(--border);
-    }
-
-    .output-header h2 {
-        font-size: 1rem;
-        font-weight: 600;
-        margin: 0;
     }
 </style>

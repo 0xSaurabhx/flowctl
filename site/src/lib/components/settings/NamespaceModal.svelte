@@ -72,7 +72,7 @@
                     placeholder="Enter namespace name"
                     use:autofocus
                 />
-                <p class="text-lighter text-xs hint">
+                <p class="text-lighter text-xs mt-1">
                     Namespace names should be unique and descriptive.
                 </p>
             </div>
@@ -102,8 +102,5 @@
     dialog {
         max-width: 32rem;
         width: 100%;
-    }
-    .hint {
-        margin-top: 0.25rem;
     }
 </style>

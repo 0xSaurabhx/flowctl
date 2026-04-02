@@ -137,8 +137,8 @@
   .actions-list {
     overflow-y: auto;
     padding: var(--space-2);
-    min-height: 32rem;
-    max-height: 32rem;
+    flex: 1;
+    min-height: 0;
   }
   .empty-msg {
     text-align: center;

@@ -14,17 +14,15 @@
 
 <!-- Hero Section -->
 <div class="hero-section">
-  <div class="hero-inner">
-    <div class="hstack gap-4 items-start">
-      <div class="icon-box shrink-0" style="width:3rem;height:3rem">
-        {@html icon}
-      </div>
-      <div class="flex-1 min-w-0">
-        <h1 class="hero-title">{name}</h1>
-        {#if description}
-          <p class="text-light hero-description">{description}</p>
-        {/if}
-      </div>
+  <div class="hero-inner hstack gap-4 items-center">
+    <div class="icon-box shrink-0" style="width:2.5rem;height:2.5rem">
+      {@html icon}
+    </div>
+    <div class="flex-1 min-w-0">
+      <h1 class="hero-title">{name}</h1>
+      {#if description}
+        <p class="text-light hero-description">{description}</p>
+      {/if}
     </div>
   </div>
 </div>
@@ -32,22 +30,23 @@
 <style>
   .hero-section {
     background: var(--card);
-    border-bottom: 1px solid var(--border);
-    padding: var(--space-6);
+    padding: var(--space-5) var(--space-6) var(--space-4);
   }
   .hero-inner {
-    max-width: 56rem;
+    max-width: 72rem;
     margin: 0 auto;
   }
   .hero-title {
-    font-size: var(--text-3);
+    font-size: var(--text-4);
     font-weight: var(--font-semibold);
-    margin-bottom: var(--space-1);
+    margin: 0;
+    line-height: 1.3;
   }
   .hero-description {
     font-size: var(--text-7);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    margin: var(--space-1) 0 0;
   }
 </style>

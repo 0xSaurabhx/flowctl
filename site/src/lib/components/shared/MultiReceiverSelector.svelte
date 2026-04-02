@@ -1,6 +1,7 @@
 <script lang="ts">
     import { apiClient } from "$lib/apiClient";
     import { handleInlineError } from "$lib/utils/errorHandling";
+    import OatSelect from "$lib/components/shared/OatSelect.svelte";
     import type { User, Group } from "$lib/types";
     import { IconUsers, IconUser, IconX, IconMail } from "@tabler/icons-svelte";
 
@@ -126,16 +127,35 @@
             closeDropdown();
         }
     }
+
+    import { onMount, onDestroy } from 'svelte';
+
+    let scrollCleanup: (() => void) | null = null;
+
+    onMount(() => {
+        const onScroll = () => {
+            if (popoverEl?.matches(':popover-open')) closeDropdown();
+        };
+        document.addEventListener('scroll', onScroll, { capture: true, passive: true });
+        scrollCleanup = () => document.removeEventListener('scroll', onScroll, { capture: true });
+    });
+
+    onDestroy(() => scrollCleanup?.());
 </script>
 
 <svelte:window on:click={handleOutsideClick} />
 
 <div class="multi-receiver-selector vstack gap-2">
     <div class="hstack gap-2">
-        <select bind:value={searchType} onchange={handleTypeChange} {disabled}>
-            <option value="user">User</option>
-            <option value="group">Group</option>
-        </select>
+        <OatSelect
+            bind:value={searchType}
+            options={[
+                { value: 'user', label: 'User' },
+                { value: 'group', label: 'Group' }
+            ]}
+            onchange={handleTypeChange}
+            {disabled}
+        />
 
         <div style="flex: 1">
             <button

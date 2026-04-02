@@ -1,5 +1,6 @@
 <script lang="ts">
     import MultiReceiverSelector from "$lib/components/shared/MultiReceiverSelector.svelte";
+    import OatSelect from "$lib/components/shared/OatSelect.svelte";
 
     let {
         notifications = $bindable(),
@@ -92,22 +93,18 @@
                     <!-- Channel -->
                     <div data-field>
                         <label>Channel *</label>
-                        <select
+                        <OatSelect
                             bind:value={notification.channel}
+                            options={availableMessengers.map((m: string) => ({
+                                value: m,
+                                label: m.charAt(0).toUpperCase() + m.slice(1)
+                            }))}
+                            placeholder={availableMessengers.length === 0
+                                ? "No messengers available"
+                                : "Select channel"}
                             onchange={() => onChannelChange(notification)}
                             required
-                        >
-                            <option value="">
-                                {availableMessengers.length === 0
-                                    ? "No messengers available"
-                                    : "Select channel"}
-                            </option>
-                            {#each availableMessengers as messenger}
-                                <option value={messenger}>
-                                    {messenger.charAt(0).toUpperCase() + messenger.slice(1)}
-                                </option>
-                            {/each}
-                        </select>
+                        />
                     </div>
 
                     <!-- Events -->

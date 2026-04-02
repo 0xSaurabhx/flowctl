@@ -80,6 +80,20 @@
             closeDropdown();
         }
     }
+
+    import { onMount, onDestroy } from "svelte";
+
+    let scrollCleanup: (() => void) | null = null;
+
+    onMount(() => {
+        const onScroll = () => {
+            if (popoverEl?.matches(':popover-open')) closeDropdown();
+        };
+        document.addEventListener('scroll', onScroll, { capture: true, passive: true });
+        scrollCleanup = () => document.removeEventListener('scroll', onScroll, { capture: true });
+    });
+
+    onDestroy(() => scrollCleanup?.());
 </script>
 
 <svelte:window on:click={handleOutsideClick} />
@@ -94,7 +108,7 @@
         <div class="hstack gap-2" style="padding: 0.5rem 0.75rem; background: var(--card); border: 1px solid var(--border); border-radius: 0.375rem">
             <IconFolder size={16} class="text-lighter" />
             <span style="flex: 1; font-size: 0.875rem">{value}</span>
-            <button type="button" class="icon-btn" onclick={clear} style="padding: 0.125rem">
+            <button type="button" class="ghost icon small" onclick={clear} style="padding: 0.125rem">
                 <IconX size={16} />
             </button>
         </div>

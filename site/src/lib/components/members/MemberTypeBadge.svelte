@@ -4,13 +4,6 @@
   const isUser = value === 'user';
 </script>
 
-<span class="badge">
+<span class="badge outline">
   {isUser ? 'User' : 'Group'}
 </span>
-
-<style>
-  .badge {
-    background: color-mix(in srgb, var(--primary) 15%, transparent);
-    color: var(--primary);
-  }
-</style>

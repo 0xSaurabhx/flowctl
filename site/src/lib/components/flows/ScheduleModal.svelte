@@ -112,15 +112,15 @@
           type="text"
           bind:value={formData.cron}
           onblur={validateCron}
-          class:error={!!cronError}
+          aria-invalid={cronError ? 'true' : undefined}
           placeholder="0 2 * * *"
           required
           use:autofocus
         />
         {#if cronError}
-          <p class="field-error text-sm">{cronError}</p>
+          <p style="color: var(--danger); margin-top: 0.25rem" class="text-sm">{cronError}</p>
         {/if}
-        <p class="text-lighter text-xs field-hint">
+        <p class="text-lighter text-xs" style="margin-top: 0.25rem">
           Examples: <code>0 2 * * *</code> (daily 2AM),
           <code>0 */6 * * *</code> (every 6 hours)
         </p>
@@ -186,16 +186,6 @@
   dialog {
     max-width: 42rem;
     width: 100%;
-  }
-  .error {
-    border-color: var(--danger) !important;
-  }
-  .field-error {
-    color: var(--danger);
-    margin-top: 0.25rem;
-  }
-  .field-hint {
-    margin-top: 0.25rem;
   }
   .toggle-row {
     padding: 0.5rem 0;

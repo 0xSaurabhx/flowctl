@@ -4,8 +4,7 @@
   import ScheduleModal from './ScheduleModal.svelte';
   import ViewScheduleModal from './ViewScheduleModal.svelte';
   import DeleteModal from '$lib/components/shared/DeleteModal.svelte';
-  import DropdownMenu from '$lib/components/shared/DropdownMenu.svelte';
-  import { IconClock, IconPlus } from '@tabler/icons-svelte';
+  import { IconClock, IconPlus, IconDotsVertical } from '@tabler/icons-svelte';
   import type { UserSchedule, FlowInput, ScheduleCreateReq, ScheduleUpdateReq } from '$lib/types';
 
   let {
@@ -97,10 +96,10 @@
 </script>
 
 <article class="card">
-  <div class="card-header hstack justify-between">
+  <header class="hstack justify-between">
     <div>
-      <h3 class="section-title">Schedules</h3>
-      <p class="text-lighter section-subtitle">{schedules.length} {schedules.length === 1 ? 'schedule' : 'schedules'}</p>
+      <h3>Schedules</h3>
+      <p class="text-lighter text-xs">{schedules.length} {schedules.length === 1 ? 'schedule' : 'schedules'}</p>
     </div>
     {#if canCreateSchedule}
       <button
@@ -111,7 +110,7 @@
         Add
       </button>
     {/if}
-  </div>
+  </header>
 
   {#if schedules.length === 0}
     <div class="vstack empty-state">
@@ -128,7 +127,7 @@
       {/if}
     </div>
   {:else}
-    <div class="table-wrap">
+    <div class="table">
       <table>
         <thead>
           <tr>
@@ -162,8 +161,24 @@
               </td>
               <td class="actions-col">
                 {#if canCreateSchedule && canEdit(schedule)}
+                  {@const menuId = `sched-menu-${schedule.uuid}`}
                   <div class="actions-wrapper">
-                    <DropdownMenu items={getMenuItems(schedule)} />
+                    <ot-dropdown>
+                      <button popovertarget={menuId} class="ghost icon small" aria-label="Actions menu">
+                        <IconDotsVertical size={16} />
+                      </button>
+                      <div popover id={menuId} role="menu">
+                        {#each getMenuItems(schedule) as item}
+                          <button
+                            role="menuitem"
+                            onclick={() => { item.onClick(); document.getElementById(menuId)?.hidePopover(); }}
+                            style={item.variant === 'danger' ? 'color: var(--danger)' : ''}
+                          >
+                            {item.label}
+                          </button>
+                        {/each}
+                      </div>
+                    </ot-dropdown>
                   </div>
                 {:else}
                   <span class="text-lighter">-</span>
@@ -206,25 +221,10 @@
 {/if}
 
 <style>
-  .card-header {
-    padding: var(--space-4);
-    border-bottom: 1px solid var(--border);
-  }
-  .section-title {
-    font-size: var(--text-7);
-    font-weight: var(--font-semibold);
-  }
-  .section-subtitle {
-    font-size: var(--text-8);
-    margin-top: 0.125rem;
-  }
   .empty-state {
     align-items: center;
     padding: var(--space-12) var(--space-4);
     gap: var(--space-3);
-  }
-  .table-wrap {
-    overflow-x: auto;
   }
   .actions-col {
     text-align: right;
@@ -233,9 +233,5 @@
   .actions-wrapper {
     display: inline-flex;
     justify-content: flex-end;
-  }
-  .badge.info {
-    background: var(--primary);
-    color: white;
   }
 </style>

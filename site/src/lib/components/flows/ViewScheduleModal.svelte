@@ -26,18 +26,18 @@
 
 	<section>
 		<!-- Schedule Info Box -->
-		<div class="info-box">
-			<div class="info-grid">
-				<div>
-					<div class="info-label text-xs font-medium text-lighter">Cron Expression</div>
+		<article class="card p-4 mb-4" style="background: var(--faint)">
+			<div class="row">
+				<div class="col-6">
+					<div class="text-xs font-medium text-lighter" style="text-transform: uppercase; margin-bottom: 0.25rem">Cron Expression</div>
 					<code>{schedule.cron}</code>
 				</div>
-				<div>
-					<div class="info-label text-xs font-medium text-lighter">Timezone</div>
+				<div class="col-6">
+					<div class="text-xs font-medium text-lighter" style="text-transform: uppercase; margin-bottom: 0.25rem">Timezone</div>
 					<div>{schedule.timezone}</div>
 				</div>
 			</div>
-		</div>
+		</article>
 
 		<!-- Schedule Inputs -->
 		<div>
@@ -61,21 +61,5 @@
 	dialog {
 		max-width: 32rem;
 		width: 100%;
-	}
-	.info-box {
-		background: var(--faint);
-		border: 1px solid var(--border);
-		border-radius: 0.5rem;
-		padding: 1rem;
-		margin-bottom: 1rem;
-	}
-	.info-grid {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 0.75rem;
-	}
-	.info-label {
-		text-transform: uppercase;
-		margin-bottom: 0.25rem;
 	}
 </style>

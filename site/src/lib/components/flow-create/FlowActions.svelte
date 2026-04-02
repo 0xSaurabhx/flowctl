@@ -3,6 +3,7 @@
     import { handleInlineError } from "$lib/utils/errorHandling";
     import { createSlug } from "$lib/utils";
     import { notifications } from "$lib/stores/notifications";
+    import OatSelect from "$lib/components/shared/OatSelect.svelte";
     import CodeEditor from "$lib/components/shared/CodeEditor.svelte";
     import KeyValueEditor from "$lib/components/shared/KeyValueEditor.svelte";
     import NodeSelector from "$lib/components/shared/NodeSelector.svelte";
@@ -183,7 +184,7 @@
                         <button
                             type="button"
                             data-variant="secondary"
-                            class="icon-btn"
+                            class="ghost icon small"
                             onclick={() => (action.collapsed = !action.collapsed)}
                         >
                             <svg class="icon-sm" class:rotated={!action.collapsed} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -194,7 +195,7 @@
                             <button
                                 type="button"
                                 data-variant="secondary"
-                                class="icon-btn"
+                                class="ghost icon small"
                                 onclick={() => duplicateAction(index)}
                             >
                                 <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -204,7 +205,7 @@
                             <button
                                 type="button"
                                 data-variant="danger"
-                                class="icon-btn"
+                                class="ghost icon small"
                                 onclick={() => removeAction(index)}
                             >
                                 <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -233,16 +234,13 @@
                         <div class="grid-2">
                             <div data-field>
                                 <label>Executor *</label>
-                                <select
+                                <OatSelect
                                     bind:value={action.executor}
+                                    options={availableExecutors.map((e: any) => ({ value: e.name, label: e.name }))}
+                                    placeholder="Select Executor"
                                     onchange={() => onExecutorChange(action)}
                                     required
-                                >
-                                    <option value="">Select Executor</option>
-                                    {#each availableExecutors as executor}
-                                        <option value={executor.name}>{executor.name}</option>
-                                    {/each}
-                                </select>
+                                />
                             </div>
                             {#if executorHasCapability(action.executor, 'remote_execution')}
                             <div data-field>
@@ -303,16 +301,13 @@
                                                             {label}
                                                             {#if isRequired}<span class="required">*</span>{/if}
                                                         </label>
-                                                        <select
-                                                            id="config-{action.tempId}-{key}"
+                                                        <OatSelect
                                                             bind:value={action.with[key]}
-                                                            onchange={(e) => updateConfigValue(action, key, e.currentTarget.value)}
-                                                        >
-                                                            <option value="">Select...</option>
-                                                            {#each property.enum as option}
-                                                                <option value={option}>{option}</option>
-                                                            {/each}
-                                                        </select>
+                                                            options={property.enum.map((o: string) => ({ value: o, label: o }))}
+                                                            placeholder="Select..."
+                                                            id="config-{action.tempId}-{key}"
+                                                            onchange={() => updateConfigValue(action, key, action.with[key])}
+                                                        />
                                                         {#if description}
                                                             <p class="text-lighter field-hint">{description}</p>
                                                         {/if}

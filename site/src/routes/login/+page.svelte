@@ -8,7 +8,6 @@
   import { onMount } from 'svelte';
   import Logo from '$lib/components/shared/Logo.svelte';
   import LoginCard from '$lib/components/login/LoginCard.svelte';
-  import Footer from '$lib/components/login/Footer.svelte';
   import ThemeToggle from '$lib/components/shared/ThemeToggle.svelte';
 
   let username = $state('');
@@ -66,7 +65,9 @@
       bind:password
       {redirectUrl}
     />
-    <Footer />
+    <footer class="mt-6 align-center">
+      <p class="text-lighter text-sm">Need help? Contact your system administrator</p>
+    </footer>
   </section>
   <div class="theme-toggle-pos">
     <ThemeToggle collapsed={true} />

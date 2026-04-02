@@ -23,6 +23,8 @@
         IconCircleCheck,
         IconClock,
         IconSettings,
+        IconChevronsLeft,
+        IconChevronsRight,
     } from "@tabler/icons-svelte";
     import UserDropdown from "./UserDropdown.svelte";
     import ThemeToggle from "./ThemeToggle.svelte";
@@ -31,6 +33,7 @@
 
     let { namespace }: { namespace: string } = $props();
 
+    let isCollapsed = $state(false);
     let namespaces = $state<Namespace[]>([]);
     let searchQuery = $state("");
     let searchResults = $state<Namespace[]>([]);
@@ -150,15 +153,15 @@
 
     const selectNamespace = (ns: Namespace) => {
         searchQuery = "";
-
-        // Close the popover
         document.getElementById("ns-select")?.hidePopover();
-
         if (ns.name === namespace) return;
-
         clearPermissionCache();
         selectedNamespace.set(ns.name);
         window.location.href = `/view/${ns.name}/flows`;
+    };
+
+    const toggleCollapse = () => {
+        isCollapsed = !isCollapsed;
     };
 
     setContext("namespace", namespace);
@@ -182,105 +185,204 @@
     });
 </script>
 
-<aside data-sidebar aria-label="Main navigation">
+<aside data-sidebar aria-label="Main navigation" class:collapsed={isCollapsed}>
     <header>
         <a href="/" class="unstyled vstack items-center gap-1">
-            <Logo height="2rem" />
-            <span class="text-lighter" style="font-size: var(--text-8)">{APP_VERSION}-{APP_COMMIT}</span>
+            {#if isCollapsed}
+                <Logo height="1.5rem" iconOnly={true} />
+            {:else}
+                <Logo height="2rem" />
+                <span class="text-lighter" style="font-size: var(--text-8)">{APP_VERSION}-{APP_COMMIT}</span>
+            {/if}
         </a>
 
-        <!-- Namespace Dropdown -->
-        <ot-dropdown class="mt-4" style="display: block">
-            <button popovertarget="ns-select" class="outline small w-100 hstack justify-between">
-                <span>{currentNamespace || "Select namespace"}</span>
-                <IconChevronDown size={14} />
-            </button>
-            <div popover id="ns-select" ontoggle={handleNsToggle}>
-                <div style="padding: var(--space-2); border-bottom: 1px solid var(--border)">
-                    <input
-                        type="search"
-                        bind:this={nsSearchInput}
-                        bind:value={searchQuery}
-                        oninput={handleSearchInput}
-                        placeholder="Search namespaces..."
-                        aria-busy={searchLoading}
-                        autocomplete="off"
-                    />
-                </div>
-                {#each searchResults as ns (ns.id)}
-                    <button
-                        role="menuitem"
-                        aria-selected={ns.name === namespace}
-                        onclick={() => selectNamespace(ns)}
-                    >
-                        {ns.name}
-                    </button>
-                {/each}
-                {#if searchResults.length === 0 && !searchLoading}
-                    <div class="text-lighter align-center" style="padding: var(--space-3); font-size: var(--text-7)">
-                        {searchQuery ? "No namespaces found" : "No namespaces available"}
-                    </div>
-                {/if}
-                {#if searchLoading}
-                    <div class="text-lighter align-center" style="padding: var(--space-3); font-size: var(--text-7)">
-                        Searching...
-                    </div>
-                {/if}
+        {#if isCollapsed}
+            <!-- Collapsed namespace indicator -->
+            <div class="ns-collapsed-indicator mt-4" title={currentNamespace || "Select namespace"}>
+                <span class="ns-initial">{(currentNamespace || "?").charAt(0).toUpperCase()}</span>
             </div>
-        </ot-dropdown>
+        {:else}
+            <!-- Namespace Dropdown -->
+            <ot-dropdown class="mt-4" style="display: block">
+                <button popovertarget="ns-select" class="outline small w-100 hstack justify-between">
+                    <span>{currentNamespace || "Select namespace"}</span>
+                    <IconChevronDown size={14} />
+                </button>
+                <div popover id="ns-select" ontoggle={handleNsToggle}>
+                    <div style="padding: var(--space-2); border-bottom: 1px solid var(--border)">
+                        <input
+                            type="search"
+                            bind:this={nsSearchInput}
+                            bind:value={searchQuery}
+                            oninput={handleSearchInput}
+                            placeholder="Search namespaces..."
+                            aria-busy={searchLoading}
+                            autocomplete="off"
+                        />
+                    </div>
+                    {#each searchResults as ns (ns.id)}
+                        <button
+                            role="menuitem"
+                            aria-selected={ns.name === namespace}
+                            onclick={() => selectNamespace(ns)}
+                        >
+                            {ns.name}
+                        </button>
+                    {/each}
+                    {#if searchResults.length === 0 && !searchLoading}
+                        <div class="text-lighter align-center" style="padding: var(--space-3); font-size: var(--text-7)">
+                            {searchQuery ? "No namespaces found" : "No namespaces available"}
+                        </div>
+                    {/if}
+                    {#if searchLoading}
+                        <div class="text-lighter align-center" style="padding: var(--space-3); font-size: var(--text-7)">
+                            Searching...
+                        </div>
+                    {/if}
+                </div>
+            </ot-dropdown>
+        {/if}
     </header>
 
     <nav>
         <ul>
             {#if permissions.flows.canRead}
-                <li><a href="/view/{namespace}/flows" aria-current={isActiveLink("flows") ? "page" : undefined}>
-                    <IconGridDots size={20} aria-hidden="true" /> Flows
+                <li><a href="/view/{namespace}/flows" aria-current={isActiveLink("flows") ? "page" : undefined} title={isCollapsed ? "Flows" : ""} class:icon-only={isCollapsed}>
+                    <IconGridDots size={20} aria-hidden="true" /> {#if !isCollapsed}Flows{/if}
                 </a></li>
             {/if}
             {#if permissions.nodes.canRead}
-                <li><a href="/view/{namespace}/nodes" aria-current={isActiveLink("nodes") ? "page" : undefined}>
-                    <IconServer size={20} aria-hidden="true" /> Nodes
+                <li><a href="/view/{namespace}/nodes" aria-current={isActiveLink("nodes") ? "page" : undefined} title={isCollapsed ? "Nodes" : ""} class:icon-only={isCollapsed}>
+                    <IconServer size={20} aria-hidden="true" /> {#if !isCollapsed}Nodes{/if}
                 </a></li>
             {/if}
             {#if permissions.credentials.canRead}
-                <li><a href="/view/{namespace}/credentials" aria-current={isActiveLink("credentials") ? "page" : undefined}>
-                    <IconKey size={20} aria-hidden="true" /> Credentials
+                <li><a href="/view/{namespace}/credentials" aria-current={isActiveLink("credentials") ? "page" : undefined} title={isCollapsed ? "Credentials" : ""} class:icon-only={isCollapsed}>
+                    <IconKey size={20} aria-hidden="true" /> {#if !isCollapsed}Credentials{/if}
                 </a></li>
             {/if}
             {#if permissions.secrets.canRead}
-                <li><a href="/view/{namespace}/secrets" aria-current={isActiveLink("secrets") ? "page" : undefined}>
-                    <IconLock size={20} aria-hidden="true" /> Secrets
+                <li><a href="/view/{namespace}/secrets" aria-current={isActiveLink("secrets") ? "page" : undefined} title={isCollapsed ? "Secrets" : ""} class:icon-only={isCollapsed}>
+                    <IconLock size={20} aria-hidden="true" /> {#if !isCollapsed}Secrets{/if}
                 </a></li>
             {/if}
             {#if permissions.members.canRead}
-                <li><a href="/view/{namespace}/members" aria-current={isActiveLink("members") ? "page" : undefined}>
-                    <IconUsers size={20} aria-hidden="true" /> Members
+                <li><a href="/view/{namespace}/members" aria-current={isActiveLink("members") ? "page" : undefined} title={isCollapsed ? "Members" : ""} class:icon-only={isCollapsed}>
+                    <IconUsers size={20} aria-hidden="true" /> {#if !isCollapsed}Members{/if}
                 </a></li>
             {/if}
             {#if permissions.approvals.canRead}
-                <li><a href="/view/{namespace}/approvals" aria-current={isActiveLink("approvals") ? "page" : undefined}>
-                    <IconCircleCheck size={20} aria-hidden="true" /> Approvals
+                <li><a href="/view/{namespace}/approvals" aria-current={isActiveLink("approvals") ? "page" : undefined} title={isCollapsed ? "Approvals" : ""} class:icon-only={isCollapsed}>
+                    <IconCircleCheck size={20} aria-hidden="true" /> {#if !isCollapsed}Approvals{/if}
                 </a></li>
             {/if}
             {#if permissions.history.canRead}
-                <li><a href="/view/{namespace}/history" aria-current={isActiveLink("history") ? "page" : undefined}>
-                    <IconClock size={20} aria-hidden="true" /> History
+                <li><a href="/view/{namespace}/history" aria-current={isActiveLink("history") ? "page" : undefined} title={isCollapsed ? "History" : ""} class:icon-only={isCollapsed}>
+                    <IconClock size={20} aria-hidden="true" /> {#if !isCollapsed}History{/if}
                 </a></li>
             {/if}
         </ul>
     </nav>
 
     <footer>
-        <div class="hstack justify-between items-center">
+        <div class="hstack items-center footer-actions" class:collapsed-footer={isCollapsed}>
             {#if $currentUser && $currentUser.role === "superuser"}
-                <a href="/settings" class="unstyled" aria-current={isActiveLink("settings") ? "page" : undefined} title="Settings">
-                    <IconSettings size={20} aria-hidden="true" />
+                <a href="/settings" class="button ghost icon small" aria-current={isActiveLink("settings") ? "page" : undefined} title="Settings">
+                    <IconSettings size={18} aria-hidden="true" />
                 </a>
             {/if}
             <ThemeToggle collapsed={true} />
+            <button type="button" onclick={toggleCollapse} class="ghost icon small" aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"} title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}>
+                {#if isCollapsed}
+                    <IconChevronsRight size={18} />
+                {:else}
+                    <IconChevronsLeft size={18} />
+                {/if}
+            </button>
         </div>
         {#if $currentUser}
-            <UserDropdown />
+            {#if isCollapsed}
+                <figure data-variant="avatar" class="small collapsed-avatar" aria-label={$currentUser.name} title={$currentUser.name}>
+                    <abbr title={$currentUser.name}>{$currentUser.name.charAt(0).toUpperCase()}</abbr>
+                </figure>
+            {:else}
+                <UserDropdown />
+            {/if}
         {/if}
     </footer>
 </aside>
+
+<style>
+    /* Override oat's fixed 14rem sidebar width to support collapse */
+    aside[data-sidebar] {
+        transition: width var(--transition);
+        width: 14rem;
+        overflow: hidden;
+        background-color: var(--card);
+    }
+    aside[data-sidebar].collapsed {
+        width: 4.5rem;
+    }
+
+    /* Override oat grid to use sidebar's dynamic width */
+    :global([data-sidebar-layout]) {
+        grid-template-columns: auto 1fr !important;
+    }
+
+    aside[data-sidebar] > :global(nav) {
+        font-size: var(--text-6);
+    }
+
+    /* Better vertical alignment and padding for nav links */
+    aside[data-sidebar] > :global(nav a) {
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-2) var(--space-3);
+    }
+
+    .icon-only {
+        justify-content: center;
+        padding-inline: var(--space-2) !important;
+    }
+
+    .footer-actions {
+        justify-content: space-between;
+        margin-bottom: var(--space-4);
+    }
+
+    .collapsed-footer {
+        flex-direction: column;
+        flex-wrap: nowrap;
+        align-items: center;
+        align-content: center;
+        justify-content: center;
+        gap: var(--space-2);
+        width: 100%;
+    }
+
+    .ns-collapsed-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .ns-initial {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2rem;
+        height: 2rem;
+        border-radius: var(--radius-medium);
+        background: var(--faint);
+        color: var(--primary);
+        font-weight: var(--font-semibold);
+        font-size: var(--text-7);
+    }
+
+    .collapsed-avatar {
+        background: var(--primary);
+        color: white;
+        display: flex;
+        margin: 0 auto;
+    }
+</style>

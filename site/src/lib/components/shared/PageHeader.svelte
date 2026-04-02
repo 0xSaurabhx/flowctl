@@ -19,9 +19,9 @@
   } = $props();
 </script>
 
-<header class="page-header hstack justify-between mb-6">
-  <div class="title-block">
-    <h1>{title}</h1>
+<header class="hstack justify-between mb-6">
+  <div>
+    <h2>{title}</h2>
     {#if subtitle}
       <p class="text-light">{subtitle}</p>
     {/if}
@@ -47,14 +47,3 @@
     </div>
   {/if}
 </header>
-
-<style>
-  .title-block h1 {
-    font-size: var(--text-3);
-    margin: 0;
-  }
-  .title-block p {
-    margin: var(--space-1) 0 0;
-    font-size: var(--text-7);
-  }
-</style>

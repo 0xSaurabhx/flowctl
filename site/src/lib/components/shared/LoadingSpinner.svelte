@@ -10,7 +10,8 @@
 	let { size = 'md', label, class: className = '' }: Props = $props();
 </script>
 
-<div class="hstack gap-2 {className}" aria-busy="true">
+<div class="hstack gap-3 justify-center {className}">
+	<div aria-busy="true" data-spinner={size === 'sm' ? 'small' : size === 'lg' ? 'large' : undefined}></div>
 	{#if label}
 		<span class="text-sm text-light">{label}</span>
 	{/if}

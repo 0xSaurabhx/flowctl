@@ -95,6 +95,7 @@
     all: unset;
     cursor: pointer;
     color: var(--muted-foreground);
+    transition: color 0.15s ease;
   }
 
   .breadcrumb-link:hover {

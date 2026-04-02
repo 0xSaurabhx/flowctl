@@ -45,7 +45,7 @@
       disabled={tab.disabled}
     >
       {tab.label}
-      {#if tab.badge}
+      {#if tab.badge != null}
         <span class="badge">{tab.badge}</span>
       {/if}
     </button>

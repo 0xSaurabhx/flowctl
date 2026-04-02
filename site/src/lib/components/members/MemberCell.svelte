@@ -31,7 +31,8 @@
   .cell-link {
     font-size: var(--text-7);
     font-weight: var(--font-medium);
-    color: var(--foreground);
+    color: var(--primary);
+    text-decoration: none;
   }
   .cell-link:hover {
     color: var(--primary);

@@ -3,12 +3,12 @@
     import { page } from "$app/stores";
     import { apiClient } from "$lib/apiClient.js";
     import Header from "$lib/components/shared/Header.svelte";
+    import PageHeader from "$lib/components/shared/PageHeader.svelte";
     import FlowMetadata from "$lib/components/flow-create/FlowMetadata.svelte";
     import FlowInputs from "$lib/components/flow-create/FlowInputs.svelte";
     import FlowActions from "$lib/components/flow-create/FlowActions.svelte";
     import FlowNotifications from "$lib/components/flow-create/FlowNotifications.svelte";
     import ValidationModal from "$lib/components/flow-create/ValidationModal.svelte";
-    import Tabs from "$lib/components/shared/Tabs.svelte";
     import SecretsTab from "$lib/components/secrets/SecretsTab.svelte";
     import type { PageData } from "./$types";
     import type {
@@ -59,17 +59,7 @@
     // Messenger configs for notifications (pre-loaded in page loader)
     const messengerConfigs = data.messengerConfigs || {};
 
-    // Tab state
-    let activeTab = $state("metadata");
     let formElement: HTMLFormElement;
-
-    const tabs = [
-        { id: "metadata", label: "General" },
-        { id: "inputs", label: "Inputs" },
-        { id: "actions", label: "Actions" },
-        { id: "notifications", label: "Notifications" },
-        { id: "secrets", label: "Secrets" },
-    ];
 
     async function loadExecutorConfigs(actions: any[]) {
         const executorTypes = [...new Set(actions.map((a) => a.executor).filter(Boolean))];
@@ -242,53 +232,44 @@
     <title>Create Flow - {namespace} | Flowctl</title>
 </svelte:head>
 
-<div class="create-layout">
-    <!-- Main Content -->
-    <div class="create-main">
-        <Header
-            breadcrumbs={[
-                { label: namespace, url: `/view/${namespace}/flows` },
-                { label: "Flows", url: `/view/${namespace}/flows` },
-                { label: "Create" },
-            ]}
-        />
+<Header
+    breadcrumbs={[
+        { label: namespace, url: `/view/${namespace}/flows` },
+        { label: "Flows", url: `/view/${namespace}/flows` },
+        { label: "Create" },
+    ]}
+/>
 
-        <!-- Page Content -->
-        <div class="create-content">
-            <div class="create-container">
-                <!-- Page Title -->
-                <div class="mb-6">
-                    <h1>Create Flow</h1>
-                    <p class="text-lighter mt-2">
-                        Define a new workflow
-                    </p>
-                </div>
+<div class="page-content">
+        <PageHeader title="Create Flow" subtitle="Define a new workflow" />
 
                 {#if data.prefillFlow}
-                    <div class="info-banner mb-4 hstack gap-2">
+                    <div role="alert" class="mb-4 hstack gap-2" style="align-items: flex-start">
                         <IconInfoCircle class="shrink-0" style="margin-top: var(--space-1);" size={16} />
                         <span>Secrets are not copied. You will need to re-add any secrets under the <strong>Secrets</strong> tab after creating this flow.</span>
                     </div>
                 {/if}
 
-                <!-- Main Card -->
-                <div class="card">
-                    <!-- Tab Navigation -->
-                    <div class="card-tabs">
-                        <Tabs bind:activeTab {tabs} />
-                    </div>
-
-                    <!-- Tab Content -->
-                    <form bind:this={formElement} class="p-4">
-                        {#if activeTab === "metadata"}
+                <form bind:this={formElement}>
+                    <ot-tabs>
+                        <div role="tablist">
+                            <button role="tab" aria-selected="true">General</button>
+                            <button role="tab">Inputs</button>
+                            <button role="tab">Actions</button>
+                            <button role="tab">Notifications</button>
+                            <button role="tab">Secrets</button>
+                        </div>
+                        <div role="tabpanel">
                             <FlowMetadata
                                 bind:metadata={flow.metadata}
                                 {namespace}
                                 inputs={flow.inputs}
                             />
-                        {:else if activeTab === "inputs"}
+                        </div>
+                        <div role="tabpanel">
                             <FlowInputs bind:inputs={flow.inputs} {addInput} />
-                        {:else if activeTab === "actions"}
+                        </div>
+                        <div role="tabpanel">
                             <FlowActions
                                 {namespace}
                                 bind:actions={flow.actions}
@@ -296,20 +277,22 @@
                                 {availableExecutors}
                                 bind:executorConfigs
                             />
-                        {:else if activeTab === "notifications"}
+                        </div>
+                        <div role="tabpanel">
                             <FlowNotifications
                                 bind:notifications={flow.notifications}
                                 {addNotification}
                                 {availableMessengers}
                                 {messengerConfigs}
                             />
-                        {:else if activeTab === "secrets"}
+                        </div>
+                        <div role="tabpanel">
                             <SecretsTab {namespace} disabled={true} />
-                        {/if}
-                    </form>
+                        </div>
+                    </ot-tabs>
 
                     <!-- Action Buttons -->
-                    <div class="card-actions hstack gap-2">
+                    <div class="hstack gap-2 justify-end mt-6">
                         <button
                             type="button"
                             onclick={() => goto(`/view/${namespace}/flows`)}
@@ -330,10 +313,7 @@
                             {saving ? "Creating..." : "Create"}
                         </button>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
+                </form>
 </div>
 
 {#if showValidation}
@@ -341,49 +321,14 @@
 {/if}
 
 <style>
-    .create-layout {
-        display: flex;
-        height: 100vh;
-        background: var(--muted);
+    form {
+        max-width: 64rem;
     }
 
-    .create-main {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-    }
-
-    .create-content {
-        flex: 1;
-        overflow-y: auto;
-        background: var(--muted);
-    }
-
-    .create-container {
-        max-width: 72rem;
-        margin: 0 auto;
-        padding: 2rem 1.5rem;
-    }
-
-    .card-tabs {
-        border-bottom: 1px solid var(--border);
-    }
-
-    .card-actions {
-        padding: 1rem 1.5rem;
-        background: var(--muted);
-        border-top: 1px solid var(--border);
-        justify-content: flex-end;
-    }
-
-    .info-banner {
-        font-size: 0.875rem;
+    :global([role="tabpanel"]) {
         border: 1px solid var(--border);
-        background: var(--faint);
-        border-radius: 0.5rem;
-        padding: 0.75rem 1rem;
-        color: var(--foreground);
-        align-items: flex-start;
+        border-radius: var(--radius-medium);
+        padding: var(--space-6);
+        background: var(--card);
     }
 </style>

@@ -81,7 +81,7 @@
 		<section>
 			<div data-field>
 				<label for="key">
-					Key <span class="required">*</span>
+					Key <span style="color: var(--danger)">*</span>
 				</label>
 				<input
 					type="text"
@@ -93,13 +93,13 @@
 					use:autofocus
 				/>
 				{#if isEditMode}
-					<p class="text-lighter text-xs hint">Key cannot be changed. Delete and recreate the secret to use a different key.</p>
+					<p class="text-lighter text-xs mt-1">Key cannot be changed. Delete and recreate the secret to use a different key.</p>
 				{/if}
 			</div>
 
 			<div data-field>
 				<label for="value">
-					Value <span class="required">*</span>
+					Value <span style="color: var(--danger)">*</span>
 				</label>
 				<textarea
 					id="value"
@@ -111,7 +111,7 @@
 					placeholder={isEditMode ? 'Enter new value to update' : 'Enter value'}
 				></textarea>
 				{#if isEditMode}
-					<p class="text-lighter text-xs hint">Enter a new value to update. Previous value is not shown for security.</p>
+					<p class="text-lighter text-xs mt-1">Enter a new value to update. Previous value is not shown for security.</p>
 				{/if}
 			</div>
 
@@ -151,11 +151,5 @@
 	dialog {
 		max-width: 28rem;
 		width: 100%;
-	}
-	.required {
-		color: var(--danger);
-	}
-	.hint {
-		margin-top: 0.25rem;
 	}
 </style>

@@ -107,6 +107,20 @@
       closeDropdown();
     }
   }
+
+  import { onMount, onDestroy } from 'svelte';
+
+  let scrollCleanup: (() => void) | null = null;
+
+  onMount(() => {
+    const onScroll = () => {
+      if (popoverEl?.matches(':popover-open')) closeDropdown();
+    };
+    document.addEventListener('scroll', onScroll, { capture: true, passive: true });
+    scrollCleanup = () => document.removeEventListener('scroll', onScroll, { capture: true });
+  });
+
+  onDestroy(() => scrollCleanup?.());
 </script>
 
 <svelte:window on:click={handleOutsideClick} />

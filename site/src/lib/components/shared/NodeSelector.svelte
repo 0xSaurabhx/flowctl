@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { apiClient } from '$lib/apiClient';
   import { handleInlineError } from '$lib/utils/errorHandling';
   import type { NodeResp } from '$lib/types';
@@ -140,9 +140,19 @@
     }
   }
 
+  let scrollCleanup: (() => void) | null = null;
+
   onMount(() => {
     if (!disabled) searchNodes();
+
+    const onScroll = () => {
+      if (popoverEl?.matches(':popover-open')) closeDropdown();
+    };
+    document.addEventListener('scroll', onScroll, { capture: true, passive: true });
+    scrollCleanup = () => document.removeEventListener('scroll', onScroll, { capture: true });
   });
+
+  onDestroy(() => scrollCleanup?.());
 </script>
 
 <svelte:window on:click={handleOutsideClick} />

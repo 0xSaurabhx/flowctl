@@ -300,6 +300,10 @@
         return rows;
     });
 
+    const iconBoxStyle = "flex-shrink: 0; width: 2rem; height: 2rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; background: var(--faint)";
+    const iconStyle = "width: 1rem; height: 1rem; color: var(--primary)";
+    const linkClass = "cell-link";
+
     const columns: TableColumn<FlowTableRow>[] = [
         {
             key: "name",
@@ -308,12 +312,12 @@
             render: (value: string, row: FlowTableRow) => {
                 if (row._kind === 'group') {
                     return `
-                    <div class="hstack gap-2">
-                        <div class="flow-icon group-icon">
-                            <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                    <div style="display: flex; align-items: center; gap: 0.5rem">
+                        <div style="${iconBoxStyle}">
+                            <svg style="${iconStyle}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
                         </div>
                         <div>
-                            <a href="/view/${page.params.namespace}/flows?group=${encodeURIComponent(row.prefix)}" class="flow-link">
+                            <a href="/view/${page.params.namespace}/flows?group=${encodeURIComponent(row.prefix)}" class="${linkClass}">
                                 ${value}
                             </a>
                             <div class="text-lighter text-xs">${row.flow_count} flow${row.flow_count !== 1 ? 's' : ''}</div>
@@ -321,14 +325,14 @@
                     </div>`;
                 }
                 return `
-                <div class="hstack gap-2">
-                    <div class="flow-icon">
-                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div style="display: flex; align-items: center; gap: 0.5rem">
+                    <div style="${iconBoxStyle}">
+                        <svg style="${iconStyle}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
                     </div>
                     <div>
-                        <a href="/view/${page.params.namespace}/flows/${row.slug}" class="flow-link">
+                        <a href="/view/${page.params.namespace}/flows/${row.slug}" class="${linkClass}">
                             ${value}
                         </a>
                     </div>
@@ -340,7 +344,7 @@
             header: "Description",
             render: (value: string) => {
                 if (!value) return '';
-                return `<div class="text-lighter description-cell">${value}</div>`;
+                return `<div style="font-size: 0.875rem; max-width: 20rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted-foreground)">${value}</div>`;
             },
         },
     ];
@@ -456,6 +460,8 @@
             : searchValue
                 ? "Try adjusting your search"
                 : "No flows are available in this namespace"}
+        emptyActionLabel={!activeGroup && !searchValue && permissions.canCreate ? "Create your first flow" : undefined}
+        onEmptyAction={!activeGroup && !searchValue && permissions.canCreate ? handleAdd : undefined}
         emptyIcon={`
         <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
@@ -506,62 +512,3 @@
     />
 {/if}
 
-<style>
-    .back-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.375rem;
-        font-size: 0.875rem;
-        cursor: pointer;
-    }
-
-    :global(.flow-icon) {
-        flex-shrink: 0;
-        width: 2rem;
-        height: 2rem;
-        border-radius: 0.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--faint);
-    }
-
-    :global(.flow-icon .icon) {
-        width: 1rem;
-        height: 1rem;
-        color: var(--primary);
-    }
-
-    :global(.flow-link) {
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: var(--foreground);
-        text-decoration: none;
-    }
-
-    :global(.flow-link:hover) {
-        color: var(--primary);
-        text-decoration: underline;
-    }
-
-    :global(.description-cell) {
-        font-size: 0.875rem;
-        max-width: 20rem;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    :global(.empty-icon) {
-        margin: 0 auto;
-        height: 3rem;
-        width: 3rem;
-        color: var(--muted-foreground);
-    }
-
-    .icon {
-        width: 1rem;
-        height: 1rem;
-        flex-shrink: 0;
-    }
-</style>

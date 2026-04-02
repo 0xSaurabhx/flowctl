@@ -170,7 +170,7 @@
 					<div class="hstack gap-1">
 						<button
 							data-variant="secondary"
-							class="icon-btn"
+							class="ghost icon small"
 							onclick={() => openEditModal(secret)}
 							disabled={disabled}
 							title="Edit secret"
@@ -181,7 +181,7 @@
 						</button>
 						<button
 							data-variant="danger"
-							class="icon-btn"
+							class="ghost icon small"
 							onclick={() => openDeleteModal(secret)}
 							disabled={disabled}
 							title="Delete secret"

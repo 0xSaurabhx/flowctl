@@ -13,10 +13,11 @@
         return 'success';
       case 'pending':
       case 'pending_approval':
-      case 'cancelled':
         return 'warning';
+      case 'cancelled':
+        return 'neutral';
       case 'running':
-        return '';
+        return 'info';
       case 'errored':
       case 'rejected':
         return 'danger';

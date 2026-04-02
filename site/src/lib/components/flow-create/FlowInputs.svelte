@@ -1,4 +1,6 @@
 <script lang="ts">
+    import OatSelect from "$lib/components/shared/OatSelect.svelte";
+
     let {
         inputs = $bindable(),
         addInput,
@@ -127,19 +129,20 @@
                     </div>
                     <div data-field>
                         <label>Type *</label>
-                        <select
+                        <OatSelect
                             bind:value={input.type}
+                            options={[
+                                { value: 'string', label: 'String' },
+                                { value: 'number', label: 'Number' },
+                                { value: 'checkbox', label: 'Checkbox' },
+                                { value: 'password', label: 'Password' },
+                                { value: 'file', label: 'File' },
+                                { value: 'datetime', label: 'DateTime' },
+                                { value: 'select', label: 'Select' }
+                            ]}
                             onchange={() => onInputTypeChange(input)}
                             required
-                        >
-                            <option value="string">String</option>
-                            <option value="number">Number</option>
-                            <option value="checkbox">Checkbox</option>
-                            <option value="password">Password</option>
-                            <option value="file">File</option>
-                            <option value="datetime">DateTime</option>
-                            <option value="select">Select</option>
-                        </select>
+                        />
                     </div>
                     <div data-field>
                         <label>Label</label>
@@ -205,10 +208,13 @@
                                 <div class="grid-4">
                                     <div data-field>
                                         <label>Method</label>
-                                        <select bind:value={input.remote_options.method}>
-                                            <option value="GET">GET</option>
-                                            <option value="POST">POST</option>
-                                        </select>
+                                        <OatSelect
+                                            bind:value={input.remote_options.method}
+                                            options={[
+                                                { value: 'GET', label: 'GET' },
+                                                { value: 'POST', label: 'POST' }
+                                            ]}
+                                        />
                                     </div>
                                     <div class="col-span-3" data-field>
                                         <label>URL *</label>
@@ -255,7 +261,7 @@
                                                     <button
                                                         type="button"
                                                         data-variant="danger"
-                                                        class="icon-btn"
+                                                        class="ghost icon small"
                                                         onclick={() => removeRemoteHeader(input, hi)}
                                                     >
                                                         <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">

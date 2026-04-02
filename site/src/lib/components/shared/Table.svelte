@@ -1,7 +1,6 @@
 <script lang="ts" generics="T">
     import type { TableColumn, TableAction } from "$lib/types";
     import type { ComponentType } from "svelte";
-    import LoadingSpinner from "./LoadingSpinner.svelte";
 
     type SortDirection = "asc" | "desc" | null;
 
@@ -15,6 +14,8 @@
         emptyIcon?: string;
         EmptyIconComponent?: ComponentType;
         emptyIconSize?: number;
+        emptyActionLabel?: string;
+        onEmptyAction?: () => void;
         title?: string;
         subtitle?: string;
     };
@@ -29,6 +30,8 @@
         emptyIcon,
         EmptyIconComponent,
         emptyIconSize = 48,
+        emptyActionLabel,
+        onEmptyAction,
         title,
         subtitle,
     }: Props = $props();
@@ -126,19 +129,22 @@
 
 <div class="card">
     {#if title || subtitle}
-        <div class="table-header">
+        <header>
             {#if title}
                 <h3>{title}</h3>
             {/if}
             {#if subtitle}
                 <p class="text-light text-sm">{subtitle}</p>
             {/if}
-        </div>
+        </header>
     {/if}
 
     {#if loading}
         <div class="empty-state" role="status" aria-live="polite">
-            <LoadingSpinner label="Loading..." />
+            <div class="hstack gap-3 justify-center">
+                <div aria-busy="true"></div>
+                <span class="text-sm text-light">Loading...</span>
+            </div>
         </div>
     {:else if data.length === 0}
         <div class="empty-state">
@@ -164,6 +170,16 @@
                 </svg>
             {/if}
             <h3>{emptyMessage}</h3>
+            {#if emptyActionLabel && onEmptyAction}
+                <button
+                    onclick={onEmptyAction}
+                    data-variant="secondary"
+                    class="mt-4"
+                    style="font-size: var(--text-7)"
+                >
+                    {emptyActionLabel}
+                </button>
+            {/if}
         </div>
     {:else}
         <div class="table">
@@ -289,12 +305,6 @@
 </div>
 
 <style>
-    .table-header {
-        padding: var(--space-4) var(--space-6);
-        border-bottom: 1px solid var(--border);
-        background: var(--muted);
-    }
-
     .empty-state {
         display: flex;
         flex-direction: column;
@@ -302,7 +312,6 @@
         justify-content: center;
         height: 16rem;
         text-align: center;
-        font-size: var(--text-6);
         color: var(--muted-foreground);
     }
 
@@ -363,5 +372,26 @@
         clip: rect(0, 0, 0, 0);
         white-space: nowrap;
         border-width: 0;
+    }
+
+    :global(.cell-link) {
+        font-size: var(--text-7);
+        font-weight: var(--font-medium);
+        color: var(--primary);
+        text-decoration: none;
+    }
+
+    :global(.cell-link:hover),
+    :global(.cell-link-mono:hover) {
+        color: var(--primary);
+        text-decoration: underline;
+    }
+
+    :global(.cell-link-mono) {
+        font-size: var(--text-7);
+        font-family: var(--font-mono);
+        font-weight: var(--font-medium);
+        color: var(--primary);
+        text-decoration: none;
     }
 </style>

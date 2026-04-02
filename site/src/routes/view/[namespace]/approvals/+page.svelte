@@ -6,7 +6,6 @@
 	import SearchInput from '$lib/components/shared/SearchInput.svelte';
 	import Table from '$lib/components/shared/Table.svelte';
 	import Pagination from '$lib/components/shared/Pagination.svelte';
-	import StatCard from '$lib/components/shared/StatCard.svelte';
 	import StatusBadge from '$lib/components/shared/StatusBadge.svelte';
 	import ApprovalIdCell from '$lib/components/approvals/ApprovalIdCell.svelte';
 	import StatusFilter from '$lib/components/approvals/StatusFilter.svelte';
@@ -104,7 +103,7 @@
 			header: 'Execution',
 			sortable: true,
 			render: (_value: any, approval: ApprovalResp) => `
-				<span class="cell-mono">${approval.exec_id.substring(0, 8)}</span>
+				<span class="cell-muted font-mono">${approval.exec_id.substring(0, 8)}</span>
 			`
 		},
 		{
@@ -216,30 +215,42 @@
 
 	<!-- Statistics Cards -->
 	<div class="stat-grid mb-4">
-		<StatCard
-			title="Total Approvals"
-			value={totalCount}
-			IconComponent={IconCircleCheck}
-			color="blue"
-		/>
-		<StatCard
-			title="Pending"
-			value={pendingCount}
-			IconComponent={IconClock}
-			color="yellow"
-		/>
-		<StatCard
-			title="Approved"
-			value={approvedCount}
-			IconComponent={IconCheck}
-			color="green"
-		/>
-		<StatCard
-			title="Rejected"
-			value={rejectedCount}
-			IconComponent={IconX}
-			color="red"
-		/>
+		<article class="card p-4">
+			<div class="hstack justify-between">
+				<div>
+					<p class="text-sm text-light">Total Approvals</p>
+					<p style="font-size: var(--text-3); font-weight: 700">{totalCount}</p>
+				</div>
+				<IconCircleCheck size={40} />
+			</div>
+		</article>
+		<article class="card p-4">
+			<div class="hstack justify-between">
+				<div>
+					<p class="text-sm text-light">Pending</p>
+					<p style="font-size: var(--text-3); font-weight: 700">{pendingCount}</p>
+				</div>
+				<IconClock size={40} style="color: var(--warning)" />
+			</div>
+		</article>
+		<article class="card p-4">
+			<div class="hstack justify-between">
+				<div>
+					<p class="text-sm text-light">Approved</p>
+					<p style="font-size: var(--text-3); font-weight: 700">{approvedCount}</p>
+				</div>
+				<IconCheck size={40} style="color: var(--success)" />
+			</div>
+		</article>
+		<article class="card p-4">
+			<div class="hstack justify-between">
+				<div>
+					<p class="text-sm text-light">Rejected</p>
+					<p style="font-size: var(--text-3); font-weight: 700">{rejectedCount}</p>
+				</div>
+				<IconX size={40} style="color: var(--danger)" />
+			</div>
+		</article>
 	</div>
 
 	<!-- Approvals Table -->

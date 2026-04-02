@@ -1,6 +1,7 @@
 <script lang="ts">
     import { handleInlineError } from "$lib/utils/errorHandling";
     import { autofocus } from "$lib/utils/autofocus";
+    import OatSelect from "$lib/components/shared/OatSelect.svelte";
     import type { CredentialReq, CredentialResp } from "$lib/types";
 
     interface Props {
@@ -85,8 +86,8 @@
         </header>
 
         <section>
-            <div class="grid-2">
-                <div data-field>
+            <div class="row">
+                <div class="col-6" data-field>
                     <label>Credential Name *</label>
                     <input
                         type="text"
@@ -98,17 +99,18 @@
                     />
                 </div>
 
-                <div data-field>
+                <div class="col-6" data-field>
                     <label>Type *</label>
-                    <select
+                    <OatSelect
                         bind:value={formData.key_type}
+                        options={[
+                            { value: 'private_key', label: 'SSH Key' },
+                            { value: 'password', label: 'Password' }
+                        ]}
+                        placeholder="Select type..."
                         required
                         disabled={loading}
-                    >
-                        <option value="">Select type...</option>
-                        <option value="private_key">SSH Key</option>
-                        <option value="password">Password</option>
-                    </select>
+                    />
                 </div>
             </div>
 
@@ -164,10 +166,5 @@
     dialog {
         max-width: 42rem;
         width: 100%;
-    }
-    .grid-2 {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
     }
 </style>

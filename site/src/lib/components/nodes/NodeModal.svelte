@@ -1,6 +1,7 @@
 <script lang="ts">
     import { handleInlineError } from "$lib/utils/errorHandling";
     import { autofocus } from "$lib/utils/autofocus";
+    import OatSelect from "$lib/components/shared/OatSelect.svelte";
     import type { CredentialResp, NodeReq, NodeResp } from "$lib/types";
 
     interface Props {
@@ -176,32 +177,28 @@
 
             <div data-field>
                 <label>Connection Type</label>
-                <select
+                <OatSelect
                     bind:value={formData.connection_type}
+                    options={[
+                        { value: 'ssh', label: 'SSH' },
+                        { value: 'qssh', label: 'QSSH' }
+                    ]}
+                    placeholder="Select connection type"
                     required
                     disabled={loading}
-                >
-                    <option value="">Select connection type</option>
-                    <option value="ssh">SSH</option>
-                    <option value="qssh">QSSH</option>
-                </select>
+                />
             </div>
 
             <div data-field>
                 <label>Credential</label>
-                <select
+                <OatSelect
                     bind:value={formData.auth.credential_id}
-                    onchange={onCredentialChange}
+                    options={credentials.map(c => ({ value: c.id, label: `${c.name} (${c.key_type})` }))}
+                    placeholder="Select credential"
                     required
                     disabled={loading}
-                >
-                    <option value="">Select credential</option>
-                    {#each credentials as credential}
-                        <option value={credential.id}>
-                            {credential.name} ({credential.key_type})
-                        </option>
-                    {/each}
-                </select>
+                    onchange={onCredentialChange}
+                />
             </div>
 
             <div data-field>

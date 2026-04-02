@@ -84,10 +84,10 @@
     <button
       type="submit"
       disabled={loading}
-      aria-busy={loading}
+      class="login-submit"
     >
       {#if loading}
-        Signing In...
+        <span class="hstack gap-2 justify-center" aria-busy="true" data-spinner="small">Signing In...</span>
       {:else}
         Sign In
       {/if}
@@ -99,11 +99,10 @@
         data-variant="secondary"
         onclick={() => handleOIDCLogin(provider.id)}
         disabled={oidcLoadingProvider !== null}
-        aria-busy={oidcLoadingProvider === provider.id}
         aria-label={provider.label}
       >
         {#if oidcLoadingProvider === provider.id}
-          Redirecting...
+          <span class="hstack gap-2 justify-center" aria-busy="true" data-spinner="small">Redirecting...</span>
         {:else}
           <span class="hstack gap-2 justify-center">
             <IconKey size={16} aria-hidden="true" />
@@ -118,5 +117,9 @@
 <style>
   .login-card {
     padding: var(--space-8);
+  }
+
+  .login-submit {
+    text-align: center;
   }
 </style>

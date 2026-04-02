@@ -89,6 +89,20 @@
       closeDropdown();
     }
   }
+
+  import { onMount, onDestroy } from 'svelte';
+
+  let scrollCleanup: (() => void) | null = null;
+
+  onMount(() => {
+    const onScroll = () => {
+      if (popoverEl?.matches(':popover-open')) closeDropdown();
+    };
+    document.addEventListener('scroll', onScroll, { capture: true, passive: true });
+    scrollCleanup = () => document.removeEventListener('scroll', onScroll, { capture: true });
+  });
+
+  onDestroy(() => scrollCleanup?.());
 </script>
 
 <svelte:window on:click={handleOutsideClick} />
@@ -156,7 +170,7 @@
           <div class="text-lighter text-xs">{selectedSubject.id}</div>
         </div>
       </div>
-      <button type="button" class="icon-btn" onclick={clearSelection} {disabled} aria-label="Clear selection">
+      <button type="button" class="ghost icon small" onclick={clearSelection} {disabled} aria-label="Clear selection">
         <svg style="width: 1rem; height: 1rem" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
         </svg>

@@ -188,11 +188,11 @@
                                         type="text"
                                         value={schedule.cron}
                                         oninput={(e) => updateScheduleCron(index, e.currentTarget.value)}
-                                        class:error={schedule.cron && !validation?.isValid}
+                                        aria-invalid={schedule.cron && !validation?.isValid ? 'true' : undefined}
                                         placeholder="0 2 * * *"
                                     />
                                     {#if schedule.cron && !validation?.isValid}
-                                        <p class="field-error">
+                                        <p style="color: var(--danger); margin-top: 0.25rem" class="text-sm">
                                             Invalid cron expression. Use
                                             format: minute hour day month
                                             weekday

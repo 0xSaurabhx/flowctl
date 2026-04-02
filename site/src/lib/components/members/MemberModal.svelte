@@ -1,6 +1,7 @@
 <script lang="ts">
   import { handleInlineError } from '$lib/utils/errorHandling';
   import { autofocus } from '$lib/utils/autofocus';
+  import OatSelect from '$lib/components/shared/OatSelect.svelte';
   import UserGroupSelector from '$lib/components/shared/UserGroupSelector.svelte';
   import FlowGroupSelector from '$lib/components/flow-create/FlowGroupSelector.svelte';
   import type { NamespaceMemberReq, NamespaceMemberResp, FlowGroupResp, User, Group } from '$lib/types';
@@ -160,16 +161,16 @@
       <!-- Subject Type Selection -->
       <div data-field>
         <label>Member Type *</label>
-        <select
+        <OatSelect
           bind:value={memberForm.subject_type}
-          onchange={onSubjectTypeChange}
+          options={[
+            { value: 'user', label: 'User' },
+            { value: 'group', label: 'Group' }
+          ]}
           required
           disabled={loading || isEditMode}
-          use:autofocus
-        >
-          <option value="user">User</option>
-          <option value="group">Group</option>
-        </select>
+          onchange={onSubjectTypeChange}
+        />
         {#if isEditMode}
           <p class="text-lighter hint">Member type cannot be changed when editing.</p>
         {/if}
@@ -208,16 +209,17 @@
       <!-- Role Selection -->
       <div data-field>
         <label>Role *</label>
-        <select
+        <OatSelect
           bind:value={memberForm.role}
+          options={[
+            { value: 'user', label: 'User - Can view and trigger flows' },
+            { value: 'operator', label: 'Operator - Can view and trigger accessible flows and see all executions' },
+            { value: 'reviewer', label: 'Reviewer - Can approve flows and view all content' },
+            { value: 'admin', label: 'Admin - Full access to namespace management' }
+          ]}
           required
           disabled={loading}
-        >
-          <option value="user">User - Can view and trigger flows</option>
-          <option value="operator">Operator - Can view and trigger accessible flows and see all executions</option>
-          <option value="reviewer">Reviewer - Can approve flows and view all content</option>
-          <option value="admin">Admin - Full access to namespace management</option>
-        </select>
+        />
       </div>
 
       <!-- Prefix Access (edit mode, user/operator role only) -->

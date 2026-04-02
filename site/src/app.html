@@ -9,6 +9,7 @@
 				var r = t === 'system'
 					? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
 					: t;
+				document.documentElement.style.colorScheme = r;
 				document.documentElement.classList.add(r);
 			})();
 		</script>

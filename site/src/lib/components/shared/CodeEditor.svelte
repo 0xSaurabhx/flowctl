@@ -1,4 +1,5 @@
 <script lang="ts">
+  import OatSelect from '$lib/components/shared/OatSelect.svelte';
   import { onMount, onDestroy } from 'svelte';
   import { EditorView, basicSetup } from 'codemirror';
   import { EditorState } from '@codemirror/state';
@@ -65,8 +66,14 @@
   onMount(() => {
     if (!editorContainer) return;
 
+    const editorFontTheme = EditorView.theme({
+      '&': { fontSize: '0.875rem' },
+      '.cm-gutters': { fontSize: '0.875rem' },
+    });
+
     const extensions = [
       basicSetup,
+      editorFontTheme,
       keymap.of([indentWithTab]),
       getLanguageExtension(language),
       EditorView.updateListener.of((update) => {
@@ -118,8 +125,14 @@
   // Update language when changed
   $effect(() => {
     if (editor) {
+      const editorFontTheme = EditorView.theme({
+        '&': { fontSize: '0.875rem' },
+        '.cm-gutters': { fontSize: '0.875rem' },
+      });
+
       const newExtensions = [
         basicSetup,
+        editorFontTheme,
         keymap.of([indentWithTab]),
         getLanguageExtension(language),
         EditorView.updateListener.of((update) => {
@@ -191,17 +204,14 @@
 <div class="code-editor-wrapper">
   <!-- Language selector -->
   <div class="hstack mb-2 justify-between">
-    <div class="hstack gap-2">
-      <label for="language-select">Language:</label>
-      <select
-        id="language-select"
-        value={language}
+    <div class="hstack gap-2 items-center">
+      <label for="language-select" style="margin: 0">Language:</label>
+      <OatSelect
+        bind:value={language}
+        options={languageOptions}
         onchange={handleLanguageChange}
-      >
-        {#each languageOptions as option}
-          <option value={option.value}>{option.label}</option>
-        {/each}
-      </select>
+        id="language-select"
+      />
     </div>
 
     <div class="text-lighter text-xs">

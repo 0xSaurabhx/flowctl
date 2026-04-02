@@ -4,7 +4,7 @@
   function getRoleClass(role: string) {
     switch (role) {
       case 'user': return 'success';
-      case 'operator': return 'info';
+      case 'operator': return '';
       case 'reviewer': return 'warning';
       case 'admin': return 'danger';
       default: return '';
@@ -19,10 +19,3 @@
 <span class="badge {getRoleClass(value)}">
   {capitalizeRole(value)}
 </span>
-
-<style>
-  .badge.info {
-    background: color-mix(in srgb, var(--primary) 15%, transparent);
-    color: var(--primary);
-  }
-</style>
