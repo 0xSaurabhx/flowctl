@@ -35,36 +35,6 @@
 
     let sortKey = $state<string | null>(null);
     let sortDirection = $state<SortDirection>(null);
-    let openMenuIndex = $state<number | null>(null);
-    let menuPosition = $state<{ top: number; left: number }>({ top: 0, left: 0 });
-
-    const toggleMenu = (index: number, event: Event) => {
-        event.stopPropagation();
-        if (openMenuIndex === index) {
-            openMenuIndex = null;
-            return;
-        }
-        const button = event.currentTarget as HTMLElement;
-        const rect = button.getBoundingClientRect();
-        menuPosition = {
-            top: rect.bottom + 4,
-            left: rect.right - 144, // 144 = w-36 (9rem)
-        };
-        openMenuIndex = index;
-    };
-
-    const closeMenu = () => {
-        openMenuIndex = null;
-    };
-
-    const handleClickOutside = (event: MouseEvent) => {
-        if (openMenuIndex !== null) {
-            const target = event.target as HTMLElement;
-            if (!target.closest('.actions-menu')) {
-                closeMenu();
-            }
-        }
-    };
 
     const getValue = (row: T, column: TableColumn<T>) => {
         const keys = column.key.split(".");
@@ -110,7 +80,6 @@
         if (!column.sortable) return;
 
         if (sortKey === column.key) {
-            // Cycle through: asc -> desc -> null
             if (sortDirection === "asc") {
                 sortDirection = "desc";
             } else if (sortDirection === "desc") {
@@ -135,12 +104,10 @@
             const aValue = getValue(a, column);
             const bValue = getValue(b, column);
 
-            // Handle null/undefined values
             if (aValue == null && bValue == null) return 0;
             if (aValue == null) return sortDirection === "asc" ? 1 : -1;
             if (bValue == null) return sortDirection === "asc" ? -1 : 1;
 
-            // Convert to strings for comparison if not already numbers
             const aCompare =
                 typeof aValue === "number"
                     ? aValue
@@ -253,7 +220,7 @@
                 </tr>
             </thead>
             <tbody>
-                {#each sortedData as row}
+                {#each sortedData as row, rowIndex}
                     <tr
                         class={onRowClick ? 'clickable' : ''}
                         onclick={() => handleRowClick(row)}
@@ -273,17 +240,14 @@
                             </td>
                         {/each}
                         {#if actions.length > 0}
-                            {@const rowIndex = sortedData.indexOf(row)}
                             {@const visibleActions = actions.filter(a => !a.visible || a.visible(row))}
-                            <td class="actions-cell">
+                            <td class="actions-cell" onclick={(e) => e.stopPropagation()}>
                                 {#if visibleActions.length > 0}
-                                    <div class="actions-menu">
+                                    <ot-dropdown>
                                         <button
-                                            onclick={(e) => toggleMenu(rowIndex, e)}
-                                            class="actions-trigger"
+                                            popovertarget="table-actions-{rowIndex}"
+                                            class="ghost icon small"
                                             aria-label="Actions"
-                                            aria-haspopup="true"
-                                            aria-expanded={openMenuIndex === rowIndex}
                                         >
                                             <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
                                                 <circle cx="10" cy="4" r="1.5" />
@@ -291,7 +255,28 @@
                                                 <circle cx="10" cy="16" r="1.5" />
                                             </svg>
                                         </button>
-                                    </div>
+                                        <div popover id="table-actions-{rowIndex}" role="menu">
+                                            {#each visibleActions as action}
+                                                {#if action.href}
+                                                    <a
+                                                        href={action.href(row)}
+                                                        role="menuitem"
+                                                        class={action.className || ''}
+                                                    >
+                                                        {action.label}
+                                                    </a>
+                                                {:else}
+                                                    <button
+                                                        role="menuitem"
+                                                        onclick={(e) => handleActionClick(action, row, e)}
+                                                        class={action.className || ''}
+                                                    >
+                                                        {action.label}
+                                                    </button>
+                                                {/if}
+                                            {/each}
+                                        </div>
+                                    </ot-dropdown>
                                 {/if}
                             </td>
                         {/if}
@@ -302,40 +287,6 @@
         </div>
     {/if}
 </div>
-
-{#if openMenuIndex !== null}
-    {@const row = sortedData[openMenuIndex]}
-    {@const visibleActions = actions.filter(a => !a.visible || a.visible(row))}
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div
-        class="menu-backdrop"
-        onclick={closeMenu}
-        onkeydown={(e) => { if (e.key === 'Escape') closeMenu(); }}
-    ></div>
-    <div
-        class="actions-menu context-menu"
-        style="top: {menuPosition.top}px; left: {menuPosition.left}px;"
-    >
-        {#each visibleActions as action}
-            {#if action.href}
-                <a
-                    href={action.href(row)}
-                    class="context-menu-item {action.className || ''}"
-                    onclick={() => closeMenu()}
-                >
-                    {action.label}
-                </a>
-            {:else}
-                <button
-                    onclick={(e) => { handleActionClick(action, row, e); closeMenu(); }}
-                    class="context-menu-item {action.className || ''}"
-                >
-                    {action.label}
-                </button>
-            {/if}
-        {/each}
-    </div>
-{/if}
 
 <style>
     .table-header {
@@ -400,53 +351,6 @@
     .actions-cell {
         width: 4rem;
         text-align: right;
-    }
-
-    .actions-trigger {
-        all: unset;
-        cursor: pointer;
-        padding: var(--space-1);
-        border-radius: var(--radius-small);
-        color: var(--muted-foreground);
-        display: inline-flex;
-    }
-
-    .actions-trigger:hover {
-        background: var(--muted);
-        color: var(--foreground);
-    }
-
-    .menu-backdrop {
-        position: fixed;
-        inset: 0;
-        z-index: 40;
-    }
-
-    .context-menu {
-        position: fixed;
-        z-index: 50;
-        width: 9rem;
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-medium);
-        box-shadow: var(--shadow-large);
-        padding: var(--space-1) 0;
-    }
-
-    .context-menu-item {
-        all: unset;
-        display: block;
-        width: 100%;
-        text-align: left;
-        padding: var(--space-2) var(--space-4);
-        font-size: 0.875rem;
-        color: var(--foreground);
-        cursor: pointer;
-        box-sizing: border-box;
-    }
-
-    .context-menu-item:hover {
-        background: var(--muted);
     }
 
     .sr-only {

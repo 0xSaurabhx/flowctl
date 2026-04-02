@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { goto } from "$app/navigation";
     import { page } from "$app/state";
     import { apiClient } from "$lib/apiClient";
     import { handleInlineError } from "$lib/utils/errorHandling";
@@ -24,8 +23,6 @@
         IconCircleCheck,
         IconClock,
         IconSettings,
-        IconChevronsLeft,
-        IconChevronsRight,
     } from "@tabler/icons-svelte";
     import UserDropdown from "./UserDropdown.svelte";
     import ThemeToggle from "./ThemeToggle.svelte";
@@ -34,14 +31,13 @@
 
     let { namespace }: { namespace: string } = $props();
 
-    let namespaceDropdownOpen = $state(false);
     let namespaces = $state<Namespace[]>([]);
     let searchQuery = $state("");
     let searchResults = $state<Namespace[]>([]);
     let currentNamespace = $state(page.params.namespace || namespace);
     let currentNamespaceId = $state<string>("");
     let searchLoading = $state(false);
-    let isCollapsed = $state(false);
+    let nsSearchInput: HTMLInputElement;
     let permissions = $state<{
         flows: ResourcePermissions;
         nodes: ResourcePermissions;
@@ -51,72 +47,18 @@
         approvals: ResourcePermissions;
         history: ResourcePermissions;
     }>({
-        flows: {
-            canCreate: false,
-            canUpdate: false,
-            canDelete: false,
-            canRead: false,
-        },
-        nodes: {
-            canCreate: false,
-            canUpdate: false,
-            canDelete: false,
-            canRead: false,
-        },
-        credentials: {
-            canCreate: false,
-            canUpdate: false,
-            canDelete: false,
-            canRead: false,
-        },
-        secrets: {
-            canCreate: false,
-            canUpdate: false,
-            canDelete: false,
-            canRead: false,
-        },
-        members: {
-            canCreate: false,
-            canUpdate: false,
-            canDelete: false,
-            canRead: false,
-        },
-        approvals: {
-            canCreate: false,
-            canUpdate: false,
-            canDelete: false,
-            canRead: false,
-        },
-        history: {
-            canCreate: false,
-            canUpdate: false,
-            canDelete: false,
-            canRead: false,
-        },
+        flows: { canCreate: false, canUpdate: false, canDelete: false, canRead: false },
+        nodes: { canCreate: false, canUpdate: false, canDelete: false, canRead: false },
+        credentials: { canCreate: false, canUpdate: false, canDelete: false, canRead: false },
+        secrets: { canCreate: false, canUpdate: false, canDelete: false, canRead: false },
+        members: { canCreate: false, canUpdate: false, canDelete: false, canRead: false },
+        approvals: { canCreate: false, canUpdate: false, canDelete: false, canRead: false },
+        history: { canCreate: false, canUpdate: false, canDelete: false, canRead: false },
     });
 
     const isActiveLink = (section: string): boolean => {
         const currentPath = page.url.pathname;
-
-        if (section === "flows") {
-            return currentPath.includes("/flows");
-        } else if (section === "nodes") {
-            return currentPath.includes("/nodes");
-        } else if (section === "credentials") {
-            return currentPath.includes("/credentials");
-        } else if (section === "secrets") {
-            return currentPath.includes("/secrets");
-        } else if (section === "members") {
-            return currentPath.includes("/members");
-        } else if (section === "approvals") {
-            return currentPath.includes("/approvals");
-        } else if (section === "history") {
-            return currentPath.includes("/history");
-        } else if (section === "settings") {
-            return currentPath.includes("/settings");
-        }
-
-        return false;
+        return currentPath.includes(`/${section}`);
     };
 
     const fetchNamespaces = async (filter = "") => {
@@ -134,14 +76,10 @@
                 namespaces = results;
                 searchResults = results;
 
-                // Set current namespace ID
-                const currentNs = namespaces.find(
-                    (ns) => ns.name === namespace,
-                );
+                const currentNs = namespaces.find((ns) => ns.name === namespace);
                 if (currentNs) {
                     currentNamespaceId = currentNs.id;
                 } else if (namespaces.length > 0) {
-                    // If namespace not found, use first available namespace
                     currentNamespaceId = namespaces[0].id;
                 }
             }
@@ -161,18 +99,17 @@
     const handleSearchInput = async () => {
         if (searchQuery.trim()) {
             await fetchNamespaces(searchQuery);
-            namespaceDropdownOpen = true;
         } else {
             searchResults = namespaces;
-            namespaceDropdownOpen = false;
         }
     };
 
-    const handleSearchFocus = () => {
-        if (!searchQuery.trim()) {
+    const handleNsToggle = (e: ToggleEvent) => {
+        if (e.newState === "open") {
+            searchQuery = "";
             searchResults = namespaces;
+            setTimeout(() => nsSearchInput?.focus(), 0);
         }
-        namespaceDropdownOpen = true;
     };
 
     const checkAllPermissions = async () => {
@@ -203,7 +140,6 @@
             );
 
             const results = await Promise.all(permissionPromises);
-
             results.forEach(({ frontendKey, perms }) => {
                 permissions[frontendKey as keyof typeof permissions] = perms;
             });
@@ -213,43 +149,18 @@
     };
 
     const selectNamespace = (ns: Namespace) => {
-        namespaceDropdownOpen = false;
         searchQuery = "";
 
-        // Don't navigate if already on the same namespace
-        if (ns.name === namespace) {
-            return;
-        }
+        // Close the popover
+        document.getElementById("ns-select")?.hidePopover();
 
-        // Clear cached permissions so the new namespace gets fresh checks
+        if (ns.name === namespace) return;
+
         clearPermissionCache();
-
-        // Save selected namespace to store
         selectedNamespace.set(ns.name);
-
-        // Force a full page reload by using window.location
         window.location.href = `/view/${ns.name}/flows`;
     };
 
-    const toggleCollapse = () => {
-        isCollapsed = !isCollapsed;
-        if (isCollapsed) {
-            namespaceDropdownOpen = false;
-            searchQuery = "";
-        }
-    };
-
-    // Handle escape key and outside clicks
-    function handleOutsideClick(event: MouseEvent) {
-        const target = event.target as HTMLElement;
-        if (!target.closest(".namespace-dropdown")) {
-            namespaceDropdownOpen = false;
-            searchQuery = "";
-            searchResults = namespaces;
-        }
-    }
-
-    // Set initial context
     setContext("namespace", namespace);
 
     onMount(() => {
@@ -257,16 +168,13 @@
         checkAllPermissions();
     });
 
-    // Update currentNamespace when namespace prop changes
     $effect(() => {
         currentNamespace = page.params.namespace || namespace;
-        // Also save to store whenever namespace changes
         if (currentNamespace) {
             selectedNamespace.set(currentNamespace);
         }
     });
 
-    // Re-check permissions when currentUser or namespace changes
     $effect(() => {
         if ($currentUser && currentNamespaceId) {
             checkAllPermissions();
@@ -274,428 +182,105 @@
     });
 </script>
 
-<svelte:window on:click={handleOutsideClick} />
+<aside data-sidebar aria-label="Main navigation">
+    <header>
+        <a href="/" class="unstyled vstack items-center gap-1">
+            <Logo height="2rem" />
+            <span class="text-lighter" style="font-size: var(--text-8)">{APP_VERSION}-{APP_COMMIT}</span>
+        </a>
 
-<!-- Sidebar Navigation -->
-<aside
-    class="sidebar"
-    class:collapsed={isCollapsed}
-    data-sidebar
-    aria-label="Main navigation"
->
-    <!-- Logo -->
-    <a href="/" class="logo-link">
-        <div class="logo-area">
-            {#if isCollapsed}
-                <Logo height="1.5rem" iconOnly={true} />
-            {:else}
-                <Logo height="2rem" />
-                <div class="text-lighter version-text">{APP_VERSION}-{APP_COMMIT}</div>
-            {/if}
-        </div>
-    </a>
-
-    <!-- Namespace Dropdown -->
-    {#if !isCollapsed}
-        <div class="namespace-section namespace-dropdown">
-            <div class="namespace-field">
-                <label for="namespace-search" class="namespace-label">Namespace</label>
-                <div class="input-wrapper">
+        <!-- Namespace Dropdown -->
+        <ot-dropdown class="mt-4" style="display: block">
+            <button popovertarget="ns-select" class="outline small w-100 hstack justify-between">
+                <span>{currentNamespace || "Select namespace"}</span>
+                <IconChevronDown size={14} />
+            </button>
+            <div popover id="ns-select" ontoggle={handleNsToggle}>
+                <div style="padding: var(--space-2); border-bottom: 1px solid var(--border)">
                     <input
-                        type="text"
-                        id="namespace-search"
+                        type="search"
+                        bind:this={nsSearchInput}
                         bind:value={searchQuery}
                         oninput={handleSearchInput}
-                        onfocus={handleSearchFocus}
-                        placeholder={currentNamespace || "Search namespaces..."}
+                        placeholder="Search namespaces..."
                         aria-busy={searchLoading}
                         autocomplete="off"
                     />
-
-                    {#if searchLoading}
-                        <span class="input-icon" aria-busy="true"></span>
-                    {:else}
-                        <IconChevronDown
-                            class="input-icon chevron {namespaceDropdownOpen ? 'open' : ''}"
-                            size={16}
-                        />
-                    {/if}
                 </div>
-
-                <!-- Dropdown Menu -->
-                {#if namespaceDropdownOpen}
-                    <div
-                        class="dropdown-menu"
-                        role="listbox"
-                        aria-label="Namespace selection"
+                {#each searchResults as ns (ns.id)}
+                    <button
+                        role="menuitem"
+                        aria-selected={ns.name === namespace}
+                        onclick={() => selectNamespace(ns)}
                     >
-                        {#each searchResults as ns (ns.id)}
-                            <div
-                                role="option"
-                                tabindex="0"
-                                aria-selected={ns.name === namespace}
-                                onclick={() => selectNamespace(ns)}
-                                onkeydown={(e) => e.key === 'Enter' && selectNamespace(ns)}
-                                class="dropdown-item"
-                                class:active={ns.name === namespace}
-                            >
-                                {ns.name}
-                            </div>
-                        {/each}
-                        {#if searchResults.length === 0 && !searchLoading}
-                            <div class="dropdown-empty text-lighter">
-                                {searchQuery
-                                    ? "No namespaces found"
-                                    : "No namespaces available"}
-                            </div>
-                        {/if}
-                        {#if searchLoading}
-                            <div class="dropdown-empty text-lighter">
-                                Searching...
-                            </div>
-                        {/if}
+                        {ns.name}
+                    </button>
+                {/each}
+                {#if searchResults.length === 0 && !searchLoading}
+                    <div class="text-lighter align-center" style="padding: var(--space-3); font-size: var(--text-7)">
+                        {searchQuery ? "No namespaces found" : "No namespaces available"}
+                    </div>
+                {/if}
+                {#if searchLoading}
+                    <div class="text-lighter align-center" style="padding: var(--space-3); font-size: var(--text-7)">
+                        Searching...
                     </div>
                 {/if}
             </div>
-        </div>
-    {/if}
+        </ot-dropdown>
+    </header>
 
-    <!-- Navigation -->
-    <ul class="nav-list" role="list">
-        {#if permissions.flows.canRead}
-            <li>
-                <a
-                    href="/view/{namespace}/flows"
-                    class="nav-link"
-                    class:icon-only={isCollapsed}
-                    aria-current={isActiveLink("flows") ? "page" : undefined}
-                    title={isCollapsed ? "Flows" : ""}
-                >
-                    <IconGridDots size={20} aria-hidden="true" />
-                    {#if !isCollapsed}
-                        Flows
-                    {/if}
-                </a>
-            </li>
-        {/if}
-        {#if permissions.nodes.canRead}
-            <li>
-                <a
-                    href="/view/{namespace}/nodes"
-                    class="nav-link"
-                    class:icon-only={isCollapsed}
-                    aria-current={isActiveLink("nodes") ? "page" : undefined}
-                    title={isCollapsed ? "Nodes" : ""}
-                >
-                    <IconServer size={20} aria-hidden="true" />
-                    {#if !isCollapsed}
-                        Nodes
-                    {/if}
-                </a>
-            </li>
-        {/if}
-        {#if permissions.credentials.canRead}
-            <li>
-                <a
-                    href="/view/{namespace}/credentials"
-                    class="nav-link"
-                    class:icon-only={isCollapsed}
-                    aria-current={isActiveLink("credentials") ? "page" : undefined}
-                    title={isCollapsed ? "Credentials" : ""}
-                >
-                    <IconKey size={20} aria-hidden="true" />
-                    {#if !isCollapsed}
-                        Credentials
-                    {/if}
-                </a>
-            </li>
-        {/if}
-        {#if permissions.secrets.canRead}
-            <li>
-                <a
-                    href="/view/{namespace}/secrets"
-                    class="nav-link"
-                    class:icon-only={isCollapsed}
-                    aria-current={isActiveLink("secrets") ? "page" : undefined}
-                    title={isCollapsed ? "Secrets" : ""}
-                >
-                    <IconLock size={20} aria-hidden="true" />
-                    {#if !isCollapsed}
-                        Secrets
-                    {/if}
-                </a>
-            </li>
-        {/if}
-        {#if permissions.members.canRead}
-            <li>
-                <a
-                    href="/view/{namespace}/members"
-                    class="nav-link"
-                    class:icon-only={isCollapsed}
-                    aria-current={isActiveLink("members") ? "page" : undefined}
-                    title={isCollapsed ? "Members" : ""}
-                >
-                    <IconUsers size={20} aria-hidden="true" />
-                    {#if !isCollapsed}
-                        Members
-                    {/if}
-                </a>
-            </li>
-        {/if}
-        {#if permissions.approvals.canRead}
-            <li>
-                <a
-                    href="/view/{namespace}/approvals"
-                    class="nav-link"
-                    class:icon-only={isCollapsed}
-                    aria-current={isActiveLink("approvals") ? "page" : undefined}
-                    title={isCollapsed ? "Approvals" : ""}
-                >
-                    <IconCircleCheck size={20} aria-hidden="true" />
-                    {#if !isCollapsed}
-                        Approvals
-                    {/if}
-                </a>
-            </li>
-        {/if}
-        {#if permissions.history.canRead}
-            <li>
-                <a
-                    href="/view/{namespace}/history"
-                    class="nav-link"
-                    class:icon-only={isCollapsed}
-                    aria-current={isActiveLink("history") ? "page" : undefined}
-                    title={isCollapsed ? "History" : ""}
-                >
-                    <IconClock size={20} aria-hidden="true" />
-                    {#if !isCollapsed}
-                        History
-                    {/if}
-                </a>
-            </li>
-        {/if}
-    </ul>
+    <nav>
+        <ul>
+            {#if permissions.flows.canRead}
+                <li><a href="/view/{namespace}/flows" aria-current={isActiveLink("flows") ? "page" : undefined}>
+                    <IconGridDots size={20} aria-hidden="true" /> Flows
+                </a></li>
+            {/if}
+            {#if permissions.nodes.canRead}
+                <li><a href="/view/{namespace}/nodes" aria-current={isActiveLink("nodes") ? "page" : undefined}>
+                    <IconServer size={20} aria-hidden="true" /> Nodes
+                </a></li>
+            {/if}
+            {#if permissions.credentials.canRead}
+                <li><a href="/view/{namespace}/credentials" aria-current={isActiveLink("credentials") ? "page" : undefined}>
+                    <IconKey size={20} aria-hidden="true" /> Credentials
+                </a></li>
+            {/if}
+            {#if permissions.secrets.canRead}
+                <li><a href="/view/{namespace}/secrets" aria-current={isActiveLink("secrets") ? "page" : undefined}>
+                    <IconLock size={20} aria-hidden="true" /> Secrets
+                </a></li>
+            {/if}
+            {#if permissions.members.canRead}
+                <li><a href="/view/{namespace}/members" aria-current={isActiveLink("members") ? "page" : undefined}>
+                    <IconUsers size={20} aria-hidden="true" /> Members
+                </a></li>
+            {/if}
+            {#if permissions.approvals.canRead}
+                <li><a href="/view/{namespace}/approvals" aria-current={isActiveLink("approvals") ? "page" : undefined}>
+                    <IconCircleCheck size={20} aria-hidden="true" /> Approvals
+                </a></li>
+            {/if}
+            {#if permissions.history.canRead}
+                <li><a href="/view/{namespace}/history" aria-current={isActiveLink("history") ? "page" : undefined}>
+                    <IconClock size={20} aria-hidden="true" /> History
+                </a></li>
+            {/if}
+        </ul>
+    </nav>
 
-    <div class="sidebar-footer">
-        <div class="hstack justify-between items-center {isCollapsed ? 'footer-collapsed' : ''}">
+    <footer>
+        <div class="hstack justify-between items-center">
             {#if $currentUser && $currentUser.role === "superuser"}
-                <a
-                    href="/settings"
-                    class="nav-link icon-only"
-                    aria-current={isActiveLink("settings") ? "page" : undefined}
-                    title="Settings"
-                >
+                <a href="/settings" class="unstyled" aria-current={isActiveLink("settings") ? "page" : undefined} title="Settings">
                     <IconSettings size={20} aria-hidden="true" />
                 </a>
             {/if}
-
             <ThemeToggle collapsed={true} />
-
-            <button
-                type="button"
-                onclick={toggleCollapse}
-                data-variant="secondary"
-                class="collapse-btn"
-                aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-                title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            >
-                {#if isCollapsed}
-                    <IconChevronsRight size={20} aria-hidden="true" />
-                {:else}
-                    <IconChevronsLeft size={20} aria-hidden="true" />
-                {/if}
-            </button>
         </div>
-    </div>
-
-    <!-- User Profile Section -->
-    {#if $currentUser}
-        <div class="user-section">
-            <UserDropdown {isCollapsed} />
-        </div>
-    {/if}
+        {#if $currentUser}
+            <UserDropdown />
+        {/if}
+    </footer>
 </aside>
-
-<style>
-    .sidebar {
-        position: relative;
-        background: var(--card);
-        border-right: 1px solid var(--border);
-        display: flex;
-        flex-direction: column;
-        transition: width 0.3s ease-in-out;
-        width: 15rem;
-    }
-
-    .sidebar.collapsed {
-        width: 5rem;
-    }
-
-    .logo-link {
-        text-decoration: none;
-    }
-
-    .logo-area {
-        padding: var(--space-6);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .version-text {
-        font-size: var(--text-8);
-        margin-top: var(--space-1);
-    }
-
-    /* Namespace section */
-    .namespace-section {
-        padding: 0 var(--space-4);
-        margin-bottom: var(--space-4);
-    }
-
-    .namespace-field {
-        position: relative;
-    }
-
-    .namespace-label {
-        display: block;
-        font-size: var(--text-8);
-        font-weight: var(--font-medium);
-        color: var(--muted-foreground);
-        margin-bottom: var(--space-1);
-        text-transform: uppercase;
-    }
-
-    .input-wrapper {
-        position: relative;
-    }
-
-    .input-wrapper input {
-        width: 100%;
-        padding-right: 2rem;
-    }
-
-    .input-wrapper :global(.input-icon) {
-        position: absolute;
-        right: var(--space-3);
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--muted-foreground);
-        pointer-events: none;
-    }
-
-    .input-wrapper :global(.input-icon.chevron) {
-        transition: transform 0.2s;
-    }
-
-    .input-wrapper :global(.input-icon.chevron.open) {
-        transform: translateY(-50%) rotate(180deg);
-    }
-
-    /* Dropdown menu */
-    .dropdown-menu {
-        position: absolute;
-        z-index: var(--z-dropdown);
-        width: 100%;
-        margin-top: var(--space-1);
-        background: var(--card);
-        border-radius: var(--radius-medium);
-        box-shadow: var(--shadow-large);
-        border: 1px solid var(--border);
-        max-height: 12rem;
-        overflow-y: auto;
-    }
-
-    .dropdown-item {
-        padding: var(--space-2) var(--space-3);
-        font-size: var(--text-7);
-        color: var(--foreground);
-        cursor: pointer;
-    }
-
-    .dropdown-item:hover {
-        background: var(--faint);
-    }
-
-    .dropdown-item.active {
-        background: var(--faint);
-        color: var(--primary);
-    }
-
-    .dropdown-empty {
-        padding: var(--space-2) var(--space-3);
-        font-size: var(--text-7);
-        text-align: center;
-    }
-
-    /* Navigation */
-    .nav-list {
-        flex: 1;
-        padding: 0 var(--space-4);
-        list-style: none;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-1);
-    }
-
-    .nav-link {
-        display: flex;
-        align-items: center;
-        gap: var(--space-3);
-        font-size: var(--text-7);
-        font-weight: var(--font-medium);
-        padding: var(--space-3) var(--space-4);
-        border-radius: var(--radius-medium);
-        color: var(--foreground);
-        text-decoration: none;
-        transition: background 0.15s;
-    }
-
-    .nav-link:hover {
-        background: var(--faint);
-    }
-
-    .nav-link[aria-current="page"] {
-        background: var(--faint);
-        color: var(--primary);
-    }
-
-    .nav-link.icon-only {
-        justify-content: center;
-        padding: var(--space-3);
-    }
-
-    /* Footer */
-    .sidebar-footer {
-        padding: var(--space-2) var(--space-4);
-        border-top: 1px solid var(--border);
-    }
-
-    .footer-collapsed {
-        flex-direction: column;
-        align-items: center;
-        gap: var(--space-2);
-    }
-
-    .collapse-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: var(--space-2);
-        background: none;
-        border: none;
-        color: var(--muted-foreground);
-        cursor: pointer;
-        border-radius: var(--radius-medium);
-    }
-
-    .collapse-btn:hover {
-        background: var(--faint);
-    }
-
-    .user-section {
-        padding: var(--space-4);
-        border-top: 1px solid var(--border);
-    }
-</style>

@@ -253,54 +253,24 @@
         <div class="content-narrow">
             {#if showRerunBanner}
                 <div class="mb-6">
-                    <div class="rerun-banner hstack gap-2">
+                    <div role="alert" class="hstack gap-2 items-start justify-between">
                         <div class="hstack gap-2 flex-1 items-start">
-                            <svg
-                                class="info-icon"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
+                            <svg style="width: 1.25rem; height: 1.25rem; color: var(--primary); margin-top: 0.125rem; flex-shrink: 0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             <div class="flex-1">
-                                <h3 class="rerun-title">
-                                    Rerunning execution
-                                </h3>
-                                <p class="rerun-text mt-2">
+                                <h3 class="text-sm font-medium">Rerunning execution</h3>
+                                <p class="text-sm text-light mt-2">
                                     Inputs have been prepopulated from execution
-                                    <a
-                                        href="/view/{namespace}/results/{flowId}/{rerunFromExecId}"
-                                        class="rerun-link"
-                                    >
+                                    <a href="/view/{namespace}/results/{flowId}/{rerunFromExecId}" class="font-mono">
                                         {rerunFromExecId.substring(0, 8)}
                                     </a>
                                 </p>
                             </div>
                         </div>
-                        <button
-                            onclick={() => (showRerunBanner = false)}
-                            class="dismiss-btn"
-                            data-variant="secondary"
-                            aria-label="Dismiss"
-                        >
-                            <svg
-                                class="icon-action"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12"
-                                />
+                        <button onclick={() => (showRerunBanner = false)} class="ghost icon small" aria-label="Dismiss">
+                            <svg style="width: 1.25rem; height: 1.25rem" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
@@ -410,55 +380,6 @@
     .content-max {
         max-width: 72rem;
         margin: 0 auto;
-    }
-
-    .rerun-banner {
-        border: 1px solid var(--border);
-        border-radius: 0.5rem;
-        padding: 1rem;
-        background: var(--faint);
-        align-items: flex-start;
-        justify-content: space-between;
-    }
-
-    .info-icon {
-        width: 1.25rem;
-        height: 1.25rem;
-        color: var(--primary);
-        margin-top: 0.125rem;
-    }
-
-    :global(.icon-action) {
-        width: 1.25rem;
-        height: 1.25rem;
-    }
-
-    .rerun-title {
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: var(--foreground);
-    }
-
-    .rerun-text {
-        font-size: 0.875rem;
-        color: var(--muted-foreground);
-    }
-
-    .rerun-link {
-        font-family: monospace;
-        text-decoration: underline;
-    }
-
-    .dismiss-btn {
-        padding: 0.25rem;
-        border: none;
-        background: none;
-        cursor: pointer;
-        color: var(--muted-foreground);
-    }
-
-    .dismiss-btn:hover {
-        color: var(--foreground);
     }
 
     :global(.exec-link) {

@@ -112,40 +112,41 @@ dialog > form > footer {
   color: var(--muted-foreground);
 }
 
-/* ── Selector dropdown (shared by Node/Group/User/Multi selectors) ── */
-.selector-dropdown {
-  position: absolute;
-  z-index: var(--z-dropdown);
-  width: 100%;
-  margin-top: var(--space-1);
-  background: var(--card);
+/* ── Selector popover (shared by Node/Group/User/Multi selectors) ── */
+/* Matches oat's ot-dropdown [popover] styling for use without the web component */
+.selector-popover {
+  position: fixed;
+  margin: 0;
+  padding: 0;
+  background: var(--background);
   border: 1px solid var(--border);
   border-radius: var(--radius-medium);
-  box-shadow: var(--shadow-large);
-  max-height: 12rem;
-  overflow-y: auto;
+  box-shadow: var(--shadow-medium);
 }
 
-.selector-dropdown-item {
+/* Matches oat's ot-dropdown [role="menuitem"] styling */
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  gap: var(--space-2);
   width: 100%;
-  text-align: left;
-  padding: var(--space-2) var(--space-4);
-  cursor: pointer;
-  border-bottom: 1px solid var(--border);
-  background: none;
-  border-left: none;
-  border-right: none;
-  border-top: none;
-  border-radius: 0;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-7);
+  text-align: start;
   color: var(--foreground);
+  background: none;
+  border: none;
+  border-radius: var(--radius-small);
+  cursor: pointer;
 }
-.selector-dropdown-item:last-child { border-bottom: none; }
-.selector-dropdown-item:hover { background: var(--faint); }
+.dropdown-item:hover { background-color: var(--accent); }
 
-.selector-dropdown-empty {
-  padding: var(--space-2) var(--space-4);
+.dropdown-empty {
+  padding: var(--space-3) var(--space-4);
   font-size: var(--text-7);
   text-align: center;
+  color: var(--muted-foreground);
 }
 
 /* ── Icon box used inside selector items & table cells ── */

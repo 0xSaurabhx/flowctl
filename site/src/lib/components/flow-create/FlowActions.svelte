@@ -177,7 +177,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
                         <span class="action-name">{action.name || "Untitled Action"}</span>
-                        <span class="badge">{action.executor || "No executor"}</span>
+                        <span class="action-badge">{action.executor || "No executor"}</span>
                     </div>
                     <div class="hstack gap-1">
                         <button
@@ -495,7 +495,7 @@
     .rotated {
         transform: rotate(180deg);
     }
-    .badge {
+    .action-badge {
         font-size: 0.75rem;
         padding: 0.125rem 0.5rem;
         background: var(--faint);

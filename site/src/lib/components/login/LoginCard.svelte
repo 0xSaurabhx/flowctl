@@ -45,7 +45,7 @@
   <form onsubmit={onSubmit} class="vstack gap-5" aria-label="Login form">
     <!-- Error Message -->
     {#if error}
-      <div class="error-banner" role="alert" aria-live="assertive">
+      <div role="alert" data-variant="error" aria-live="assertive">
         <div>{error}</div>
       </div>
     {/if}
@@ -118,14 +118,5 @@
 <style>
   .login-card {
     padding: var(--space-8);
-  }
-
-  .error-banner {
-    padding: var(--space-3);
-    border-radius: var(--radius-medium);
-    background: color-mix(in srgb, var(--danger) 10%, transparent);
-    border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
-    color: var(--danger);
-    font-size: var(--text-7);
   }
 </style>

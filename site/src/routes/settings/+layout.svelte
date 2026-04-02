@@ -1,41 +1,17 @@
 <script lang="ts">
-    import Sidebar from '$lib/components/shared/Sidebar.svelte';
-    import { selectedNamespace } from '$lib/stores/namespace';
+  import Sidebar from '$lib/components/shared/Sidebar.svelte';
+  import { selectedNamespace } from '$lib/stores/namespace';
 
-    let { children, data } = $props();
-  </script>
+  let { children, data } = $props();
+</script>
 
-  <svelte:head>
-    <meta name="viewport" content="width=1024, initial-scale=1.0, user-scalable=yes" />
-  </svelte:head>
+<svelte:head>
+  <meta name="viewport" content="width=1024, initial-scale=1.0, user-scalable=yes" />
+</svelte:head>
 
-  <div class="app-shell">
-    <Sidebar namespace={$selectedNamespace} />
-
-    <div class="app-main">
-      <main class="app-content">
-        {@render children()}
-      </main>
-    </div>
-  </div>
-
-<style>
-  .app-shell {
-    display: flex;
-    height: 100vh;
-    background: var(--muted);
-  }
-
-  .app-main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .app-content {
-    flex: 1;
-    overflow-y: auto;
-    padding-block-start: 0;
-  }
-</style>
+<div data-sidebar-layout>
+  <Sidebar namespace={$selectedNamespace} />
+  <main class="app-content">
+    {@render children()}
+  </main>
+</div>

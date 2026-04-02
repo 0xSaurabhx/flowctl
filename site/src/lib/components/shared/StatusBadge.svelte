@@ -3,7 +3,7 @@
 
   const capitalizeStatus = (status: string) => {
     if (!status) return '';
-    return status.charAt(0).toUpperCase() + status.slice(1);
+    return status.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   };
 
   const getBadgeClass = (status: string) => {
@@ -12,6 +12,7 @@
       case 'approved':
         return 'success';
       case 'pending':
+      case 'pending_approval':
       case 'cancelled':
         return 'warning';
       case 'running':
