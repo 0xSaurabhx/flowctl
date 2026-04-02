@@ -315,6 +315,9 @@
             breadcrumbs={[
                 { label: namespace, url: `/view/${namespace}/flows` },
                 { label: "Flows", url: `/view/${namespace}/flows` },
+                ...(flow.metadata.prefix
+                    ? [{ label: flow.metadata.prefix, url: `/view/${namespace}/flows?group=${encodeURIComponent(flow.metadata.prefix)}` }]
+                    : []),
                 {
                     label: flow.metadata.name || "Loading...",
                     url: `/view/${namespace}/flows/${flowId}`,
