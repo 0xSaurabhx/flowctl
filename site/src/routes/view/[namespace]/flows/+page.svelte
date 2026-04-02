@@ -389,8 +389,8 @@
             { label: page.params.namespace! },
             { label: "Flows", url: `/view/${page.params.namespace}/flows` },
         ];
-        if (activeGroup) {
-            crumbs.push({ label: activeGroup });
+        if (data.group) {
+            crumbs.push({ label: data.group });
         }
         return crumbs;
     });

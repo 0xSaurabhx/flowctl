@@ -209,6 +209,9 @@
     breadcrumbs={[
         { label: namespace!, url: `/view/${namespace}/flows` },
         { label: "Flows", url: `/view/${namespace}/flows` },
+        ...(data.flowMeta?.meta?.prefix
+            ? [{ label: data.flowMeta.meta.prefix, url: `/view/${namespace}/flows?group=${encodeURIComponent(data.flowMeta.meta.prefix)}` }]
+            : []),
         { label: data.flowMeta?.meta?.name || "Loading..." },
     ]}
     actions={[
