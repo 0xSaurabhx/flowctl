@@ -18,7 +18,8 @@ Flowctl has two levels of user roles:
    - **User**: Standard user who only has flow execution access in the default namespace
 
 2. **Namespace Roles** - Applied within specific namespaces
-   - **User**: Can view and execute flows
+   - **User**: Can view and execute flows, can only see their own executions
+   - **Operator**: Everything a User can do, plus view all executions and view flow configurations
    - **Reviewer**: Can view flows, executions, and approve flow actions
    - **Admin**: Full control over namespace resources
 
@@ -52,9 +53,25 @@ The **User** role is the most restrictive namespace role, suitable for team memb
 
 - ✓ View flows
 - ✓ Execute flows
-- ✓ View executions
+- ✓ View own executions only
 - ✓ View namespace information
 - ✓ View namespace members
+- ✗ View other users' executions
+- ✗ View flow configuration/definition
+- ✗ Create, update, or delete flows
+- ✗ Approve flow actions
+- ✗ Manage nodes, credentials, or secrets
+- ✗ Manage namespace members
+
+### Operator Role
+
+The **Operator** role inherits all User permissions and adds visibility into all executions and flow configurations. Suitable for team members who need operational oversight without the ability to approve or modify flows.
+
+**Permissions:**
+
+- ✓ All User role permissions
+- ✓ View all executions (not restricted to own)
+- ✓ View flow configurations (read-only)
 - ✗ Create, update, or delete flows
 - ✗ Approve flow actions
 - ✗ Manage nodes, credentials, or secrets
@@ -62,7 +79,7 @@ The **User** role is the most restrictive namespace role, suitable for team memb
 
 ### Reviewer Role
 
-The **Reviewer** role inherits all User permissions and adds approval capabilities.
+The **Reviewer** role inherits all Operator permissions and adds approval capabilities.
 
 **Permissions:**
 
@@ -96,39 +113,40 @@ The **Admin** role has full control over all resources within a namespace.
 
 Here's a complete breakdown of what each namespace role can do:
 
-| Resource        | User | Reviewer | Admin |
-| --------------- | ---- | -------- | ----- |
-| **Flows**       |
-| View            | ✓    | ✓        | ✓     |
-| Create          | ✗    | ✗        | ✓     |
-| Update          | ✗    | ✗        | ✓     |
-| Delete          | ✗    | ✗        | ✓     |
-| Execute         | ✓    | ✓        | ✓     |
-| **Executions**  |
-| View            | ✓    | ✓        | ✓     |
-| **Approvals**   |
-| View            | ✗    | ✓        | ✓     |
-| Approve/Reject  | ✗    | ✓        | ✓     |
-| **Nodes**       |
-| View            | ✗    | ✗        | ✓     |
-| Create          | ✗    | ✗        | ✓     |
-| Update          | ✗    | ✗        | ✓     |
-| Delete          | ✗    | ✗        | ✓     |
-| **Credentials** |
-| View            | ✗    | ✗        | ✓     |
-| Create          | ✗    | ✗        | ✓     |
-| Update          | ✗    | ✗        | ✓     |
-| Delete          | ✗    | ✗        | ✓     |
-| **Secrets**     |
-| View            | ✗    | ✗        | ✓     |
-| Create          | ✗    | ✗        | ✓     |
-| Update          | ✗    | ✗        | ✓     |
-| Delete          | ✗    | ✗        | ✓     |
-| **Members**     |
-| View            | ✓    | ✓        | ✓     |
-| Add             | ✗    | ✗        | ✓     |
-| Update Role     | ✗    | ✗        | ✓     |
-| Remove          | ✗    | ✗        | ✓     |
+| Resource           | User    | Operator | Reviewer | Admin |
+| ------------------ | ------- | -------- | -------- | ----- |
+| **Flows**          |
+| View               | ✓       | ✓        | ✓        | ✓     |
+| View Config        | ✗       | ✓        | ✓        | ✓     |
+| Create             | ✗       | ✗        | ✗        | ✓     |
+| Update             | ✗       | ✗        | ✗        | ✓     |
+| Delete             | ✗       | ✗        | ✗        | ✓     |
+| Execute            | ✓       | ✓        | ✓        | ✓     |
+| **Executions**     |
+| View               | Own only| ✓        | ✓        | ✓     |
+| **Approvals**      |
+| View               | ✗       | ✗        | ✓        | ✓     |
+| Approve/Reject     | ✗       | ✗        | ✓        | ✓     |
+| **Nodes**          |
+| View               | ✗       | ✗        | ✗        | ✓     |
+| Create             | ✗       | ✗        | ✗        | ✓     |
+| Update             | ✗       | ✗        | ✗        | ✓     |
+| Delete             | ✗       | ✗        | ✗        | ✓     |
+| **Credentials**    |
+| View               | ✗       | ✗        | ✗        | ✓     |
+| Create             | ✗       | ✗        | ✗        | ✓     |
+| Update             | ✗       | ✗        | ✗        | ✓     |
+| Delete             | ✗       | ✗        | ✗        | ✓     |
+| **Secrets**        |
+| View               | ✗       | ✗        | ✗        | ✓     |
+| Create             | ✗       | ✗        | ✗        | ✓     |
+| Update             | ✗       | ✗        | ✗        | ✓     |
+| Delete             | ✗       | ✗        | ✗        | ✓     |
+| **Members**        |
+| View               | ✓       | ✓        | ✓        | ✓     |
+| Add                | ✗       | ✗        | ✗        | ✓     |
+| Update Role        | ✗       | ✗        | ✗        | ✓     |
+| Remove             | ✗       | ✗        | ✗        | ✓     |
 
 ## Managing Namespace Members
 
@@ -139,7 +157,7 @@ Namespace admins can add users or groups to their namespace:
 1. Go to the "Members" section
 2. Click "Add Member"
 3. Select the user or group
-4. Assign a role (User, Reviewer, or Admin)
+4. Assign a role (User, Operator, Reviewer, or Admin)
 5. Save
 
 ## Groups
@@ -205,7 +223,7 @@ auto_create_users.allowed_domains = ["example.com"]
 | --- | --- | --- |
 | `enabled` | bool | Enable auto user creation. Default: `false`. |
 | `namespace` | string | Namespace to add the new user to. Default: `"default"`. |
-| `role` | string | Namespace role assigned to the new user: `user`, `reviewer`, or `admin`. Default: `"user"`. |
+| `role` | string | Namespace role assigned to the new user: `user`, `operator`, `reviewer`, or `admin`. Default: `"user"`. |
 | `groups` | array | List of existing group names to add the new user to. |
 | `allowed_domains` | array | If set, only email addresses from these domains can create accounts. Leave empty to allow any domain. |
 
