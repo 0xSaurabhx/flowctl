@@ -99,12 +99,16 @@
         }
     };
 
-    const handleSearchInput = async () => {
-        if (searchQuery.trim()) {
-            await fetchNamespaces(searchQuery);
-        } else {
-            searchResults = namespaces;
-        }
+    let searchTimer: number;
+    const handleSearchInput = () => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(async () => {
+            if (searchQuery.trim()) {
+                await fetchNamespaces(searchQuery);
+            } else {
+                searchResults = namespaces;
+            }
+        }, 300);
     };
 
     const handleNsToggle = (e: ToggleEvent) => {

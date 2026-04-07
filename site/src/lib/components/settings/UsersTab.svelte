@@ -228,7 +228,7 @@
 
 	$effect(() => {
 		refreshTrigger;
-		fetchUsers(searchQuery, currentPage);
+		fetchUsers('', 1);
 	});
 </script>
 

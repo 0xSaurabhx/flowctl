@@ -192,7 +192,7 @@
 
 	$effect(() => {
 		refreshTrigger;
-		fetchGroups(searchQuery, currentPage);
+		fetchGroups('', 1);
 	});
 </script>
 

@@ -184,7 +184,7 @@
 
 	$effect(() => {
 		refreshTrigger;
-		fetchNamespaces(searchQuery, currentPage);
+		fetchNamespaces('', 1);
 	});
 </script>
 

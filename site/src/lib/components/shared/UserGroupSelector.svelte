@@ -62,8 +62,10 @@
     try { popoverEl?.hidePopover(); } catch {}
   }
 
-  async function handleSearchInput() {
-    await loadSubjects();
+  let searchTimer: number;
+  function handleSearchInput() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => loadSubjects(), 300);
   }
 
   function selectSubject(subject: User | Group) {
