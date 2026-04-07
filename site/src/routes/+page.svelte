@@ -28,7 +28,7 @@
 <div class="loading-page">
   <div class="vstack items-center gap-6">
     <Logo height="4rem" />
-    <div aria-busy="true">Loading...</div>
+    <div class="hstack justify-center gap-4" aria-busy="true">Loading...</div>
   </div>
 </div>
 
