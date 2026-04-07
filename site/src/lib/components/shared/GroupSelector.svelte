@@ -1,13 +1,12 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { apiClient } from '$lib/apiClient';
   import { handleInlineError } from '$lib/utils/errorHandling';
   import type { Group } from '$lib/types';
   import { IconChevronDown, IconUsersGroup, IconX } from '@tabler/icons-svelte';
-  
+
   let {
     selectedGroups = $bindable([]),
-    placeholder = 'Search groups...',
+    placeholder = 'Select groups...',
     disabled = false,
     multiple = true
   }: {
@@ -20,18 +19,27 @@
   let searchQuery = $state('');
   let searchResults = $state<Group[]>([]);
   let allGroups = $state<Group[]>([]);
-  let showDropdown = $state(false);
   let loading = $state(false);
   let initialized = $state(false);
+  let searchInput: HTMLInputElement;
+  let triggerEl: HTMLButtonElement;
+  let popoverEl: HTMLDivElement;
+
+  const triggerLabel = $derived(
+    selectedGroups.length > 0
+      ? `${selectedGroups.length} group${selectedGroups.length > 1 ? 's' : ''} selected`
+      : placeholder
+  );
+
+  const availableResults = $derived(
+    searchResults.filter(g => !selectedGroups.some(s => s.id === g.id))
+  );
 
   async function loadAllGroups() {
     if (initialized) return;
-    
     loading = true;
     try {
-      const response = await apiClient.groups.list({
-        count_per_page: 100 // Get more groups for selection
-      });
+      const response = await apiClient.groups.list({ count_per_page: 100 });
       allGroups = response.groups || [];
       searchResults = allGroups;
       initialized = true;
@@ -48,20 +56,33 @@
     if (!searchQuery.trim()) {
       searchResults = allGroups;
     } else {
-      searchResults = allGroups.filter(group => 
+      searchResults = allGroups.filter(group =>
         group.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (group.description && group.description.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
   }
 
-  async function handleInput() {
-    filterGroups();
+  function positionPopover() {
+    if (!triggerEl || !popoverEl) return;
+    const r = triggerEl.getBoundingClientRect();
+    popoverEl.style.top = `${r.bottom + 4}px`;
+    popoverEl.style.left = `${r.left}px`;
+    popoverEl.style.width = `${r.width}px`;
   }
 
-  async function handleFocus() {
+  function openDropdown() {
+    if (disabled) return;
+    try { popoverEl?.showPopover(); } catch {}
+    positionPopover();
+    searchQuery = '';
+    loadAllGroups();
     filterGroups();
-    showDropdown = searchResults.length > 0;
+    setTimeout(() => searchInput?.focus(), 0);
+  }
+
+  function closeDropdown() {
+    try { popoverEl?.hidePopover(); } catch {}
   }
 
   function selectGroup(group: Group) {
@@ -71,104 +92,93 @@
       }
     } else {
       selectedGroups = [group];
+      closeDropdown();
     }
     searchQuery = '';
-    showDropdown = false;
   }
 
   function removeGroup(groupId: string) {
     selectedGroups = selectedGroups.filter(g => g.id !== groupId);
   }
 
-
-  // Load groups when component mounts
-  onMount(() => {
-    loadAllGroups();
-  });
-
-  // Close dropdown when clicking outside
   function handleOutsideClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
-    if (!target.closest('.group-selector')) {
-      showDropdown = false;
+    if (!target.closest('.group-selector') && !target.closest('[popover]')) {
+      closeDropdown();
     }
   }
+
+  import { onMount, onDestroy } from 'svelte';
+
+  let scrollCleanup: (() => void) | null = null;
+
+  onMount(() => {
+    const onScroll = () => {
+      if (popoverEl?.matches(':popover-open')) closeDropdown();
+    };
+    document.addEventListener('scroll', onScroll, { capture: true, passive: true });
+    scrollCleanup = () => document.removeEventListener('scroll', onScroll, { capture: true });
+  });
+
+  onDestroy(() => scrollCleanup?.());
 </script>
 
 <svelte:window on:click={handleOutsideClick} />
 
 <div class="group-selector">
-  <div class="relative">
-    <input 
-      type="text"
-      bind:value={searchQuery}
-      oninput={handleInput}
-      onfocus={handleFocus}
-      {placeholder}
-      class="w-full px-3 py-2 text-foreground bg-card border border-input rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 pr-10"
-      autocomplete="off"
-      {disabled}
-    />
-    
-    {#if loading}
-      <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
-        <svg class="animate-spin h-4 w-4 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-      </div>
-    {:else}
-      <IconChevronDown class="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
-    {/if}
-    
-    <!-- Dropdown -->
-    {#if showDropdown}
-      <div class="absolute z-20 w-full mt-2 bg-card border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto">
-        {#if searchResults.length > 0}
-          {#each searchResults as group}
-            <!-- Skip already selected groups -->
-            {#if !selectedGroups.some(g => g.id === group.id)}
-              <div 
-                class="px-4 py-2 hover:bg-muted cursor-pointer border-b border-border last:border-b-0"
-                onclick={() => selectGroup(group)}
-                role="button"
-                tabindex="0"
-                onkeydown={(e) => e.key === 'Enter' && selectGroup(group)}
-              >
-                <div class="flex items-center">
-                  <div class="w-8 h-8 rounded-lg flex items-center justify-center mr-3 bg-primary-50">
-                    <IconUsersGroup class="text-primary-500" size={16} />
-                  </div>
-                  <div>
-                    <div class="text-sm font-medium text-foreground">{group.name}</div>
-                    <div class="text-xs text-muted-foreground">{group.description || 'No description'}</div>
-                  </div>
-                </div>
-              </div>
-            {/if}
-          {/each}
-        {:else if initialized && !loading}
-          <div class="px-4 py-2 text-sm text-muted-foreground text-center">
-            {searchQuery ? 'No groups found' : 'No groups available'}
+  <button
+    type="button"
+    bind:this={triggerEl}
+    onclick={openDropdown}
+    class="outline w-100 hstack justify-between"
+    {disabled}
+    aria-busy={loading}
+  >
+    <span>{triggerLabel}</span>
+    <IconChevronDown size={14} />
+  </button>
+
+  <div bind:this={popoverEl} popover="manual" class="selector-popover">
+    <div style="padding: var(--space-2); border-bottom: 1px solid var(--border)">
+      <input
+        type="search"
+        bind:this={searchInput}
+        bind:value={searchQuery}
+        oninput={filterGroups}
+        placeholder="Search groups..."
+        autocomplete="off"
+      />
+    </div>
+    <div style="max-height: 14rem; overflow-y: auto">
+      {#each availableResults as group (group.id)}
+        <button type="button" class="dropdown-item" onclick={() => selectGroup(group)}>
+          <div class="icon-box">
+            <IconUsersGroup size={16} />
           </div>
-        {/if}
-      </div>
-    {/if}
+          <div>
+            <div class="font-medium">{group.name}</div>
+            <div class="text-lighter text-xs">{group.description || 'No description'}</div>
+          </div>
+        </button>
+      {/each}
+      {#if availableResults.length === 0 && initialized && !loading}
+        <div class="dropdown-empty">
+          {searchQuery ? 'No groups found' : 'No groups available'}
+        </div>
+      {/if}
+      {#if loading}
+        <div class="dropdown-empty">Loading...</div>
+      {/if}
+    </div>
   </div>
-  
-  <!-- Selected groups display -->
+
   {#if selectedGroups.length > 0}
-    <div class="mt-2 flex flex-wrap gap-1">
+    <div class="hstack mt-2" style="flex-wrap: wrap; gap: 0.25rem">
       {#each selectedGroups as group (group.id)}
-        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-50 text-primary-900">
+        <span class="badge hstack gap-1">
           {group.name}
           {#if !disabled}
-            <button
-              type="button"
-              onclick={() => removeGroup(group.id)}
-              class="ml-1 text-primary-500 hover:text-primary-900 cursor-pointer"
-              aria-label="Remove {group.name}"
-            >
+            <button type="button" onclick={() => removeGroup(group.id)} aria-label="Remove {group.name}" style="all: unset; cursor: pointer; display: flex">
               <IconX size={12} />
             </button>
           {/if}

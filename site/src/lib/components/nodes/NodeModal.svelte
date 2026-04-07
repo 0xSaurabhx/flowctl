@@ -1,6 +1,7 @@
 <script lang="ts">
     import { handleInlineError } from "$lib/utils/errorHandling";
     import { autofocus } from "$lib/utils/autofocus";
+    import OatSelect from "$lib/components/shared/OatSelect.svelte";
     import type { CredentialResp, NodeReq, NodeResp } from "$lib/types";
 
     interface Props {
@@ -19,7 +20,6 @@
         onClose,
     }: Props = $props();
 
-    // Form state
     let formData = $state({
         name: "",
         hostname: "",
@@ -35,8 +35,8 @@
     });
 
     let loading = $state(false);
+    let dialogEl: HTMLDialogElement;
 
-    // Initialize form data when nodeData changes
     $effect(() => {
         if (isEditMode && nodeData) {
             formData.name = nodeData.name || "";
@@ -49,7 +49,6 @@
             formData.tags = nodeData.tags || [];
             formData.tagsString = (nodeData.tags || []).join(", ");
         } else if (!isEditMode) {
-            // Reset form for new node
             formData.name = "";
             formData.hostname = "";
             formData.port = 22;
@@ -59,6 +58,12 @@
             formData.auth.method = "";
             formData.tags = [];
             formData.tagsString = "";
+        }
+    });
+
+    $effect(() => {
+        if (dialogEl) {
+            dialogEl.showModal();
         }
     });
 
@@ -118,189 +123,118 @@
             loading = false;
         }
     }
-
-    function handleClose() {
-        onClose();
-    }
-
-    // Close on Escape key
-    function handleKeydown(event: KeyboardEvent) {
-        if (event.key === "Escape") {
-            handleClose();
-        }
-    }
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<dialog bind:this={dialogEl} onclose={onClose}>
+    <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+        <header>
+            <h3>{isEditMode ? "Edit Node" : "Add Node"}</h3>
+        </header>
 
-<!-- Modal Backdrop -->
-<div
-    class="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4"
-    on:click={handleClose}
->
-    <!-- Modal Content -->
-    <div
-        class="bg-card rounded-lg shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto"
-        on:click|stopPropagation
-    >
-        <div class="p-6">
-            <h3 class="font-bold text-lg mb-4 text-foreground">
-                {isEditMode ? "Edit Node" : "Add Node"}
-            </h3>
+        <section>
+            <div data-field>
+                <label>Name</label>
+                <input
+                    type="text"
+                    bind:value={formData.name}
+                    required
+                    disabled={loading}
+                    use:autofocus
+                />
+            </div>
 
-            <form on:submit|preventDefault={handleSubmit}>
-                <!-- Name -->
-                <div class="mb-4">
-                    <label class="block mb-1 font-medium text-foreground"
-                        >Name</label
-                    >
-                    <input
-                        type="text"
-                        class="bg-muted border border-input text-foreground text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent block w-full p-2.5"
-                        bind:value={formData.name}
-                        required
-                        disabled={loading}
-                        use:autofocus
-                    />
-                </div>
+            <div data-field>
+                <label>Hostname</label>
+                <input
+                    type="text"
+                    bind:value={formData.hostname}
+                    required
+                    disabled={loading}
+                />
+            </div>
 
-                <!-- Hostname -->
-                <div class="mb-4">
-                    <label class="block mb-1 font-medium text-foreground"
-                        >Hostname</label
-                    >
-                    <input
-                        type="text"
-                        class="bg-muted border border-input text-foreground text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent block w-full p-2.5"
-                        bind:value={formData.hostname}
-                        required
-                        disabled={loading}
-                    />
-                </div>
+            <div data-field>
+                <label>Port</label>
+                <input
+                    type="number"
+                    bind:value={formData.port}
+                    min="1"
+                    max="65535"
+                    required
+                    disabled={loading}
+                />
+            </div>
 
-                <!-- Port -->
-                <div class="mb-4">
-                    <label class="block mb-1 font-medium text-foreground"
-                        >Port</label
-                    >
-                    <input
-                        type="number"
-                        class="bg-muted border border-input text-foreground text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent block w-full p-2.5"
-                        bind:value={formData.port}
-                        min="1"
-                        max="65535"
-                        required
-                        disabled={loading}
-                    />
-                </div>
+            <div data-field>
+                <label>Username</label>
+                <input
+                    type="text"
+                    bind:value={formData.username}
+                    required
+                    disabled={loading}
+                />
+            </div>
 
-                <!-- Username -->
-                <div class="mb-4">
-                    <label class="block mb-1 font-medium text-foreground"
-                        >Username</label
-                    >
-                    <input
-                        type="text"
-                        class="bg-muted border border-input text-foreground text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent block w-full p-2.5"
-                        bind:value={formData.username}
-                        required
-                        disabled={loading}
-                    />
-                </div>
+            <div data-field>
+                <label>Connection Type</label>
+                <OatSelect
+                    bind:value={formData.connection_type}
+                    options={[
+                        { value: 'ssh', label: 'SSH' },
+                        { value: 'qssh', label: 'QSSH' }
+                    ]}
+                    placeholder="Select connection type"
+                    required
+                    disabled={loading}
+                />
+            </div>
 
-                <!-- Connection Type -->
-                <div class="mb-4">
-                    <label class="block mb-1 font-medium text-foreground"
-                        >Connection Type</label
-                    >
-                    <select
-                        class="bg-muted border border-input text-foreground text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent block w-full p-2.5"
-                        bind:value={formData.connection_type}
-                        required
-                        disabled={loading}
-                    >
-                        <option value="">Select connection type</option>
-                        <option value="ssh">SSH</option>
-                        <option value="qssh">QSSH</option>
-                    </select>
-                </div>
+            <div data-field>
+                <label>Credential</label>
+                <OatSelect
+                    bind:value={formData.auth.credential_id}
+                    options={credentials.map(c => ({ value: c.id, label: `${c.name} (${c.key_type})` }))}
+                    placeholder="Select credential"
+                    required
+                    disabled={loading}
+                    onchange={onCredentialChange}
+                />
+            </div>
 
-                <!-- Credential -->
-                <div class="mb-4">
-                    <label class="block mb-1 font-medium text-foreground"
-                        >Credential</label
-                    >
-                    <select
-                        class="bg-muted border border-input text-foreground text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent block w-full p-2.5"
-                        bind:value={formData.auth.credential_id}
-                        on:change={onCredentialChange}
-                        required
-                        disabled={loading}
-                    >
-                        <option value="">Select credential</option>
-                        {#each credentials as credential}
-                            <option value={credential.id}>
-                                {credential.name} ({credential.key_type})
-                            </option>
-                        {/each}
-                    </select>
-                </div>
+            <div data-field>
+                <label>Tags (comma-separated)</label>
+                <input
+                    type="text"
+                    bind:value={formData.tagsString}
+                    placeholder="production, web, east"
+                    disabled={loading}
+                />
+            </div>
+        </section>
 
-                <!-- Tags -->
-                <div class="mb-4">
-                    <label class="block mb-1 font-medium text-foreground"
-                        >Tags (comma-separated)</label
-                    >
-                    <input
-                        type="text"
-                        class="bg-muted border border-input text-foreground text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent block w-full p-2.5"
-                        bind:value={formData.tagsString}
-                        placeholder="production, web, east"
-                        disabled={loading}
-                    />
-                </div>
+        <footer>
+            <button
+                type="button"
+                data-variant="secondary"
+                onclick={onClose}
+                disabled={loading}
+            >
+                Cancel
+            </button>
+            <button
+                type="submit"
+                disabled={loading}
+                aria-busy={loading}
+            >
+                {isEditMode ? "Update" : "Create"}
+            </button>
+        </footer>
+    </form>
+</dialog>
 
-                <!-- Actions -->
-                <div class="flex justify-end gap-2 mt-6">
-                    <button
-                        type="button"
-                        class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-foreground bg-subtle rounded-lg hover:bg-subtle-hover disabled:opacity-50 cursor-pointer"
-                        on:click={handleClose}
-                        disabled={loading}
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        type="submit"
-                        class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600 focus:ring-4 focus:outline-none focus:ring-primary-300 disabled:opacity-50 cursor-pointer"
-                        disabled={loading}
-                    >
-                        {#if loading}
-                            <svg
-                                class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                            >
-                                <circle
-                                    class="opacity-25"
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    stroke-width="4"
-                                ></circle>
-                                <path
-                                    class="opacity-75"
-                                    fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                ></path>
-                            </svg>
-                        {/if}
-                        {isEditMode ? "Update" : "Create"}
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+<style>
+    dialog {
+        max-width: 32rem;
+        width: 100%;
+    }
+</style>

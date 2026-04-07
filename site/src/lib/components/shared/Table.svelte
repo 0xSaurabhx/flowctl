@@ -1,7 +1,6 @@
 <script lang="ts" generics="T">
     import type { TableColumn, TableAction } from "$lib/types";
     import type { ComponentType } from "svelte";
-    import LoadingSpinner from "./LoadingSpinner.svelte";
 
     type SortDirection = "asc" | "desc" | null;
 
@@ -15,6 +14,8 @@
         emptyIcon?: string;
         EmptyIconComponent?: ComponentType;
         emptyIconSize?: number;
+        emptyActionLabel?: string;
+        onEmptyAction?: () => void;
         title?: string;
         subtitle?: string;
     };
@@ -28,43 +29,15 @@
         emptyMessage = "No data available",
         emptyIcon,
         EmptyIconComponent,
-        emptyIconSize = 64,
+        emptyIconSize = 48,
+        emptyActionLabel,
+        onEmptyAction,
         title,
         subtitle,
     }: Props = $props();
 
     let sortKey = $state<string | null>(null);
     let sortDirection = $state<SortDirection>(null);
-    let openMenuIndex = $state<number | null>(null);
-    let menuPosition = $state<{ top: number; left: number }>({ top: 0, left: 0 });
-
-    const toggleMenu = (index: number, event: Event) => {
-        event.stopPropagation();
-        if (openMenuIndex === index) {
-            openMenuIndex = null;
-            return;
-        }
-        const button = event.currentTarget as HTMLElement;
-        const rect = button.getBoundingClientRect();
-        menuPosition = {
-            top: rect.bottom + 4,
-            left: rect.right - 144, // 144 = w-36 (9rem)
-        };
-        openMenuIndex = index;
-    };
-
-    const closeMenu = () => {
-        openMenuIndex = null;
-    };
-
-    const handleClickOutside = (event: MouseEvent) => {
-        if (openMenuIndex !== null) {
-            const target = event.target as HTMLElement;
-            if (!target.closest('.actions-menu')) {
-                closeMenu();
-            }
-        }
-    };
 
     const getValue = (row: T, column: TableColumn<T>) => {
         const keys = column.key.split(".");
@@ -110,7 +83,6 @@
         if (!column.sortable) return;
 
         if (sortKey === column.key) {
-            // Cycle through: asc -> desc -> null
             if (sortDirection === "asc") {
                 sortDirection = "desc";
             } else if (sortDirection === "desc") {
@@ -135,12 +107,10 @@
             const aValue = getValue(a, column);
             const bValue = getValue(b, column);
 
-            // Handle null/undefined values
             if (aValue == null && bValue == null) return 0;
             if (aValue == null) return sortDirection === "asc" ? 1 : -1;
             if (bValue == null) return sortDirection === "asc" ? -1 : 1;
 
-            // Convert to strings for comparison if not already numbers
             const aCompare =
                 typeof aValue === "number"
                     ? aValue
@@ -157,37 +127,36 @@
     });
 </script>
 
-<div class="bg-card rounded-lg border border-border overflow-hidden">
+<div class="card">
     {#if title || subtitle}
-        <div class="px-6 py-4 border-b border-border bg-muted">
+        <header>
             {#if title}
-                <h3 class="text-lg font-semibold text-foreground">{title}</h3>
+                <h3>{title}</h3>
             {/if}
             {#if subtitle}
-                <p class="text-sm text-muted-foreground mt-1">{subtitle}</p>
+                <p class="text-light text-sm">{subtitle}</p>
             {/if}
-        </div>
+        </header>
     {/if}
 
     {#if loading}
-        <div
-            class="flex items-center justify-center h-64"
-            role="status"
-            aria-live="polite"
-        >
-            <LoadingSpinner label="Loading..." />
+        <div class="empty-state" role="status" aria-live="polite">
+            <div class="hstack gap-3 justify-center">
+                <div aria-busy="true"></div>
+                <span class="text-sm text-light">Loading...</span>
+            </div>
         </div>
     {:else if data.length === 0}
-        <div class="flex flex-col items-center justify-center h-64 text-center">
+        <div class="empty-state">
             {#if EmptyIconComponent}
-                <div class="text-muted-foreground mb-4">
+                <div class="text-light mb-4">
                     <EmptyIconComponent size={emptyIconSize} />
                 </div>
             {:else if emptyIcon}
                 {@html emptyIcon}
             {:else}
                 <svg
-                    class="w-16 h-16 text-muted-foreground mb-4"
+                    class="empty-icon"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -200,23 +169,27 @@
                     />
                 </svg>
             {/if}
-            <h3 class="text-lg font-medium text-foreground mb-2">
-                {emptyMessage}
-            </h3>
+            <h3>{emptyMessage}</h3>
+            {#if emptyActionLabel && onEmptyAction}
+                <button
+                    onclick={onEmptyAction}
+                    data-variant="secondary"
+                    class="mt-4"
+                    style="font-size: var(--text-7)"
+                >
+                    {emptyActionLabel}
+                </button>
+            {/if}
         </div>
     {:else}
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-border">
-                <thead class="bg-muted">
+        <div class="table">
+            <table>
+                <thead>
                 <tr>
                     {#each columns as column}
                         <th
                             scope="col"
-                            class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider {column.width
-                                ? column.width
-                                : ''} {column.sortable
-                                ? 'cursor-pointer select-none hover:bg-subtle'
-                                : ''}"
+                            class={column.sortable ? 'sortable' : ''}
                             onclick={() => handleSort(column)}
                             aria-sort={sortKey === column.key
                                 ? sortDirection === "asc"
@@ -224,19 +197,12 @@
                                     : "descending"
                                 : undefined}
                         >
-                            <div class="flex items-center space-x-1">
+                            <div class="hstack gap-1">
                                 <span>{column.header}</span>
                                 {#if column.sortable}
-                                    <div
-                                        class="flex flex-col"
-                                        aria-hidden="true"
-                                    >
+                                    <div class="sort-indicators" aria-hidden="true">
                                         <svg
-                                            class="w-3 h-3 {sortKey ===
-                                                column.key &&
-                                            sortDirection === 'asc'
-                                                ? 'text-primary-500'
-                                                : 'text-muted-foreground'}"
+                                            class="sort-arrow {sortKey === column.key && sortDirection === 'asc' ? 'active' : ''}"
                                             fill="currentColor"
                                             viewBox="0 0 20 20"
                                         >
@@ -247,11 +213,7 @@
                                             />
                                         </svg>
                                         <svg
-                                            class="w-3 h-3 -mt-1 {sortKey ===
-                                                column.key &&
-                                            sortDirection === 'desc'
-                                                ? 'text-primary-500'
-                                                : 'text-muted-foreground'}"
+                                            class="sort-arrow sort-arrow-down {sortKey === column.key && sortDirection === 'desc' ? 'active' : ''}"
                                             fill="currentColor"
                                             viewBox="0 0 20 20"
                                         >
@@ -267,29 +229,20 @@
                         </th>
                     {/each}
                     {#if actions.length > 0}
-                        <th
-                            scope="col"
-                            class="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider w-16"
-                        >
+                        <th scope="col">
                             <span class="sr-only">Actions</span>
                         </th>
                     {/if}
                 </tr>
             </thead>
-            <tbody class="bg-card divide-y divide-border">
-                {#each sortedData as row}
+            <tbody>
+                {#each sortedData as row, rowIndex}
                     <tr
-                        class="hover:bg-muted {onRowClick
-                            ? 'cursor-pointer'
-                            : ''}"
+                        class={onRowClick ? 'clickable' : ''}
                         onclick={() => handleRowClick(row)}
                     >
                         {#each columns as column}
-                            <td
-                                class="px-6 py-4 whitespace-nowrap text-sm text-foreground {column.width
-                                    ? column.width
-                                    : ''}"
-                            >
+                            <td>
                                 {#if column.component}
                                     {@const Component = column.component}
                                     <Component
@@ -303,27 +256,43 @@
                             </td>
                         {/each}
                         {#if actions.length > 0}
-                            {@const rowIndex = sortedData.indexOf(row)}
                             {@const visibleActions = actions.filter(a => !a.visible || a.visible(row))}
-                            <td
-                                class="px-6 py-4 whitespace-nowrap text-sm font-medium w-16 text-right"
-                            >
+                            <td class="actions-cell" onclick={(e) => e.stopPropagation()}>
                                 {#if visibleActions.length > 0}
-                                    <div class="actions-menu inline-block">
+                                    <ot-dropdown>
                                         <button
-                                            onclick={(e) => toggleMenu(rowIndex, e)}
-                                            class="p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                                            popovertarget="table-actions-{rowIndex}"
+                                            class="ghost icon small"
                                             aria-label="Actions"
-                                            aria-haspopup="true"
-                                            aria-expanded={openMenuIndex === rowIndex}
                                         >
-                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
                                                 <circle cx="10" cy="4" r="1.5" />
                                                 <circle cx="10" cy="10" r="1.5" />
                                                 <circle cx="10" cy="16" r="1.5" />
                                             </svg>
                                         </button>
-                                    </div>
+                                        <div popover id="table-actions-{rowIndex}" role="menu">
+                                            {#each visibleActions as action}
+                                                {#if action.href}
+                                                    <a
+                                                        href={action.href(row)}
+                                                        role="menuitem"
+                                                        class={action.className || ''}
+                                                    >
+                                                        {action.label}
+                                                    </a>
+                                                {:else}
+                                                    <button
+                                                        role="menuitem"
+                                                        onclick={(e) => handleActionClick(action, row, e)}
+                                                        class={action.className || ''}
+                                                    >
+                                                        {action.label}
+                                                    </button>
+                                                {/if}
+                                            {/each}
+                                        </div>
+                                    </ot-dropdown>
                                 {/if}
                             </td>
                         {/if}
@@ -335,36 +304,94 @@
     {/if}
 </div>
 
-{#if openMenuIndex !== null}
-    {@const row = sortedData[openMenuIndex]}
-    {@const visibleActions = actions.filter(a => !a.visible || a.visible(row))}
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div
-        class="fixed inset-0 z-40"
-        onclick={closeMenu}
-        onkeydown={(e) => { if (e.key === 'Escape') closeMenu(); }}
-    ></div>
-    <div
-        class="actions-menu fixed z-50 w-36 bg-card border border-border rounded-md shadow-lg py-1"
-        style="top: {menuPosition.top}px; left: {menuPosition.left}px;"
-    >
-        {#each visibleActions as action}
-            {#if action.href}
-                <a
-                    href={action.href(row)}
-                    class="block w-full text-left px-4 py-2 text-sm {action.className || 'text-foreground'} hover:bg-muted transition-colors"
-                    onclick={() => closeMenu()}
-                >
-                    {action.label}
-                </a>
-            {:else}
-                <button
-                    onclick={(e) => { handleActionClick(action, row, e); closeMenu(); }}
-                    class="block w-full text-left px-4 py-2 text-sm {action.className || 'text-foreground'} hover:bg-muted transition-colors cursor-pointer"
-                >
-                    {action.label}
-                </button>
-            {/if}
-        {/each}
-    </div>
-{/if}
+<style>
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 16rem;
+        text-align: center;
+        color: var(--muted-foreground);
+    }
+
+    .empty-state h3 {
+        font-size: var(--text-6);
+        font-weight: var(--font-medium);
+        margin: 0;
+        color: var(--muted-foreground);
+    }
+
+    .empty-icon {
+        width: 3rem;
+        height: 3rem;
+        color: var(--muted-foreground);
+        margin-bottom: var(--space-3);
+    }
+
+    th.sortable {
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .sort-indicators {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sort-arrow {
+        width: 0.75rem;
+        height: 0.75rem;
+        color: var(--muted-foreground);
+    }
+
+    .sort-arrow-down {
+        margin-top: -0.25rem;
+    }
+
+    .sort-arrow.active {
+        color: var(--primary);
+    }
+
+    tr.clickable {
+        cursor: pointer;
+    }
+
+    .actions-cell {
+        width: 4rem;
+        text-align: right;
+    }
+
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+    }
+
+    :global(.cell-link) {
+        font-size: var(--text-7);
+        font-weight: var(--font-medium);
+        color: var(--primary);
+        text-decoration: none;
+    }
+
+    :global(.cell-link:hover),
+    :global(.cell-link-mono:hover) {
+        color: var(--primary);
+        text-decoration: underline;
+    }
+
+    :global(.cell-link-mono) {
+        font-size: var(--text-7);
+        font-family: var(--font-mono);
+        font-weight: var(--font-medium);
+        color: var(--primary);
+        text-decoration: none;
+    }
+</style>

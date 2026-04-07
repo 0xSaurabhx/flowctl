@@ -3,6 +3,7 @@
     import { handleInlineError } from "$lib/utils/errorHandling";
     import { createSlug } from "$lib/utils";
     import { notifications } from "$lib/stores/notifications";
+    import OatSelect from "$lib/components/shared/OatSelect.svelte";
     import CodeEditor from "$lib/components/shared/CodeEditor.svelte";
     import KeyValueEditor from "$lib/components/shared/KeyValueEditor.svelte";
     import NodeSelector from "$lib/components/shared/NodeSelector.svelte";
@@ -124,29 +125,20 @@
     function dragOver(event: DragEvent) {
         event.preventDefault();
         if (event.currentTarget instanceof HTMLElement) {
-            event.currentTarget.classList.add(
-                "bg-primary-50",
-                "border-primary-300",
-            );
+            event.currentTarget.classList.add("drag-over");
         }
     }
 
     function dragLeave(event: DragEvent) {
         if (event.currentTarget instanceof HTMLElement) {
-            event.currentTarget.classList.remove(
-                "bg-primary-50",
-                "border-primary-300",
-            );
+            event.currentTarget.classList.remove("drag-over");
         }
     }
 
     function drop(event: DragEvent, dropIndex: number) {
         event.preventDefault();
         if (event.currentTarget instanceof HTMLElement) {
-            event.currentTarget.classList.remove(
-                "bg-primary-50",
-                "border-primary-300",
-            );
+            event.currentTarget.classList.remove("drag-over");
         }
         if (draggedIndex !== null && draggedIndex !== dropIndex) {
             const dragged = actions.splice(draggedIndex, 1)[0];
@@ -157,113 +149,67 @@
 
 <!-- Flow Actions Section -->
 <div>
-    <div class="flex items-center justify-between mb-6">
-        <h3 class="text-base font-medium text-foreground">Flow Actions</h3>
+    <div class="hstack mb-4 justify-between">
+        <h3>Flow Actions</h3>
         {#if !disabled}
-            <button
-                onclick={handleAddAction}
-                class="px-4 py-2 text-sm font-medium bg-primary-500 text-white rounded-md hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 cursor-pointer"
-            >
+            <button onclick={handleAddAction}>
                 + Add Action
             </button>
         {/if}
     </div>
 
-    <div class="space-y-4">
+    <div class="vstack gap-4">
         {#each actions as action, index (action.tempId)}
             <div
-                class="border border-border rounded-lg overflow-hidden transition-colors"
+                class="action-card"
                 ondragover={dragOver}
                 ondragleave={dragLeave}
                 ondrop={(e) => drop(e, index)}
             >
                 <!-- Action Header -->
                 <div
-                    class="bg-muted px-4 py-3 flex items-center justify-between cursor-move"
+                    class="action-header hstack"
                     draggable="true"
                     ondragstart={(e) => dragStart(e, index)}
                     ondragend={dragEnd}
                 >
-                    <div class="flex items-center gap-3">
-                        <svg
-                            class="w-5 h-5 text-muted-foreground"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M4 6h16M4 12h16M4 18h16"
-                            />
+                    <div class="hstack gap-2">
+                        <svg class="drag-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
-                        <span class="font-medium text-foreground"
-                            >{action.name || "Untitled Action"}</span
-                        >
-                        <span
-                            class="text-xs px-2 py-1 bg-subtle text-foreground rounded-full"
-                        >
-                            {action.executor || "No executor"}
-                        </span>
+                        <span class="action-name">{action.name || "Untitled Action"}</span>
+                        <span class="action-badge">{action.executor || "No executor"}</span>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="hstack gap-1">
                         <button
-                            onclick={() =>
-                                (action.collapsed = !action.collapsed)}
-                            class="text-muted-foreground hover:text-foreground cursor-pointer"
+                            type="button"
+                            data-variant="secondary"
+                            class="ghost icon small"
+                            onclick={() => (action.collapsed = !action.collapsed)}
                         >
-                            <svg
-                                class="w-5 h-5 transform transition-transform {action.collapsed
-                                    ? ''
-                                    : 'rotate-180'}"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M19 9l-7 7-7-7"
-                                />
+                            <svg class="icon-sm" class:rotated={!action.collapsed} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
                         {#if !disabled}
                             <button
+                                type="button"
+                                data-variant="secondary"
+                                class="ghost icon small"
                                 onclick={() => duplicateAction(index)}
-                                class="text-muted-foreground hover:text-primary-600 cursor-pointer"
                             >
-                                <svg
-                                    class="w-5 h-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                                    />
+                                <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                 </svg>
                             </button>
                             <button
+                                type="button"
+                                data-variant="danger"
+                                class="ghost icon small"
                                 onclick={() => removeAction(index)}
-                                class="text-muted-foreground hover:text-danger-600 cursor-pointer"
                             >
-                                <svg
-                                    class="w-5 h-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                    />
+                                <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                             </button>
                         {/if}
@@ -272,55 +218,33 @@
 
                 <!-- Action Content -->
                 {#if !action.collapsed}
-                    <div class="p-4 space-y-4">
+                    <div class="action-body vstack gap-4">
                         <!-- Basic Action Fields -->
-                        <div class="grid grid-cols-1 gap-4">
-                            <div>
-                                <label
-                                    class="block text-sm font-medium text-foreground mb-1"
-                                    >Action Name *</label
-                                >
-                                <input
-                                    type="text"
-                                    value={action.name}
-                                    oninput={(e) =>
-                                        updateActionName(
-                                            action,
-                                            e.currentTarget.value,
-                                        )}
-                                    class="w-full px-3 py-2 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-                                    placeholder="Action Display Name"
+                        <div data-field>
+                            <label>Action Name *</label>
+                            <input
+                                type="text"
+                                value={action.name}
+                                oninput={(e) => updateActionName(action, e.currentTarget.value)}
+                                placeholder="Action Display Name"
+                                required
+                            />
+                        </div>
+
+                        <div class="grid-2">
+                            <div data-field>
+                                <label>Executor *</label>
+                                <OatSelect
+                                    bind:value={action.executor}
+                                    options={availableExecutors.map((e: any) => ({ value: e.name, label: e.name }))}
+                                    placeholder="Select Executor"
+                                    onchange={() => onExecutorChange(action)}
                                     required
                                 />
                             </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label
-                                    class="block text-sm font-medium text-foreground mb-1"
-                                    >Executor *</label
-                                >
-                                <select
-                                    bind:value={action.executor}
-                                    onchange={() => onExecutorChange(action)}
-                                    class="w-full px-3 py-2 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-                                    required
-                                >
-                                    <option value="">Select Executor</option>
-                                    {#each availableExecutors as executor}
-                                        <option value={executor.name}
-                                            >{executor.name}</option
-                                        >
-                                    {/each}
-                                </select>
-                            </div>
                             {#if executorHasCapability(action.executor, 'remote_execution')}
-                            <div>
-                                <label
-                                    class="block text-sm font-medium text-foreground mb-1"
-                                    >Run On</label
-                                >
+                            <div data-field>
+                                <label>Run On</label>
                                 <NodeSelector
                                     {namespace}
                                     bind:selectedNodes={action.selectedNodes}
@@ -333,343 +257,146 @@
 
                         <!-- Dynamic Executor Configuration -->
                         {#if action.executor && executorConfigs[action.executor]}
-                            <div class="space-y-4">
-                                <div class="border-t pt-4">
-                                    <h4
-                                        class="text-sm font-medium text-foreground mb-3 flex items-center gap-2"
-                                    >
-                                        <svg
-                                            class="w-4 h-4 text-muted-foreground"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                                            />
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                            />
+                            <div class="vstack gap-4">
+                                <div class="config-section">
+                                    <h4 class="hstack gap-2 config-title">
+                                        <svg class="icon-sm text-lighter" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                         </svg>
-                                        <span
-                                            >{action.executor
-                                                .charAt(0)
-                                                .toUpperCase() +
-                                                action.executor.slice(1)}</span
-                                        >
+                                        <span>{action.executor.charAt(0).toUpperCase() + action.executor.slice(1)}</span>
                                         Configuration
                                     </h4>
 
                                     <!-- Dynamic form fields based on JSON schema -->
                                     {#if executorConfigs[action.executor].properties}
-                                        <div class="space-y-4">
+                                        <div class="vstack gap-4">
                                             {#each Object.entries(executorConfigs[action.executor].properties) as [key, property]}
-                                                {@const isRequired =
-                                                    executorConfigs[
-                                                        action.executor
-                                                    ].required?.includes(key)}
-                                                {@const label =
-                                                    property.title || key}
-                                                {@const description =
-                                                    property.description || ""}
-                                                {@const placeholder =
-                                                    property.placeholder ||
-                                                    property.default ||
-                                                    ""}
+                                                {@const isRequired = executorConfigs[action.executor].required?.includes(key)}
+                                                {@const label = property.title || key}
+                                                {@const description = property.description || ""}
+                                                {@const placeholder = property.placeholder || property.default || ""}
 
                                                 {#if property.type === "checkbox"}
-                                                    <div
-                                                        class="flex items-start"
-                                                    >
+                                                    <div class="hstack gap-2 items-start">
                                                         <input
                                                             type="checkbox"
                                                             id="config-{action.tempId}-{key}"
-                                                            bind:checked={
-                                                                action.with[key]
-                                                            }
-                                                            onchange={(e) =>
-                                                                updateConfigValue(
-                                                                    action,
-                                                                    key,
-                                                                    e
-                                                                        .currentTarget
-                                                                        .checked,
-                                                                )}
-                                                            class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-input rounded mt-0.5"
+                                                            bind:checked={action.with[key]}
+                                                            onchange={(e) => updateConfigValue(action, key, e.currentTarget.checked)}
                                                         />
-                                                        <div class="ml-2">
-                                                            <label
-                                                                for="config-{action.tempId}-{key}"
-                                                                class="text-sm text-foreground"
-                                                            >
+                                                        <div>
+                                                            <label for="config-{action.tempId}-{key}">
                                                                 {label}
-                                                                {#if isRequired}<span
-                                                                        class="text-red-500"
-                                                                        >*</span
-                                                                    >{/if}
+                                                                {#if isRequired}<span class="required">*</span>{/if}
                                                             </label>
                                                             {#if description}
-                                                                <p
-                                                                    class="text-xs text-muted-foreground mt-1"
-                                                                >
-                                                                    {description}
-                                                                </p>
+                                                                <p class="text-lighter field-hint">{description}</p>
                                                             {/if}
                                                         </div>
                                                     </div>
                                                 {:else if property.enum}
-                                                    <div>
-                                                        <label
-                                                            for="config-{action.tempId}-{key}"
-                                                            class="block text-sm font-medium text-foreground mb-1"
-                                                        >
+                                                    <div data-field>
+                                                        <label for="config-{action.tempId}-{key}">
                                                             {label}
-                                                            {#if isRequired}<span
-                                                                    class="text-red-500"
-                                                                    >*</span
-                                                                >{/if}
+                                                            {#if isRequired}<span class="required">*</span>{/if}
                                                         </label>
-                                                        <select
+                                                        <OatSelect
+                                                            bind:value={action.with[key]}
+                                                            options={property.enum.map((o: string) => ({ value: o, label: o }))}
+                                                            placeholder="Select..."
                                                             id="config-{action.tempId}-{key}"
-                                                            bind:value={
-                                                                action.with[key]
-                                                            }
-                                                            onchange={(e) =>
-                                                                updateConfigValue(
-                                                                    action,
-                                                                    key,
-                                                                    e
-                                                                        .currentTarget
-                                                                        .value,
-                                                                )}
-                                                            class="w-full px-3 py-2 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-                                                        >
-                                                            <option value=""
-                                                                >Select...</option
-                                                            >
-                                                            {#each property.enum as option}
-                                                                <option
-                                                                    value={option}
-                                                                    >{option}</option
-                                                                >
-                                                            {/each}
-                                                        </select>
+                                                            onchange={() => updateConfigValue(action, key, action.with[key])}
+                                                        />
                                                         {#if description}
-                                                            <p
-                                                                class="mt-1 text-xs text-muted-foreground"
-                                                            >
-                                                                {description}
-                                                            </p>
+                                                            <p class="text-lighter field-hint">{description}</p>
                                                         {/if}
                                                     </div>
                                                 {:else if property.type === "number" || property.type === "integer"}
-                                                    <div>
-                                                        <label
-                                                            for="config-{action.tempId}-{key}"
-                                                            class="block text-sm font-medium text-foreground mb-1"
-                                                        >
+                                                    <div data-field>
+                                                        <label for="config-{action.tempId}-{key}">
                                                             {label}
-                                                            {#if isRequired}<span
-                                                                    class="text-red-500"
-                                                                    >*</span
-                                                                >{/if}
+                                                            {#if isRequired}<span class="required">*</span>{/if}
                                                         </label>
                                                         <input
                                                             type="number"
                                                             id="config-{action.tempId}-{key}"
-                                                            bind:value={
-                                                                action.with[key]
-                                                            }
-                                                            oninput={(e) =>
-                                                                updateConfigValue(
-                                                                    action,
-                                                                    key,
-                                                                    property.type ===
-                                                                        "integer"
-                                                                        ? parseInt(
-                                                                              e
-                                                                                  .currentTarget
-                                                                                  .value,
-                                                                          )
-                                                                        : parseFloat(
-                                                                              e
-                                                                                  .currentTarget
-                                                                                  .value,
-                                                                          ),
-                                                                )}
-                                                            step={property.type ===
-                                                            "integer"
-                                                                ? "1"
-                                                                : "any"}
+                                                            bind:value={action.with[key]}
+                                                            oninput={(e) => updateConfigValue(action, key, property.type === "integer" ? parseInt(e.currentTarget.value) : parseFloat(e.currentTarget.value))}
+                                                            step={property.type === "integer" ? "1" : "any"}
                                                             min={property.minimum}
                                                             max={property.maximum}
                                                             {placeholder}
-                                                            class="w-full px-3 py-2 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
                                                         />
                                                         {#if description}
-                                                            <p
-                                                                class="mt-1 text-xs text-muted-foreground"
-                                                            >
-                                                                {description}
-                                                            </p>
+                                                            <p class="text-lighter field-hint">{description}</p>
                                                         {/if}
                                                     </div>
                                                 {:else if property.widget === "codeeditor"}
-                                                    <div>
-                                                        <label
-                                                            class="block text-sm font-medium text-foreground mb-1"
-                                                        >
+                                                    <div data-field>
+                                                        <label>
                                                             {label}
-                                                            {#if isRequired}<span
-                                                                    class="text-red-500"
-                                                                    >*</span
-                                                                >{/if}
+                                                            {#if isRequired}<span class="required">*</span>{/if}
                                                         </label>
                                                         <CodeEditor
-                                                            value={action.with[
-                                                                key
-                                                            ] || ""}
+                                                            value={action.with[key] || ""}
                                                             height="200px"
-                                                            onchange={(val) =>
-                                                                updateConfigValue(
-                                                                    action,
-                                                                    key,
-                                                                    val,
-                                                                )}
+                                                            onchange={(val) => updateConfigValue(action, key, val)}
                                                         />
                                                         {#if description}
-                                                            <p
-                                                                class="mt-1 text-xs text-muted-foreground"
-                                                            >
-                                                                {description}
-                                                            </p>
+                                                            <p class="text-lighter field-hint">{description}</p>
                                                         {/if}
                                                     </div>
                                                 {:else if property.widget === "keyvalue"}
-                                                    <div>
-                                                        <label
-                                                            class="block text-sm font-medium text-foreground mb-1"
-                                                        >
+                                                    <div data-field>
+                                                        <label>
                                                             {label}
-                                                            {#if isRequired}<span
-                                                                    class="text-red-500"
-                                                                    >*</span
-                                                                >{/if}
+                                                            {#if isRequired}<span class="required">*</span>{/if}
                                                         </label>
                                                         <KeyValueEditor
                                                             initialValue={action.with[key]}
-                                                            onchange={(json) =>
-                                                                updateConfigValue(
-                                                                    action,
-                                                                    key,
-                                                                    json,
-                                                                )}
+                                                            onchange={(json) => updateConfigValue(action, key, json)}
                                                             valuePlaceholder={placeholder || "value"}
                                                         />
                                                         {#if description}
-                                                            <p
-                                                                class="mt-1 text-xs text-muted-foreground"
-                                                            >
-                                                                {description}
-                                                            </p>
+                                                            <p class="text-lighter field-hint">{description}</p>
                                                         {/if}
                                                     </div>
                                                 {:else if property.format === "textarea" || property.type === "object" || property.type === "array"}
-                                                    <div>
-                                                        <label
-                                                            for="config-{action.tempId}-{key}"
-                                                            class="block text-sm font-medium text-foreground mb-1"
-                                                        >
+                                                    <div data-field>
+                                                        <label for="config-{action.tempId}-{key}">
                                                             {label}
-                                                            {#if isRequired}<span
-                                                                    class="text-red-500"
-                                                                    >*</span
-                                                                >{/if}
+                                                            {#if isRequired}<span class="required">*</span>{/if}
                                                         </label>
                                                         <textarea
                                                             id="config-{action.tempId}-{key}"
-                                                            bind:value={
-                                                                action.with[key]
-                                                            }
-                                                            oninput={(e) =>
-                                                                updateConfigValue(
-                                                                    action,
-                                                                    key,
-                                                                    e
-                                                                        .currentTarget
-                                                                        .value,
-                                                                )}
-                                                            placeholder={placeholder ||
-                                                                (property.type ===
-                                                                "object"
-                                                                    ? "JSON object"
-                                                                    : property.type ===
-                                                                        "array"
-                                                                      ? "Array values"
-                                                                      : "Multi-line text")}
+                                                            bind:value={action.with[key]}
+                                                            oninput={(e) => updateConfigValue(action, key, e.currentTarget.value)}
+                                                            placeholder={placeholder || (property.type === "object" ? "JSON object" : property.type === "array" ? "Array values" : "Multi-line text")}
                                                             rows="4"
-                                                            class="w-full px-3 py-2 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm font-mono"
                                                         ></textarea>
                                                         {#if description}
-                                                            <p
-                                                                class="mt-1 text-xs text-muted-foreground"
-                                                            >
-                                                                {description}
-                                                            </p>
+                                                            <p class="text-lighter field-hint">{description}</p>
                                                         {/if}
                                                         {#if property.type === "object" || property.type === "array"}
-                                                            <p
-                                                                class="mt-1 text-xs text-muted-foreground"
-                                                            >
-                                                                Enter as JSON
-                                                                format
-                                                            </p>
+                                                            <p class="text-lighter field-hint">Enter as JSON format</p>
                                                         {/if}
                                                     </div>
                                                 {:else}
-                                                    <div>
-                                                        <label
-                                                            for="config-{action.tempId}-{key}"
-                                                            class="block text-sm font-medium text-foreground mb-1"
-                                                        >
+                                                    <div data-field>
+                                                        <label for="config-{action.tempId}-{key}">
                                                             {label}
-                                                            {#if isRequired}<span
-                                                                    class="text-red-500"
-                                                                    >*</span
-                                                                >{/if}
+                                                            {#if isRequired}<span class="required">*</span>{/if}
                                                         </label>
                                                         <input
-                                                            type={property.format ===
-                                                            "password"
-                                                                ? "password"
-                                                                : "text"}
+                                                            type={property.format === "password" ? "password" : "text"}
                                                             id="config-{action.tempId}-{key}"
-                                                            bind:value={
-                                                                action.with[key]
-                                                            }
-                                                            oninput={(e) =>
-                                                                updateConfigValue(
-                                                                    action,
-                                                                    key,
-                                                                    e
-                                                                        .currentTarget
-                                                                        .value,
-                                                                )}
+                                                            bind:value={action.with[key]}
+                                                            oninput={(e) => updateConfigValue(action, key, e.currentTarget.value)}
                                                             {placeholder}
-                                                            class="w-full px-3 py-2 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
                                                         />
                                                         {#if description}
-                                                            <p
-                                                                class="mt-1 text-xs text-muted-foreground"
-                                                            >
-                                                                {description}
-                                                            </p>
+                                                            <p class="text-lighter field-hint">{description}</p>
                                                         {/if}
                                                     </div>
                                                 {/if}
@@ -681,11 +408,8 @@
                         {/if}
 
                         <!-- Environment Variables -->
-                        <div>
-                            <label
-                                class="block text-sm font-medium text-foreground mb-2"
-                                >Environment Variables</label
-                            >
+                        <div data-field>
+                            <label>Environment Variables</label>
                             <KeyValueEditor
                                 bind:pairs={action.variables}
                                 keyPlaceholder="VAR_NAME"
@@ -694,15 +418,12 @@
                             />
                         </div>
 
-                        <div class="flex items-center">
+                        <div class="hstack gap-2">
                             <input
                                 type="checkbox"
                                 bind:checked={action.approval}
-                                class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-input rounded"
                             />
-                            <label class="ml-2 block text-sm text-foreground"
-                                >Require approval before execution</label
-                            >
+                            <label>Require approval before execution</label>
                         </div>
                     </div>
                 {/if}
@@ -710,27 +431,15 @@
         {/each}
 
         {#if actions.length === 0}
-            <div
-                class="text-center py-12 text-muted-foreground border-2 border-dashed border-input rounded-lg"
-            >
-                <svg
-                    class="mx-auto h-12 w-12 text-muted-foreground mb-3"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M13 10V3L4 14h7v7l9-11h-7z"
-                    />
+            <div class="empty-state vstack">
+                <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
                 <p>No actions defined yet</p>
                 {#if !disabled}
                     <button
+                        data-variant="secondary"
                         onclick={handleAddAction}
-                        class="mt-2 text-sm text-primary-600 hover:text-primary-700 font-medium cursor-pointer"
                     >
                         Add your first action
                     </button>
@@ -739,3 +448,92 @@
         {/if}
     </div>
 </div>
+
+<style>
+    .action-card {
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        overflow: hidden;
+        transition: background 0.15s;
+    }
+    .action-card.drag-over {
+        background: var(--faint);
+        border-color: var(--primary);
+    }
+    .action-header {
+        background: var(--faint);
+        padding: 0.75rem 1rem;
+        justify-content: space-between;
+        cursor: move;
+    }
+    .action-name {
+        font-weight: 500;
+        color: var(--foreground);
+    }
+    .action-body {
+        padding: 1rem;
+    }
+    .drag-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+        color: var(--muted-foreground);
+    }
+    .icon-sm {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+    .icon-btn {
+        padding: 0.25rem;
+        border: none;
+        background: none;
+    }
+    .rotated {
+        transform: rotate(180deg);
+    }
+    .action-badge {
+        font-size: 0.75rem;
+        padding: 0.125rem 0.5rem;
+        background: var(--faint);
+        color: var(--foreground);
+        border-radius: 9999px;
+    }
+    .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    .config-section {
+        border-top: 1px solid var(--border);
+        padding-top: 1rem;
+    }
+    .config-title {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--foreground);
+        margin-bottom: 0.75rem;
+    }
+    .required {
+        color: var(--danger);
+    }
+    .field-hint {
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--muted-foreground);
+        border: 2px dashed var(--border);
+        border-radius: 0.5rem;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .empty-icon {
+        width: 3rem;
+        height: 3rem;
+        color: var(--muted-foreground);
+    }
+    .opacity-50 {
+        opacity: 0.5;
+    }
+</style>

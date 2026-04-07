@@ -5,9 +5,7 @@
     import StatusBadge from "$lib/components/shared/StatusBadge.svelte";
     import ActionsList from "$lib/components/flow-status/ActionsList.svelte";
     import LogsView from "$lib/components/flow-status/LogsView.svelte";
-    import FlowInfoCard from "$lib/components/flow-status/FlowInfoCard.svelte";
     import ExecutionOutputTable from "$lib/components/flow-status/ExecutionOutputTable.svelte";
-    import JsonDisplay from "$lib/components/shared/JsonDisplay.svelte";
     import type { FlowMetaResp, ExecutionSummary } from "$lib/types";
     import { apiClient, ApiError } from "$lib/apiClient";
     import {
@@ -626,8 +624,8 @@
     <title>Flow Execution - {flowName || "Loading..."}</title>
 </svelte:head>
 
-<div class="flex h-screen bg-muted">
-    <main class="flex-1 flex flex-col overflow-hidden">
+<div class="results-layout">
+    <div class="results-main">
         <Header
             breadcrumbs={[
                 { label: "Flows", url: `/view/${namespace}/flows` },
@@ -671,100 +669,189 @@
             ]}
         >
             {#snippet children()}
-                <div class="flex items-center gap-2">
-                    <span class="text-sm text-muted-foreground">Status:</span>
+                <div class="hstack gap-2 items-center">
+                    <span class="text-lighter text-sm">Status:</span>
                     <StatusBadge value={status} />
                 </div>
             {/snippet}
         </Header>
 
-        <!-- Page Content -->
-        <div class="flex-1 overflow-y-auto p-6 bg-muted">
-            <div class="max-w-7xl mx-auto">
-                <FlowInfoCard
-                    flowName={flowName || "Loading..."}
-                    {startTime}
-                    executionId={logId}
-                    scheduledAt={scheduledTime}
-                    triggerType={data.executionSummary?.trigger_type}
-                    triggeredBy={data.executionSummary?.triggered_by}
-                />
-
-                <!-- Flow Input -->
-                {#if data.executionSummary?.input}
-                    <div class="mb-6">
-                        <JsonDisplay
-                            data={data.executionSummary.input}
-                            title="Inputs"
-                        />
-                    </div>
+        <!-- Compact info bar -->
+        <div class="info-bar hstack nowrap justify-between text-sm">
+            <div class="hstack nowrap gap-4">
+                <span class="font-medium">{flowName || "Loading..."}</span>
+                {#if data.executionSummary?.trigger_type}
+                    <span class="badge {data.executionSummary.trigger_type === 'manual' ? '' : 'success'}">{data.executionSummary.trigger_type}</span>
                 {/if}
-
-                <!-- Split Panel Layout: Actions List and Logs -->
-                <div class="mb-6 grid grid-cols-12 gap-6 h-[650px]">
-                    <!-- Left Panel: Actions List -->
-                    <div class="col-span-12 md:col-span-4 lg:col-span-3 h-full">
-                        <ActionsList
-                            actions={actionsList}
-                            bind:selectedActionId
-                            onActionSelect={handleActionSelect}
-                        />
-                    </div>
-
-                    <!-- Right Panel: Terminal / Logs -->
-                    <div class="col-span-12 md:col-span-8 lg:col-span-9 h-full">
-                        <div
-                            class="bg-card rounded-lg border border-input h-full flex flex-col overflow-hidden"
-                        >
-                            <div class="px-6 py-5 border-b border-input">
-                                <h2
-                                    class="text-base font-semibold text-foreground"
-                                >
-                                    {#if selectedActionId}
-                                        {actionsList.find(
-                                            (a) => a.id === selectedActionId,
-                                        )?.name || "Action Logs"}
-                                    {:else}
-                                        Action Logs
-                                    {/if}
-                                </h2>
-                            </div>
-                            <div class="flex-1 overflow-hidden p-6">
-                                <div class="h-full">
-                                    <LogsView
-                                        bind:logs={logOutput}
-                                        {logMessages}
-                                        isRunning={status === "running"}
-                                        height="h-full"
-                                        theme="dark"
-                                        autoScroll={true}
-                                        showCursor={true}
-                                        filterByActionId={selectedActionId}
-                                        {logId}
-                                        {namespace}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Execution Output -->
-                {#if Object.keys(results).length > 0}
-                    <div
-                        class="mb-6 bg-card rounded-lg border border-input overflow-hidden"
-                    >
-                        <div class="px-6 py-5 border-b border-input">
-                            <h2 class="text-base font-semibold text-foreground">
-                                Execution Output
-                            </h2>
-                        </div>
-                        <div class="p-6">
-                            <ExecutionOutputTable {results} />
-                        </div>
-                    </div>
+                {#if startTime}
+                    <span class="text-light">Started {startTime}</span>
+                {/if}
+                {#if data.executionSummary?.triggered_by}
+                    <span class="text-light">by <strong>{data.executionSummary.triggered_by.replace(/<.*>/, '').trim()}</strong></span>
                 {/if}
             </div>
+            <div class="hstack nowrap gap-2 shrink-0">
+                <span class="text-light">ID</span>
+                <code class="text-xs">{logId}</code>
+            </div>
         </div>
-    </main>
+
+        <!-- Collapsible sections -->
+        {#if data.executionSummary?.input || Object.keys(results).length > 0}
+            <div class="collapsible-sections">
+                {#if data.executionSummary?.input}
+                    <details>
+                        <summary>Inputs</summary>
+                        <pre><code>{JSON.stringify(data.executionSummary.input, null, 2)}</code></pre>
+                    </details>
+                {/if}
+
+                {#if Object.keys(results).length > 0}
+                    <details>
+                        <summary>Outputs</summary>
+                        <div>
+                            <ExecutionOutputTable {results} />
+                        </div>
+                    </details>
+                {/if}
+            </div>
+        {/if}
+
+        <!-- Split Panel: Actions + Terminal (fills remaining height) -->
+        <div class="split-panel">
+            <div class="panel-left">
+                <ActionsList
+                    actions={actionsList}
+                    bind:selectedActionId
+                    onActionSelect={handleActionSelect}
+                />
+            </div>
+
+            <div class="panel-right">
+                <div class="card logs-card" style="padding: 0;">
+                    <div class="logs-header hstack justify-between">
+                        <h5>
+                            {#if selectedActionId}
+                                {actionsList.find((a) => a.id === selectedActionId)?.name || "Action Logs"}
+                            {:else}
+                                Action Logs
+                            {/if}
+                        </h5>
+                    </div>
+                    <div class="logs-body">
+                        <LogsView
+                            bind:logs={logOutput}
+                            {logMessages}
+                            isRunning={status === "running"}
+                            height="h-full"
+                            theme="dark"
+                            autoScroll={true}
+                            showCursor={true}
+                            filterByActionId={selectedActionId}
+                            {logId}
+                            {namespace}
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<style>
+    .results-layout {
+        display: flex;
+        height: 100%;
+    }
+
+    .results-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .info-bar {
+        padding: var(--space-2) var(--space-4);
+        border-bottom: 1px solid var(--border);
+        background: var(--card);
+        flex-shrink: 0;
+    }
+
+    .collapsible-sections {
+        flex-shrink: 0;
+        padding: var(--space-2) var(--space-3);
+    }
+
+    .collapsible-sections details {
+        margin: 0;
+        background: var(--card);
+    }
+
+    .collapsible-sections summary {
+        padding: var(--space-2) var(--space-3);
+        font-size: var(--text-7);
+        color: var(--foreground);
+        font-weight: var(--font-semibold);
+    }
+
+    .split-panel {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        min-height: 0;
+        margin: var(--space-2) var(--space-3);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-medium);
+        overflow: hidden;
+    }
+
+    @media (max-width: 768px) {
+        .split-panel {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .panel-left {
+        min-height: 0;
+        overflow: hidden;
+        border-right: 1px solid var(--border);
+    }
+
+    .panel-left :global(.actions-panel) {
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .panel-right {
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .logs-card {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .logs-header {
+        padding: var(--space-2) var(--space-4);
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+    }
+
+    .logs-header h5 {
+        margin: 0;
+    }
+
+    .logs-body {
+        flex: 1;
+        overflow: hidden;
+        padding: var(--space-2);
+    }
+</style>

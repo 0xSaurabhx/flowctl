@@ -25,7 +25,6 @@
 		refreshTrigger: boolean;
 	} = $props();
 
-	// State
 	let users = $state(initialUsers);
 	let totalCount = $state(initialTotalCount);
 	let pageCount = $state(initialPageCount);
@@ -39,25 +38,30 @@
 	let editingUserData = $state<UserWithGroups | null>(null);
 	let deleteData = $state<{ id: string; name: string } | null>(null);
 
-	// Table configuration
+	const avatarColors = [
+		{ bg: 'color-mix(in srgb, var(--danger) 15%, transparent)', fg: 'var(--danger)' },
+		{ bg: 'color-mix(in srgb, var(--primary) 15%, transparent)', fg: 'var(--primary)' },
+		{ bg: 'color-mix(in srgb, var(--success) 15%, transparent)', fg: 'var(--success)' },
+		{ bg: 'color-mix(in srgb, var(--warning) 15%, transparent)', fg: 'var(--warning)' },
+		{ bg: 'color-mix(in srgb, var(--primary) 15%, transparent)', fg: 'var(--primary)' },
+	];
+
 	let tableColumns = [
 		{
 			key: 'name',
 			header: 'Name',
 			render: (_value: any, user: User) => {
 				const firstLetter = user.name.charAt(0).toUpperCase();
-				const colors = ['bg-danger-100 text-danger-600', 'bg-primary-100 text-primary-600', 'bg-success-100 text-success-600', 'bg-warning-100 text-warning-600', 'bg-primary-100 text-primary-600', 'bg-pink-100 text-pink-600', 'bg-indigo-100 text-indigo-600'];
-				const colorIndex = user.name.charCodeAt(0) % colors.length;
-				const colorClass = colors[colorIndex];
+				const c = avatarColors[user.name.charCodeAt(0) % avatarColors.length];
 
 				return `
-					<div class="flex items-center">
-						<div class="w-10 h-10 rounded-lg flex items-center justify-center mr-3 ${colorClass} font-medium text-sm">
+					<div class="name-cell">
+						<div class="avatar" style="background:${c.bg};color:${c.fg}">
 							${firstLetter}
 						</div>
 						<div>
-							<div class="text-sm font-medium text-foreground cursor-pointer hover:text-primary-600 transition-colors" onclick="document.dispatchEvent(new CustomEvent('editUser', {detail: {id: '${user.id}'}}))">${user.name}</div>
-							<div class="text-sm text-muted-foreground">${user.username}</div>
+							<div class="name-link" onclick="document.dispatchEvent(new CustomEvent('editUser', {detail: {id: '${user.id}'}}))">${user.name}</div>
+							<div class="name-sub">${user.username}</div>
 						</div>
 					</div>
 				`;
@@ -69,21 +73,16 @@
 			render: (_value: any, user: UserWithGroups) => {
 				const userGroups = user.groups || [];
 				if (userGroups.length === 0) {
-					return '<span class="text-muted-foreground text-sm">No groups</span>';
+					return '<span class="name-sub">No groups</span>';
 				}
 
-				let html = '<div class="flex flex-wrap gap-1 items-center">';
-
-				// Show first 3 groups
+				let html = '<div class="group-chips">';
 				userGroups.slice(0, 3).forEach((group: any) => {
-					html += `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-100 text-primary-800">${group.name}</span>`;
+					html += `<span class="group-chip">${group.name}</span>`;
 				});
-
-				// Show +N more if there are more than 3
 				if (userGroups.length > 3) {
-					html += `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-subtle text-foreground">+${userGroups.length - 3}</span>`;
+					html += `<span class="group-chip extra">+${userGroups.length - 3}</span>`;
 				}
-
 				html += '</div>';
 				return html;
 			}
@@ -92,35 +91,20 @@
 			key: 'actions',
 			header: 'Actions',
 			render: (_value: any, user: UserWithGroups) => {
-				// Don't show actions for superuser role (reserved users)
 				if (user.role === 'superuser') {
-					return '<span class="text-muted-foreground text-sm">Reserved</span>';
+					return '<span class="name-sub">Reserved</span>';
 				}
 
 				return `
-					<div class="flex items-center gap-2">
-						<button
-							data-action="edit"
-							data-user-id="${user.id}"
-							class="text-link border border-link hover:bg-link-hover rounded px-2 py-1 text-sm font-medium cursor-pointer"
-						>
-							Edit
-						</button>
-						<button
-							data-action="delete"
-							data-user-id="${user.id}"
-							data-user-name="${user.name}"
-							class="text-danger-600 border border-danger-600 hover:bg-danger-100 rounded px-2 py-1 text-sm font-medium cursor-pointer"
-						>
-							Delete
-						</button>
+					<div class="action-btns">
+						<button data-action="edit" data-user-id="${user.id}" class="action-edit">Edit</button>
+						<button data-action="delete" data-user-id="${user.id}" data-user-name="${user.name}" class="action-delete">Delete</button>
 					</div>
 				`;
 			}
 		}
 	];
 
-	// Event delegation for action buttons
 	function handleTableClick(event: MouseEvent) {
 		const target = event.target as HTMLElement;
 		const button = target.closest('button[data-action]');
@@ -138,10 +122,9 @@
 		}
 	}
 
-	// Functions
 	async function fetchUsers(filter: string = '', pageNumber: number = 1) {
 		if (!browser) return;
-		
+
 		loading = true;
 		try {
 			const response = await apiClient.users.list({
@@ -182,7 +165,7 @@
 		try {
 			loading = true;
 			const user = await apiClient.users.getById(userId);
-			
+
 			isEditMode = true;
 			editingUserId = userId;
 			editingUserData = user;
@@ -237,14 +220,12 @@
 		deleteData = null;
 	}
 
-	// Handle user name clicks
 	if (browser) {
 		document.addEventListener('editUser', ((event: CustomEvent) => {
 			handleEdit(event.detail.id);
 		}) as EventListener);
 	}
 
-	// Refresh data when refreshTrigger changes
 	$effect(() => {
 		refreshTrigger;
 		fetchUsers(searchQuery, currentPage);
@@ -252,8 +233,7 @@
 </script>
 
 <!-- Users Header Actions -->
-<div class="flex items-center justify-between mb-6">
-	<!-- Search -->
+<div class="hstack mb-4 justify-between">
 	<SearchInput
 		bind:value={searchQuery}
 		placeholder="Search users..."
@@ -261,18 +241,14 @@
 		onSearch={handleSearch}
 	/>
 
-	<!-- Add User Button -->
-	<button
-		onclick={handleAdd}
-		class="bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center cursor-pointer"
-	>
-		<IconPlus class="mr-2" size={16} />
+	<button onclick={handleAdd}>
+		<IconPlus size={16} />
 		Add User
 	</button>
 </div>
 
 <!-- Users Table -->
-<div class="mb-6" onclick={handleTableClick}>
+<div class="mb-4" onclick={handleTableClick}>
 	<Table
 		data={users}
 		columns={tableColumns}
@@ -310,3 +286,88 @@
 		onClose={handleModalClose}
 	/>
 {/if}
+
+<style>
+	.mb-4 { margin-bottom: 1.5rem; }
+
+	:global(.name-cell) {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+	:global(.avatar) {
+		width: 2.5rem;
+		height: 2.5rem;
+		border-radius: var(--radius-medium);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: 500;
+		font-size: 0.875rem;
+		flex-shrink: 0;
+	}
+	:global(.name-link) {
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: var(--foreground);
+		cursor: pointer;
+	}
+	:global(.name-link:hover) {
+		color: var(--primary);
+	}
+	:global(.name-sub) {
+		font-size: 0.875rem;
+		color: var(--muted-foreground);
+	}
+	:global(.group-chips) {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem;
+		align-items: center;
+	}
+	:global(.group-chip) {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.125rem 0.5rem;
+		border-radius: 0.25rem;
+		font-size: 0.75rem;
+		font-weight: 500;
+		background: color-mix(in srgb, var(--primary) 15%, transparent);
+		color: var(--primary);
+	}
+	:global(.group-chip.extra) {
+		background: var(--faint);
+		color: var(--foreground);
+	}
+	:global(.action-btns) {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+	:global(.action-edit) {
+		all: unset;
+		cursor: pointer;
+		color: var(--primary);
+		border: 1px solid var(--primary);
+		border-radius: 0.25rem;
+		padding: 0.25rem 0.5rem;
+		font-size: 0.875rem;
+		font-weight: 500;
+	}
+	:global(.action-edit:hover) {
+		background: color-mix(in srgb, var(--primary) 10%, transparent);
+	}
+	:global(.action-delete) {
+		all: unset;
+		cursor: pointer;
+		color: var(--danger);
+		border: 1px solid var(--danger);
+		border-radius: 0.25rem;
+		padding: 0.25rem 0.5rem;
+		font-size: 0.875rem;
+		font-weight: 500;
+	}
+	:global(.action-delete:hover) {
+		background: color-mix(in srgb, var(--danger) 10%, transparent);
+	}
+</style>

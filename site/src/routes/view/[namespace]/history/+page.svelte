@@ -62,7 +62,7 @@
 			sortable: true,
 			render: (_value: any, execution: ExecutionSummary) => `
 					<a href="/view/${data.namespace}/flows/${execution.flow_id}"
-					   class="text-sm hover:underline text-foreground hover:text-primary-600 font-medium"
+					   class="cell-link"
 					>
 					  ${execution.flow_name}
 					</a>
@@ -74,7 +74,7 @@
 			render: (_value: any, execution: ExecutionSummary) => `
      			<a
       				href="/view/${data.namespace}/results/${execution.flow_id}/${execution.id}"
-      				class="font-mono text-link hover:underline text-sm"
+      				class="cell-link-mono"
      			>
                     ${execution.id.substring(0, 8)}
 				</a>
@@ -91,14 +91,14 @@
 			header: 'Started At',
 			sortable: true,
 			render: (_value: any, execution: ExecutionSummary) => `
-				<div class="text-sm text-muted-foreground">${formatDateTime(getStartTime(execution))}</div>
+				<span class="cell-muted">${formatDateTime(getStartTime(execution))}</span>
 			`
 		},
 		{
 			key: 'duration',
 			header: 'Duration',
 			render: (_value: any, execution: ExecutionSummary) => `
-				<div class="text-sm text-muted-foreground">${formatDuration(getStartTime(execution), execution.completed_at)}</div>
+				<span class="cell-muted">${formatDuration(getStartTime(execution), execution.completed_at)}</span>
 			`
 		},
 		{
@@ -106,13 +106,13 @@
 			header: 'Triggered By',
 			sortable: true,
 			render: (_value: any, execution: ExecutionSummary) => `
-				<div class="flex items-center">
-					<div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center mr-3">
-						<svg class="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<div style="display: flex; align-items: center">
+					<div style="width: 2rem; height: 2rem; border-radius: 50%; background: var(--faint); display: flex; align-items: center; justify-content: center; margin-right: 0.75rem">
+						<svg style="width: 1rem; height: 1rem; color: var(--primary)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
 						</svg>
 					</div>
-					<span class="text-sm text-foreground">${execution.triggered_by || 'System'}</span>
+					<span style="font-size: 0.875rem">${execution.triggered_by || 'System'}</span>
 				</div>
 			`
 		},
@@ -121,13 +121,13 @@
 			header: 'Trigger Type',
 			sortable: true,
 			render: (_value: any, execution: ExecutionSummary) => `
-				<div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+				<span class="badge ${
 					execution.trigger_type === 'manual'
-						? 'bg-primary-100 text-primary-900'
-						: 'bg-success-100 text-success-900'
+						? ''
+						: 'success'
 				}">
 					${execution.trigger_type}
-				</div>
+				</span>
 			`
 		}
 	];
@@ -206,7 +206,7 @@
   {/snippet}
 </Header>
 
-<div class="p-12">
+<div class="page-content">
 	<!-- Page Header -->
 	<PageHeader
 		title="Execution History"
@@ -214,7 +214,7 @@
 	/>
 
 	<!-- Executions Table -->
-	<div class="pt-6">
+	<div class="mt-4">
 		<Table
 			data={executions}
 			columns={tableColumns}
@@ -234,3 +234,4 @@
 		/>
 	{/if}
 </div>
+

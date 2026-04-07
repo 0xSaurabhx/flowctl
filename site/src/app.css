@@ -1,166 +1,182 @@
-@import "tailwindcss";
+@import "@knadh/oat/oat.min.css";
 
-@variant dark (&:where(.dark, .dark *));
+:root {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-serif: "Bitter", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 
-@theme {
-    --font-sans:
-        "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
-        "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    --font-serif:
-        "Bitter", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-
-    --color-primary-50: hsl(220.8 100% 95.1%);
-    --color-primary-100: hsl(220.9 95.7% 91%);
-    --color-primary-200: hsl(221.1 97.9% 81%);
-    --color-primary-300: hsl(221.4 97.2% 72%);
-    --color-primary-400: hsl(221.4 97.9% 63.1%);
-    --color-primary-500: hsl(221.3 97.5% 53.5%);
-    --color-primary-600: hsl(221.4 97.3% 44.1%);
-    --color-primary-700: hsl(221.2 97.7% 33.9%);
-    --color-primary-800: hsl(221.3 96.7% 24.1%);
-    --color-primary-900: hsl(221.6 97.4% 15.1%);
-    --color-primary-950: hsl(221.6 96.1% 10%);
-
-    --color-success-50: hsl(151 81% 95.9%);
-    --color-success-100: hsl(149 80.4% 90%);
-    --color-success-200: hsl(152 76% 80.4%);
-    --color-success-300: hsl(156 71.6% 66.9%);
-    --color-success-400: hsl(158 64% 52%);
-    --color-success-500: hsl(160 84.1% 39.4%);
-    --color-success-600: hsl(161 93.5% 30.4%);
-    --color-success-700: hsl(162 93.5% 24.3%);
-    --color-success-800: hsl(163 88.1% 19.8%);
-    --color-success-900: hsl(164 85.7% 16.5%);
-    --color-success-950: hsl(166 91.5% 9%);
-
-    --color-warning-50: hsl(48 100% 96.1%);
-    --color-warning-100: hsl(48 96.5% 88.8%);
-    --color-warning-200: hsl(48 96.6% 76.7%);
-    --color-warning-300: hsl(45.9 96.7% 64.5%);
-    --color-warning-400: hsl(43.3 96.4% 56.3%);
-    --color-warning-500: hsl(37.7 92.1% 50.2%);
-    --color-warning-600: hsl(32.1 94.6% 43.7%);
-    --color-warning-700: hsl(26 90.5% 37.1%);
-    --color-warning-800: hsl(22.7 82.5% 31.4%);
-    --color-warning-900: hsl(21.7 77.8% 26.5%);
-    --color-warning-950: hsl(20.9 91.7% 14.1%);
-
-    --color-danger-50: hsl(0 85.7% 97.3%);
-    --color-danger-100: hsl(0 93.3% 94.1%);
-    --color-danger-200: hsl(0 96.3% 89.4%);
-    --color-danger-300: hsl(0 93.5% 81.8%);
-    --color-danger-400: hsl(0 90.6% 70.8%);
-    --color-danger-500: hsl(0 84.2% 60.2%);
-    --color-danger-600: hsl(0 72.2% 50.6%);
-    --color-danger-700: hsl(0 73.7% 41.8%);
-    --color-danger-800: hsl(0 70% 35.3%);
-    --color-danger-900: hsl(0 62.8% 30.6%);
-    --color-danger-950: hsl(0 75% 15.9%);
-
-    --color-info-50: hsl(186 100% 96.9%);
-    --color-info-100: hsl(185 95.9% 90.4%);
-    --color-info-200: hsl(186 93.5% 81.8%);
-    --color-info-300: hsl(187 92.4% 69%);
-    --color-info-400: hsl(188 85.7% 53.3%);
-    --color-info-500: hsl(189 94.5% 42.7%);
-    --color-info-600: hsl(191 91.4% 36.5%);
-    --color-info-700: hsl(192 82.3% 31%);
-    --color-info-800: hsl(194 69.6% 27.1%);
-    --color-info-900: hsl(196 63.6% 23.7%);
-    --color-info-950: hsl(197 78.7% 15.7%);
-
-    --radius: 0.5rem;
-
-    --color-background: var(--bg);
-    --color-foreground: var(--fg);
-    --color-card: var(--card);
-    --color-card-foreground: var(--card-fg);
-    --color-muted: var(--muted);
-    --color-muted-foreground: var(--muted-fg);
-    --color-subtle: var(--subtle);
-    --color-border: var(--border);
-    --color-input: var(--input);
-    --color-ring: var(--ring);
-    --color-overlay: var(--overlay);
-    --color-link: var(--link);
-    --color-link-hover: var(--link-hover);
-    --color-subtle-hover: var(--subtle-hover);
-
-    --color-badge-success-bg: var(--badge-success-bg);
-    --color-badge-success-text: var(--badge-success-text);
-    --color-badge-warning-bg: var(--badge-warning-bg);
-    --color-badge-warning-text: var(--badge-warning-text);
-    --color-badge-danger-bg: var(--badge-danger-bg);
-    --color-badge-danger-text: var(--badge-danger-text);
-    --color-badge-info-bg: var(--badge-info-bg);
-    --color-badge-info-text: var(--badge-info-text);
+  --background: light-dark(#ffffff, #030712);
+  --foreground: light-dark(#111827, #f9fafb);
+  --card: light-dark(#ffffff, #111827);
+  --card-foreground: light-dark(#111827, #f9fafb);
+  --primary: light-dark(hsl(221.3 97.5% 53.5%), hsl(217 75% 62%));
+  --primary-foreground: #fff;
+  --secondary: light-dark(#f3f4f6, #374151);
+  --secondary-foreground: light-dark(#111827, #f9fafb);
+  --muted: light-dark(#f9fafb, #0d1420);
+  --muted-foreground: light-dark(#6b7280, #9ca3af);
+  --faint: light-dark(#f3f4f6, #1f2937);
+  --faint-foreground: light-dark(#9ca3af, #6b7280);
+  --accent: light-dark(#f3f4f6, color-mix(in srgb, hsl(217 75% 62%) 12%, transparent));
+  --border: light-dark(#e5e7eb, #374151);
+  --ring: var(--primary);
+  --danger: light-dark(hsl(0 72.2% 50.6%), #f4807b);
+  --danger-foreground: light-dark(#fff, #18181b);
+  --success: light-dark(hsl(160 84.1% 39.4%), #6cc070);
+  --success-foreground: light-dark(#fff, #18181b);
+  --warning: light-dark(hsl(37.7 92.1% 50.2%), #f0a030);
+  --warning-foreground: light-dark(#fff, #18181b);
+  --info: light-dark(hsl(199 89% 48%), #5ba8d4);
+  --info-foreground: light-dark(#fff, #18181b);
+  --neutral: light-dark(hsl(220 9% 46%), #8b8fa0);
+  --neutral-foreground: light-dark(#fff, #18181b);
+  --radius-medium: 0.5rem;
 }
 
-@layer base {
-    :root {
-        --bg: #ffffff;
-        --fg: #111827;
-        --card: #ffffff;
-        --card-fg: #111827;
-        --muted: #f9fafb;
-        --muted-fg: #6b7280;
-        --subtle: #f3f4f6;
-        --border: #e5e7eb;
-        --input: #d1d5db;
-        --ring: hsl(221.3 97.5% 53.5%);
-        --overlay: rgb(17 24 39 / 0.6);
-        --link: hsl(221.4 97.3% 44.1%);
-        --link-hover: hsl(220.9 95.7% 91%);
-        --subtle-hover: #e5e7eb;
+/* Neutralize oat's emboss border on secondary buttons in dark mode */
+[data-theme="dark"] :is(button, [type=submit], [type=button], a.button)[data-variant="secondary"]:not(.outline):not(.ghost) {
+  border-color: rgb(from #fff r g b / 0.06) rgb(from #000 r g b / 0.3) rgb(from #000 r g b / 0.3) rgb(from #fff r g b / 0.06);
+}
 
-        --badge-success-bg: hsl(149 80.4% 90%);
-        --badge-success-text: hsl(164 85.7% 16.5%);
-        --badge-warning-bg: hsl(48 96.5% 88.8%);
-        --badge-warning-text: hsl(21.7 77.8% 26.5%);
-        --badge-danger-bg: hsl(0 93.3% 94.1%);
-        --badge-danger-text: hsl(0 62.8% 30.6%);
-        --badge-info-bg: hsl(220.8 100% 95.1%);
-        --badge-info-text: hsl(196 63.6% 23.7%);
-    }
+/* Ensure tabler icons align properly in flex containers */
+svg.icon-tabler {
+  vertical-align: middle;
+  flex-shrink: 0;
+}
 
-    .dark {
-        --bg: #030712;
-        --fg: #f9fafb;
-        --card: #111827;
-        --card-fg: #f9fafb;
-        --muted: #0d1420;
-        --muted-fg: #9ca3af;
-        --subtle: #374151;
-        --border: #374151;
-        --input: #4b5563;
-        --ring: hsl(221.4 97.9% 63.1%);
-        --overlay: rgb(0 0 0 / 0.7);
-        --link: hsl(221.4 97.9% 63.1%);
-        --link-hover: hsl(220.9 95.7% 91%);
-        --subtle-hover: #4b5563;
+/* Utility classes not provided by oat */
+.text-sm { font-size: var(--text-7); }
+.text-xs { font-size: var(--text-8); }
+.font-mono { font-family: var(--font-mono); }
+.font-medium { font-weight: var(--font-medium); }
+.items-start { align-items: flex-start; }
+.flex-1 { flex: 1; }
+.min-w-0 { min-width: 0; }
+.gap-6 { gap: var(--space-6); }
+.shrink-0 { flex-shrink: 0; }
+.nowrap { flex-wrap: nowrap; }
 
-        --badge-success-bg: hsl(164 85.7% 16.5% / 0.3);
-        --badge-success-text: hsl(156 71.6% 66.9%);
-        --badge-warning-bg: hsl(21.7 77.8% 26.5% / 0.3);
-        --badge-warning-text: hsl(45.9 96.7% 64.5%);
-        --badge-danger-bg: hsl(0 62.8% 30.6% / 0.3);
-        --badge-danger-text: hsl(0 93.5% 81.8%);
-        --badge-info-bg: hsl(221.3 97.5% 53.5% / 0.25);
-        --badge-info-text: hsl(221.1 97.9% 81%);
-    }
+/* App shell: consistent main area styling */
+main.app-content {
+  padding-block-start: 0;
+  background: var(--muted);
+}
 
-    ::placeholder {
-        color: var(--muted-fg);
-        opacity: 1;
-    }
+/* ── Dialog form layout: scrollable content with sticky footer ── */
+dialog > form {
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+}
+dialog > form > section {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+dialog > form > footer {
+  flex-shrink: 0;
+}
 
-    select {
-        color: var(--fg);
-        background-color: var(--card);
-    }
+/* ── Shared page layout ── */
+.page-content {
+  padding: var(--space-12);
+}
 
-    option {
-        color: var(--fg);
-        background-color: var(--card);
-    }
+/* ── Stat cards grid ── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-6);
+}
+
+/* ── Table cell helpers (used by render() template strings) ── */
+.cell-muted {
+  font-size: var(--text-7);
+  color: var(--muted-foreground);
+}
+
+/* ── Icon box used inside selector items & table cells ── */
+.icon-box {
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: var(--space-3);
+  background: var(--faint);
+  color: var(--primary);
+  flex-shrink: 0;
+}
+.icon-box.success {
+  background: color-mix(in srgb, var(--success) 15%, transparent);
+  color: var(--success);
+}
+.icon-box.danger {
+  background: color-mix(in srgb, var(--danger) 15%, transparent);
+  color: var(--danger);
+}
+.icon-box.warning {
+  background: color-mix(in srgb, var(--warning) 15%, transparent);
+  color: var(--warning);
+}
+.icon-box.info {
+  background: color-mix(in srgb, var(--info) 15%, transparent);
+  color: var(--info);
+}
+.icon-box.neutral {
+  background: color-mix(in srgb, var(--neutral) 15%, transparent);
+  color: var(--neutral);
+}
+
+/* ── Extra badge variants (oat only provides success/warning/danger) ── */
+.badge.info {
+  color: var(--info);
+  background-color: light-dark(
+    color-mix(in srgb, var(--info) 10%, transparent),
+    color-mix(in srgb, var(--info) 30%, transparent)
+  );
+}
+.badge.neutral {
+  color: var(--neutral);
+  background-color: light-dark(
+    color-mix(in srgb, var(--neutral) 10%, transparent),
+    color-mix(in srgb, var(--neutral) 30%, transparent)
+  );
+}
+
+/* ── Selector popover (shared by Node/Group/User/Multi selectors) ── */
+/* Matches oat's ot-dropdown [popover] styling for use without the web component */
+.selector-popover {
+  position: fixed;
+  margin: 0;
+  padding: 0;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-medium);
+  box-shadow: var(--shadow-medium);
+}
+
+/* Matches oat's ot-dropdown [role="menuitem"] styling */
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-7);
+  text-align: start;
+  color: var(--foreground);
+  background: none;
+  border: none;
+  border-radius: var(--radius-small);
+  cursor: pointer;
+}
+.dropdown-item:hover { background-color: var(--accent); }
+
+.dropdown-empty {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-7);
+  text-align: center;
+  color: var(--muted-foreground);
 }

@@ -150,7 +150,8 @@
             render: (value) => `
         <a
           href="/view/${namespace}/results/${flowId}/${value}"
-          class="text-sm text-link hover:underline font-mono block"
+          class="cell-link-mono"
+          style="display: block"
         >
           ${value.substring(0, 8)}
         </a>
@@ -161,13 +162,13 @@
             header: "Started At",
             width: "w-40",
             render: (_value, row) =>
-                `<div class="text-sm text-muted-foreground">${formatDateTime(getStartTime(row))}</div>`,
+                `<span class="text-lighter text-sm">${formatDateTime(getStartTime(row))}</span>`,
         },
         {
             key: "duration",
             header: "Duration",
             render: (_value, row) =>
-                `<div class="text-sm text-muted-foreground">${formatDuration(getStartTime(row), row.completed_at)}</div>`,
+                `<span class="text-lighter text-sm">${formatDuration(getStartTime(row), row.completed_at)}</span>`,
         },
         {
             key: "status",
@@ -179,17 +180,17 @@
             header: "Triggered By",
             width: "w-32",
             render: (value) =>
-                `<div class="text-sm text-foreground">${value || "System"}</div>`,
+                `<span class="text-sm">${value || "System"}</span>`,
         },
         {
             key: "trigger_type",
             header: "Trigger Type",
             render: (value, row) =>
-                `<div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                `<span class="badge ${
                     row.trigger_type === "manual"
-                        ? "bg-primary-100 text-primary-900"
-                        : "bg-success-100 text-success-900"
-                }">${row.trigger_type}</div>`,
+                        ? ""
+                        : "success"
+                }">${row.trigger_type}</span>`,
         },
     ];
 
@@ -239,93 +240,67 @@
     ]}
 />
 
-<FlowHero
-    name={data.flowMeta?.meta?.name || "Loading..."}
-    description={data.flowMeta?.meta?.description || ""}
-/>
-
-<div class="bg-card border-b border-border px-6">
-    <div class="max-w-4xl mx-auto">
-        <Tabs {tabs} bind:activeTab />
+<div class="flow-header">
+    <FlowHero
+        name={data.flowMeta?.meta?.name || "Loading..."}
+        description={data.flowMeta?.meta?.description || ""}
+    />
+    <div class="tab-bar">
+        <div class="tab-bar-inner">
+            <Tabs {tabs} bind:activeTab />
+        </div>
     </div>
 </div>
 
 <!-- Tab Content -->
-<div class="px-6 py-8 bg-muted">
+<div class="tab-content">
     {#if activeTab === "run"}
-        <div class="max-w-2xl mx-auto">
-            {#if showRerunBanner}
-                <div class="mb-6">
-                    <div
-                        class="bg-info-50 border border-info-100 rounded-lg p-4 flex items-start justify-between dark:bg-info-900/20 dark:border-info-800"
-                    >
-                        <div class="flex items-start gap-3">
-                            <svg
-                                class="w-5 h-5 text-info-600 dark:text-info-400 mt-0.5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                            </svg>
-                            <div class="flex-1">
-                                <h3 class="text-sm font-medium text-info-900 dark:text-info-300">
-                                    Rerunning execution
-                                </h3>
-                                <p class="text-sm text-info-700 dark:text-info-400 mt-1">
-                                    Inputs have been prepopulated from execution
-                                    <a
-                                        href="/view/{namespace}/results/{flowId}/{rerunFromExecId}"
-                                        class="font-mono underline hover:text-info-900 dark:hover:text-info-200"
-                                    >
-                                        {rerunFromExecId.substring(0, 8)}
-                                    </a>
-                                </p>
+        <div class="run-layout">
+            <div class="run-main">
+                {#if showRerunBanner}
+                    <div class="mb-4">
+                        <div role="alert" class="hstack gap-2 items-start justify-between">
+                            <div class="hstack gap-2 flex-1 items-start">
+                                <svg style="width: 1.25rem; height: 1.25rem; color: var(--primary); margin-top: 0.125rem; flex-shrink: 0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <div class="flex-1">
+                                    <h3 class="text-sm font-medium">Rerunning execution</h3>
+                                    <p class="text-sm text-light mt-2">
+                                        Inputs have been prepopulated from execution
+                                        <a href="/view/{namespace}/results/{flowId}/{rerunFromExecId}" class="font-mono">
+                                            {rerunFromExecId.substring(0, 8)}
+                                        </a>
+                                    </p>
+                                </div>
                             </div>
+                            <button onclick={() => (showRerunBanner = false)} class="ghost icon small" aria-label="Dismiss">
+                                <svg style="width: 1.25rem; height: 1.25rem" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
                         </div>
-                        <button
-                            onclick={() => (showRerunBanner = false)}
-                            class="text-info-400 hover:text-info-600 dark:text-info-500 dark:hover:text-info-300"
-                            aria-label="Dismiss"
-                        >
-                            <svg
-                                class="w-5 h-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12"
-                                />
-                            </svg>
-                        </button>
                     </div>
-                </div>
-            {/if}
-            <FlowInputForm
-                inputs={data.flowInputs || []}
-                namespace={namespace!}
-                flowId={flowId!}
-                executionInput={data.executionInput}
-                optionsRequestId={data.optionsRequestId}
-                onScheduled={refreshScheduledExecutions}
-            />
-            <FlowActionsSummary actions={data.flowMeta?.actions || []} />
+                {/if}
+                <FlowInputForm
+                    inputs={data.flowInputs || []}
+                    namespace={namespace!}
+                    flowId={flowId!}
+                    executionInput={data.executionInput}
+                    optionsRequestId={data.optionsRequestId}
+                    onScheduled={refreshScheduledExecutions}
+                />
+            </div>
+            <div class="run-aside">
+                <FlowActionsSummary actions={data.flowMeta?.actions || []} />
+            </div>
         </div>
     {/if}
 
     <!-- Schedules Tab -->
     {#if activeTab === "schedule"}
-        <div class="max-w-5xl mx-auto">
-            <div class="space-y-6">
+        <div class="content-wide">
+            <div class="vstack gap-4">
                 <ScheduledExecutionsList
                     schedules={scheduledExecutions}
                     cronSchedules={userSchedules}
@@ -351,7 +326,7 @@
 
     <!-- History Tab -->
     {#if activeTab === "history"}
-        <div class="max-w-6xl mx-auto">
+        <div class="content-max">
             <Table
                 columns={tableColumns}
                 data={flowExecutions}
@@ -363,8 +338,8 @@
             />
 
             {#if historyPageCount > 1}
-                <div class="flex items-center justify-between mt-6">
-                    <div class="text-sm text-foreground">
+                <div class="mt-6 hstack justify-between items-center">
+                    <div class="text-light text-sm">
                         Showing {(historyCurrentPage - 1) *
                             historyItemsPerPage +
                             1} to {Math.min(
@@ -383,3 +358,57 @@
         </div>
     {/if}
 </div>
+
+<style>
+    .flow-header {
+        background: var(--card);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .tab-bar {
+        padding: 0 var(--space-6);
+    }
+
+    .tab-bar-inner {
+        max-width: 72rem;
+        margin: 0 auto;
+    }
+
+    .tab-content {
+        padding: var(--space-6);
+    }
+
+    .run-layout {
+        display: grid;
+        grid-template-columns: 1fr 20rem;
+        gap: var(--space-6);
+        max-width: 72rem;
+        margin: 0 auto;
+    }
+
+    .run-main {
+        min-width: 0;
+    }
+
+    .run-aside {
+        position: sticky;
+        top: var(--space-6);
+        align-self: start;
+    }
+
+    .content-wide {
+        max-width: 64rem;
+        margin: 0 auto;
+    }
+
+    .content-max {
+        max-width: 72rem;
+        margin: 0 auto;
+    }
+
+    @media (max-width: 768px) {
+        .run-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

@@ -1,11 +1,10 @@
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vite";
-import tailwindcss from "@tailwindcss/vite";
 
 const backendHost = process.env.VITE_BACKEND_HOST || "localhost:7000";
 
 export default defineConfig({
-  plugins: [tailwindcss(), sveltekit()],
+  plugins: [sveltekit()],
   cacheDir: "node_modules/.vite",
   build: {
     cssCodeSplit: true,

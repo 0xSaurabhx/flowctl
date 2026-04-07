@@ -1,31 +1,40 @@
 <script lang="ts">
-  let { 
+  let {
     value = $bindable(''),
     onChange
-  }: { 
+  }: {
     value: string;
     onChange: (status: string) => void;
   } = $props();
 
-  function handleChange(event: Event) {
-    const target = event.target as HTMLSelectElement;
-    value = target.value;
-    onChange(target.value);
+  const options = [
+    { value: '', label: 'All Statuses' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'rejected', label: 'Rejected' },
+  ];
+
+  const selectedLabel = $derived(options.find(o => o.value === value)?.label ?? 'All Statuses');
+
+  const popoverId = 'status-filter-menu';
+
+  function select(opt: string) {
+    value = opt;
+    onChange(opt);
+    // Close the popover
+    document.getElementById(popoverId)?.hidePopover();
   }
 </script>
 
-<div class="relative">
-  <select 
-    {value}
-    onchange={handleChange}
-    class="appearance-none text-foreground bg-card border border-input rounded-lg px-4 py-2 pr-8 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-  >
-    <option value="">All Statuses</option>
-    <option value="pending">Pending</option>
-    <option value="approved">Approved</option>
-    <option value="rejected">Rejected</option>
-  </select>
-  <svg class="w-4 h-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-  </svg>
-</div>
+<ot-dropdown>
+  <button popovertarget={popoverId} data-variant="secondary" class="hstack gap-2 text-sm">
+    {selectedLabel}
+  </button>
+  <div id={popoverId} popover="auto" role="menu">
+    {#each options as opt}
+      <button role="menuitem" aria-selected={value === opt.value} onclick={() => select(opt.value)}>
+        {opt.label}
+      </button>
+    {/each}
+  </div>
+</ot-dropdown>

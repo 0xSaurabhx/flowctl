@@ -4,10 +4,11 @@
 	import type { PageData } from './$types';
 	import PageHeader from '$lib/components/shared/PageHeader.svelte';
 	import Header from '$lib/components/shared/Header.svelte';
+	import Table from '$lib/components/shared/Table.svelte';
 	import NamespaceSecretsModal from '$lib/components/namespace-secrets/NamespaceSecretsModal.svelte';
 	import DeleteModal from '$lib/components/shared/DeleteModal.svelte';
 	import { apiClient } from '$lib/apiClient';
-	import type { NamespaceSecretReq, NamespaceSecretUpdateReq, NamespaceSecretResp } from '$lib/types';
+	import type { NamespaceSecretReq, NamespaceSecretUpdateReq, NamespaceSecretResp, TableColumn, TableAction } from '$lib/types';
 	import { handleInlineError, showSuccess } from '$lib/utils/errorHandling';
 	import { formatDateTime } from '$lib/utils';
 	import { IconPlus, IconLock } from '@tabler/icons-svelte';
@@ -118,6 +119,42 @@
 		isEditMode = false;
 		selectedSecret = null;
 	}
+
+	const columns: TableColumn<NamespaceSecretResp>[] = [
+		{
+			key: 'key',
+			header: 'Key',
+			sortable: true
+		},
+		{
+			key: 'description',
+			header: 'Description',
+			render: (value: string) => {
+				if (!value) return '';
+				return `<span class="text-lighter">${value}</span>`;
+			}
+		},
+		{
+			key: 'created_at',
+			header: 'Created',
+			sortable: true,
+			render: (value: string) => formatDateTime(value)
+		}
+	];
+
+	const actions: TableAction<NamespaceSecretResp>[] = [
+		{
+			label: 'Edit',
+			onClick: (row: NamespaceSecretResp) => handleEdit(row),
+			visible: () => !!data.permissions?.canUpdate
+		},
+		{
+			label: 'Delete',
+			onClick: (row: NamespaceSecretResp) => handleDelete(row),
+			className: 'text-danger',
+			visible: () => !!data.permissions?.canDelete
+		}
+	];
 </script>
 
 <svelte:head>
@@ -128,19 +165,17 @@
   { label: page.params.namespace!, url: `/view/${page.params.namespace}/flows` },
   { label: "Secrets" }
 ]}>
-  {#snippet children()}
-    <div class="mb-10"></div>
-  {/snippet}
+
 </Header>
 
-<div class="p-12">
+<div class="page-content">
 	<!-- Page Header -->
 	<PageHeader
-		title="Namespace Secrets"
-		subtitle="Manage encrypted secrets available to all flows in this namespace. Flow-level secrets with the same key will override these."
+		title="Secrets"
+		subtitle="Manage encrypted secrets available to all flows in this namespace."
 		actions={data.permissions?.canCreate ? [
 			{
-				label: 'Add Secret',
+				label: 'Add',
 				onClick: handleAdd,
 				variant: 'primary',
 				IconComponent: IconPlus,
@@ -149,74 +184,16 @@
 		] : []}
 	/>
 
-	<!-- Secrets List -->
-	{#if loading}
-		<div class="flex items-center justify-center py-8">
-			<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-		</div>
-	{:else if secrets.length === 0}
-		<div class="text-center py-8">
-			<div class="text-muted-foreground">
-				<IconLock size={48} class="mx-auto h-12 w-12 text-muted-foreground" />
-				<h3 class="mt-2 text-sm font-medium text-foreground">No namespace secrets yet</h3>
-				<p class="mt-1 text-sm text-muted-foreground">Add secrets that will be available to all flows in this namespace.</p>
-			</div>
-		</div>
-	{:else}
-		<div class="bg-card border border-border shadow overflow-hidden sm:rounded-md">
-			<ul role="list" class="divide-y divide-border">
-				{#each secrets as secret}
-					<li class="px-4 py-4 flex items-center justify-between">
-						<div class="flex-1 min-w-0">
-							<div class="flex items-center space-x-3">
-								<div class="flex-shrink-0">
-									<svg class="h-5 w-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-									</svg>
-								</div>
-								<div class="min-w-0 flex-1">
-									<p class="text-sm font-medium text-foreground truncate">
-										{secret.key}
-									</p>
-									{#if secret.description}
-										<p class="text-sm text-muted-foreground truncate">
-											{secret.description}
-										</p>
-									{/if}
-									<p class="text-xs text-muted-foreground">
-										Created: {formatDateTime(secret.created_at)}
-									</p>
-								</div>
-							</div>
-						</div>
-
-						<div class="flex items-center space-x-2">
-							<button
-								onclick={() => handleEdit(secret)}
-								disabled={!data.permissions?.canUpdate}
-								class="text-primary-600 hover:text-primary-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-								title="Edit secret"
-							>
-								<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-								</svg>
-							</button>
-							<button
-								onclick={() => handleDelete(secret)}
-								disabled={!data.permissions?.canDelete}
-								class="text-danger-600 hover:text-danger-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-								title="Delete secret"
-							>
-								<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-								</svg>
-							</button>
-						</div>
-					</li>
-				{/each}
-			</ul>
-		</div>
-	{/if}
+	<Table
+		{columns}
+		data={secrets}
+		{actions}
+		{loading}
+		emptyMessage="No secrets found. Get started by adding your first secret."
+		EmptyIconComponent={IconLock}
+		emptyActionLabel={data.permissions?.canCreate ? "Add your first secret" : undefined}
+		onEmptyAction={data.permissions?.canCreate ? handleAdd : undefined}
+	/>
 </div>
 
 <!-- Secret Modal -->

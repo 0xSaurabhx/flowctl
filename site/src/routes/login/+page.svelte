@@ -8,7 +8,6 @@
   import { onMount } from 'svelte';
   import Logo from '$lib/components/shared/Logo.svelte';
   import LoginCard from '$lib/components/login/LoginCard.svelte';
-  import Footer from '$lib/components/login/Footer.svelte';
   import ThemeToggle from '$lib/components/shared/ThemeToggle.svelte';
 
   let username = $state('');
@@ -53,10 +52,10 @@
   <title>Login - Flowctl</title>
 </svelte:head>
 
-<main class="min-h-screen flex items-center justify-center bg-muted px-4 relative">
-  <section class="w-full max-w-md">
+<main class="login-page">
+  <section class="login-container">
     <div class="mb-8 flex justify-center p-4">
-      <Logo height="h-14" />
+      <Logo height="3.5rem" />
     </div>
     <LoginCard
       onSubmit={submit}
@@ -66,9 +65,34 @@
       bind:password
       {redirectUrl}
     />
-    <Footer />
+    <footer class="mt-6 align-center">
+      <p class="text-lighter text-sm">Need help? Contact your system administrator</p>
+    </footer>
   </section>
-  <div class="absolute bottom-4 right-4">
+  <div class="theme-toggle-pos">
     <ThemeToggle collapsed={true} />
   </div>
 </main>
+
+<style>
+  .login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--muted);
+    padding-inline: var(--space-4);
+    position: relative;
+  }
+
+  .login-container {
+    width: 100%;
+    max-width: 28rem;
+  }
+
+  .theme-toggle-pos {
+    position: absolute;
+    bottom: var(--space-4);
+    right: var(--space-4);
+  }
+</style>

@@ -6,7 +6,6 @@
 	import SearchInput from '$lib/components/shared/SearchInput.svelte';
 	import Table from '$lib/components/shared/Table.svelte';
 	import Pagination from '$lib/components/shared/Pagination.svelte';
-	import StatCard from '$lib/components/shared/StatCard.svelte';
 	import StatusBadge from '$lib/components/shared/StatusBadge.svelte';
 	import ApprovalIdCell from '$lib/components/approvals/ApprovalIdCell.svelte';
 	import StatusFilter from '$lib/components/approvals/StatusFilter.svelte';
@@ -17,6 +16,7 @@
 	import Header from '$lib/components/shared/Header.svelte';
 	import { handleInlineError, showSuccess } from '$lib/utils/errorHandling';
 	import { formatDateTime } from '$lib/utils';
+	import { IconCircleCheck, IconClock, IconCheck, IconX } from '@tabler/icons-svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -79,7 +79,7 @@
 			header: 'Flow Name',
 			sortable: true,
 			render: (_value: any, approval: ApprovalResp) => `
-				<div class="text-sm font-medium text-foreground">${approval.flow_name}</div>
+				<span class="text-sm font-medium">${approval.flow_name}</span>
 			`
 		},
 		{
@@ -87,7 +87,7 @@
 			header: 'Created',
 			sortable: true,
 			render: (_value: any, approval: ApprovalResp) => `
-			    <div class="text-sm text-muted-foreground">${formatDateTime(approval.created_at)}</div>
+			    <span class="cell-muted">${formatDateTime(approval.created_at)}</span>
 			`
 		},
 		{
@@ -95,7 +95,7 @@
 			header: 'Requested By',
 			sortable: true,
 			render: (_value: any, approval: ApprovalResp) => `
-				<div class="text-sm font-medium text-foreground">${approval.requested_by}</div>
+				<span class="text-sm font-medium">${approval.requested_by}</span>
 			`
 		},
 		{
@@ -103,7 +103,7 @@
 			header: 'Execution',
 			sortable: true,
 			render: (_value: any, approval: ApprovalResp) => `
-				<span class="font-mono text-sm text-muted-foreground">${approval.exec_id.substring(0, 8)}</span>
+				<span class="cell-muted font-mono">${approval.exec_id.substring(0, 8)}</span>
 			`
 		},
 		{
@@ -206,7 +206,7 @@
   {/snippet}
 </Header>
 
-<div class="p-12">
+<div class="page-content">
 	<!-- Page Header -->
 	<PageHeader
 		title="Approvals"
@@ -214,43 +214,54 @@
 	/>
 
 	<!-- Statistics Cards -->
-	<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-		<StatCard
-			title="Total Approvals"
-			value={totalCount}
-			icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
-			color="blue"
-		/>
-		<StatCard
-			title="Pending"
-			value={pendingCount}
-			icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
-			color="yellow"
-		/>
-		<StatCard
-			title="Approved"
-			value={approvedCount}
-			icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>'
-			color="green"
-		/>
-		<StatCard
-			title="Rejected"
-			value={rejectedCount}
-			icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>'
-			color="red"
-		/>
+	<div class="stat-grid mb-4">
+		<article class="card p-4">
+			<div class="hstack justify-between">
+				<div>
+					<p class="text-sm text-light">Total Approvals</p>
+					<p style="font-size: var(--text-3); font-weight: 700">{totalCount}</p>
+				</div>
+				<IconCircleCheck size={40} />
+			</div>
+		</article>
+		<article class="card p-4">
+			<div class="hstack justify-between">
+				<div>
+					<p class="text-sm text-light">Pending</p>
+					<p style="font-size: var(--text-3); font-weight: 700">{pendingCount}</p>
+				</div>
+				<IconClock size={40} style="color: var(--warning)" />
+			</div>
+		</article>
+		<article class="card p-4">
+			<div class="hstack justify-between">
+				<div>
+					<p class="text-sm text-light">Approved</p>
+					<p style="font-size: var(--text-3); font-weight: 700">{approvedCount}</p>
+				</div>
+				<IconCheck size={40} style="color: var(--success)" />
+			</div>
+		</article>
+		<article class="card p-4">
+			<div class="hstack justify-between">
+				<div>
+					<p class="text-sm text-light">Rejected</p>
+					<p style="font-size: var(--text-3); font-weight: 700">{rejectedCount}</p>
+				</div>
+				<IconX size={40} style="color: var(--danger)" />
+			</div>
+		</article>
 	</div>
 
 	<!-- Approvals Table -->
-	<div class="pt-6">
+	<div class="mt-4">
 		<Table
 			data={approvals}
 			columns={tableColumns}
 			{loading}
 			emptyMessage="No approvals found. Approvals will appear here when workflows require approval."
-			emptyIcon='<svg class="w-16 h-16 text-muted-foreground mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-			</svg>'
+			EmptyIconComponent={IconCircleCheck}
+			emptyIconSize={64}
 		/>
 	</div>
 

@@ -3,11 +3,6 @@
   import { apiClient } from '$lib/apiClient';
   import { handleInlineError } from '$lib/utils/errorHandling';
   import { clearPermissionCache } from '$lib/utils/permissions';
-  import { IconChevronDown } from '@tabler/icons-svelte';
-
-  let { isCollapsed = false }: { isCollapsed?: boolean } = $props();
-
-  let userSettingsOpen = $state(false);
 
   const getUserInitials = (username: string): string => {
     return username.charAt(0).toUpperCase();
@@ -20,65 +15,29 @@
       window.location.href = '/login';
     } catch (error) {
       handleInlineError(error, 'Unable to Log Out');
-      // Force redirect even if logout fails
       window.location.href = '/login';
     }
   };
-
-  // Handle outside clicks
-  function handleOutsideClick(event: MouseEvent) {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.user-dropdown-container')) {
-      userSettingsOpen = false;
-    }
-  }
 </script>
 
-<svelte:window on:click={handleOutsideClick} />
-
-<!-- User Menu -->
-<div class="relative user-dropdown-container">
-  <button
-    type="button"
-    onclick={() => userSettingsOpen = !userSettingsOpen}
-    class="w-full flex items-center text-sm font-medium text-foreground bg-card border border-input rounded-lg hover:bg-muted transition-colors cursor-pointer {isCollapsed ? 'justify-center p-2' : 'px-3 py-2'}"
-    aria-label="User menu toggle"
-    title={isCollapsed ? $currentUser?.name || 'User menu' : ''}
-  >
-    <div class="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center flex-shrink-0">
-      <span class="text-white font-semibold text-sm">
-        {$currentUser ? getUserInitials($currentUser.name) : 'U'}
-      </span>
+<ot-dropdown style="display: block" class="mt-2">
+  <button popovertarget="user-menu" class="ghost w-100 hstack gap-2" style="justify-content: flex-start">
+    <figure data-variant="avatar" class="small" aria-label={$currentUser?.name || 'User'}>
+      <abbr title={$currentUser?.name || 'User'}>{$currentUser ? getUserInitials($currentUser.name) : 'U'}</abbr>
+    </figure>
+    <div style="text-align: left; flex: 1; min-width: 0;">
+      <div class="text-sm font-medium">{$currentUser?.name || 'Loading...'}</div>
+      <div class="text-lighter text-xs" style="text-transform: capitalize">{$currentUser?.role || ''}</div>
     </div>
-    {#if !isCollapsed}
-      <div class="ml-3 flex-1 text-left">
-        <div class="text-sm font-medium text-foreground">{$currentUser?.name || 'Loading...'}</div>
-        <div class="text-xs text-muted-foreground capitalize">{$currentUser?.role || ''}</div>
-      </div>
-      <IconChevronDown
-        class="text-muted-foreground transition-transform flex-shrink-0 {userSettingsOpen ? 'rotate-180' : ''}"
-        size={16}
-      />
-    {/if}
   </button>
+  <div popover id="user-menu">
+    <button role="menuitem" onclick={logout}>Logout</button>
+  </div>
+</ot-dropdown>
 
-  <!-- Dropdown Menu -->
-  {#if userSettingsOpen}
-    <div
-      class="absolute bottom-full mb-1 bg-card rounded-lg shadow-lg border border-border {isCollapsed ? 'left-0 w-32' : 'left-0 w-full'}"
-      role="menu"
-      aria-label="User menu"
-    >
-      <div class="py-1">
-        <button
-          type="button"
-          onclick={logout}
-          class="w-full text-left px-3 py-2 text-sm text-foreground hover:bg-subtle transition-colors cursor-pointer"
-          role="menuitem"
-        >
-          Logout
-        </button>
-      </div>
-    </div>
-  {/if}
-</div>
+<style>
+  figure[data-variant="avatar"] {
+    background: var(--primary);
+    color: white;
+  }
+</style>

@@ -1,10 +1,18 @@
 <script lang="ts">
 	import '../app.css';
+	import '@knadh/oat/oat.min.js';
 	import favicon from '$lib/assets/favicon.svg';
 	import { currentUser, isAuthenticated, isLoading } from '$lib/stores/auth';
 	import { resolvedTheme, applyTheme } from '$lib/stores/theme';
-	import NotificationPopup from '$lib/components/shared/NotificationPopup.svelte';
+	import { beforeNavigate } from '$app/navigation';
 	import GlobalLoadingIndicator from '$lib/components/shared/GlobalLoadingIndicator.svelte';
+
+	// Clear persistent toasts (e.g. error toasts with duration: 0) on navigation
+	beforeNavigate(() => {
+		if (typeof (window as any).ot?.toast?.clear === 'function') {
+			(window as any).ot.toast.clear();
+		}
+	});
 
 	let { children, data } = $props();
 
@@ -48,5 +56,4 @@
 
 {@render children?.()}
 
-<NotificationPopup />
 <GlobalLoadingIndicator />

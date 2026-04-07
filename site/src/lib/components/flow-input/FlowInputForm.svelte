@@ -41,7 +41,6 @@
     })
   );
 
-  // Convert datetime-local string + IANA timezone to RFC3339
   const toRFC3339 = (localDateTime: string, timezone: string): string => {
     return DateTime.fromISO(localDateTime, { zone: timezone }).toISO() ?? localDateTime;
   };
@@ -54,7 +53,6 @@
     const form = event.target as HTMLFormElement;
     const formData = new FormData(form);
 
-    // Build URL with scheduled_at query param if scheduling is enabled
     let url = `/api/v1/${namespace}/trigger/${flowId}`;
     if (scheduleEnabled && scheduledAt) {
       const scheduledAtRFC3339 = toRFC3339(scheduledAt, scheduledTimezone);
@@ -82,18 +80,15 @@
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
 
-        // Handle validation errors with field details - show inline
         if (errorData.details && errorData.details.field && errorData.details.error) {
           errors[errorData.details.field] = errorData.details.error;
         }
-        // For non-validation errors, use common error handling
         else {
           const apiError = new ApiError(response.status, response.statusText, errorData);
           handleInlineError(apiError, 'Unable to Start Flow');
         }
       } else {
         const data = await response.json();
-        // If scheduled, show success message and stay on page
         if (data.scheduled_at) {
           const scheduledDate = new Date(data.scheduled_at);
           showSuccess('Flow Scheduled', `Flow will run at ${scheduledDate.toLocaleString()}`);
@@ -101,7 +96,6 @@
           scheduledAt = '';
           onScheduled?.();
         } else {
-          // Immediate execution - redirect to results page
           goto(`/view/${namespace}/results/${flowId}/${data.exec_id}`);
         }
       }
@@ -114,66 +108,57 @@
 
 </script>
 
-<div class="bg-card rounded-lg border border-border overflow-hidden">
-  <div class="px-6 py-4 border-b border-border bg-muted">
-    <h2 class="text-lg font-semibold text-foreground">Configuration Parameters</h2>
-    <p class="text-sm text-muted-foreground mt-1">Configure the inputs for this flow execution</p>
+<div class="card">
+  <div class="card-header">
+    <h2>Configuration Parameters</h2>
+    <p class="text-light">Configure the inputs for this flow execution</p>
   </div>
 
-  <form onsubmit={submit} class="p-6 space-y-6">
+  <form onsubmit={submit} class="form-body vstack gap-4">
     {#if errors.general}
-      <div class="p-3 rounded-md bg-danger-50 border border-danger-200">
-        <div class="text-sm text-danger-700">{errors.general}</div>
+      <div class="error-banner">
+        <div>{errors.general}</div>
       </div>
     {/if}
 
     <FlowInputFields inputs={mergedInputs} {errors} useFormData={true} />
 
     <!-- Schedule option -->
-    <div class="pt-4 border-t border-border">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <IconClock class="w-5 h-5 text-muted-foreground" />
-          <span class="text-sm font-medium text-foreground">Schedule for later</span>
+    <div class="schedule-section">
+      <div class="hstack justify-between">
+        <div class="hstack gap-2">
+          <IconClock size={20} class="text-lighter" />
+          <span class="schedule-label">Schedule for later</span>
         </div>
-        <button
-          type="button"
-          onclick={() => scheduleEnabled = !scheduleEnabled}
-          class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 {scheduleEnabled ? 'bg-primary-500' : 'bg-input'}"
+        <input
+          type="checkbox"
           role="switch"
-          aria-checked={scheduleEnabled}
-        >
-          <span
-            class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out {scheduleEnabled ? 'translate-x-5' : 'translate-x-0'}"
-          ></span>
-        </button>
+          checked={scheduleEnabled}
+          onchange={() => scheduleEnabled = !scheduleEnabled}
+        />
       </div>
 
       {#if scheduleEnabled}
-        <div class="mt-4 space-y-3">
-          <div>
-            <label for="scheduled_at" class="block text-sm font-medium text-foreground mb-2">
+        <div class="vstack gap-2 mt-4">
+          <div data-field>
+            <label for="scheduled_at">
               Run at
-              <span class="text-red-500">*</span>
+              <span class="required">*</span>
             </label>
             <input
               type="datetime-local"
               id="scheduled_at"
               bind:value={scheduledAt}
               required={scheduleEnabled}
-              class="w-full px-3 py-2 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
-          <div>
-            <label for="scheduled_timezone" class="block text-sm font-medium text-foreground mb-2">
-              Timezone
-            </label>
+          <div data-field>
+            <label for="scheduled_timezone">Timezone</label>
             <input
               type="text"
               id="scheduled_timezone"
               list="timezone-list"
               bind:value={scheduledTimezone}
-              class="w-full px-3 py-2 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="Search or select timezone..."
             />
             <datalist id="timezone-list">
@@ -182,38 +167,89 @@
               {/each}
             </datalist>
           </div>
-          <p class="text-sm text-muted-foreground">The flow will be queued and executed at the specified time</p>
+          <p class="text-light hint">The flow will be queued and executed at the specified time</p>
         </div>
       {/if}
     </div>
 
-    <div class="flex gap-3 pt-6 border-t border-border">
+    <div class="hstack gap-2 action-buttons">
       <button
         type="button"
+        data-variant="secondary"
         onclick={() => window.history.back()}
-        class="flex-1 px-4 py-2 bg-card border border-input text-foreground rounded-md hover:bg-muted transition-colors cursor-pointer"
+        class="flex-1"
       >
         Cancel
       </button>
       <button
         type="submit"
         disabled={loading || (scheduleEnabled && !scheduledAt)}
-        class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600 transition-colors disabled:opacity-50 cursor-pointer"
+        aria-busy={loading}
+        class="flex-1"
       >
         {#if loading}
-          <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
           {scheduleEnabled ? 'Scheduling...' : 'Starting Flow...'}
         {:else if scheduleEnabled}
-          <IconClock class="w-5 h-5" />
+          <IconClock size={20} />
           Schedule
         {:else}
-          <IconPlayerPlay class="w-5 h-5" />
+          <IconPlayerPlay size={20} />
           Run Now
         {/if}
       </button>
     </div>
   </form>
 </div>
+
+<style>
+  .card {
+    background: var(--card);
+    border-radius: 0.5rem;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--faint);
+  }
+  .card-header h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--foreground);
+  }
+  .form-body {
+    padding: 1.5rem;
+  }
+  .error-banner {
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    background: color-mix(in srgb, var(--danger) 10%, transparent);
+    border: 1px solid var(--danger);
+    font-size: 0.875rem;
+    color: var(--danger);
+  }
+  .schedule-section {
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+  .schedule-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--foreground);
+  }
+  .required {
+    color: var(--danger);
+  }
+  .hint {
+    font-size: 0.875rem;
+  }
+  .action-buttons {
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+  .flex-1 {
+    flex: 1;
+  }
+  .mt-4 { margin-top: 1rem; }
+</style>

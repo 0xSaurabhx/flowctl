@@ -2,7 +2,6 @@
   import { IconKey } from '@tabler/icons-svelte';
   import { onMount } from 'svelte';
   import { apiClient } from '$lib/apiClient';
-  import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
   import type { SSOProvider } from '$lib/types';
 
   let {
@@ -42,18 +41,18 @@
 </script>
 
 <!-- Login Card -->
-<article class="p-8 rounded-lg border bg-card border-border shadow-sm">
-  <form onsubmit={onSubmit} class="space-y-6" aria-label="Login form">
+<article class="card login-card">
+  <form onsubmit={onSubmit} class="vstack gap-5" aria-label="Login form">
     <!-- Error Message -->
     {#if error}
-      <div class="p-3 rounded-md bg-danger-50 border border-danger-200 dark:bg-danger-900/20 dark:border-danger-800" role="alert" aria-live="assertive">
-        <div class="text-sm text-danger-900 dark:text-danger-300">{error}</div>
+      <div role="alert" data-variant="error" aria-live="assertive">
+        <div>{error}</div>
       </div>
     {/if}
 
     <!-- Username Field -->
     <div>
-      <label for="username" class="block text-sm font-medium mb-2 text-foreground">
+      <label for="username">
         Username
       </label>
       <input
@@ -62,14 +61,13 @@
         id="username"
         name="username"
         required
-        class="w-full px-3 py-2 text-sm rounded-md border text-foreground bg-card border-border focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
         placeholder="Enter your username"
       />
     </div>
 
     <!-- Password Field -->
     <div>
-      <label for="password" class="block text-sm font-medium mb-2 text-foreground">
+      <label for="password">
         Password
       </label>
       <input
@@ -78,7 +76,6 @@
         id="password"
         name="password"
         required
-        class="w-full px-3 py-2 text-sm rounded-md border text-foreground bg-card border-border focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
         placeholder="Enter your password"
       />
     </div>
@@ -87,16 +84,10 @@
     <button
       type="submit"
       disabled={loading}
-      class="w-full px-4 py-2 text-sm font-medium rounded-md transition-all duration-300 disabled:opacity-50 bg-primary-500 text-white hover:bg-primary-600 disabled:cursor-not-allowed"
+      class="login-submit"
     >
       {#if loading}
-        <span class="flex items-center justify-center">
-          <svg class="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          Signing In...
-        </span>
+        <span class="hstack gap-2 justify-center" aria-busy="true" data-spinner="small">Signing In...</span>
       {:else}
         Sign In
       {/if}
@@ -105,22 +96,30 @@
     {#each ssoProviders as provider}
       <button
         type="button"
+        data-variant="secondary"
         onclick={() => handleOIDCLogin(provider.id)}
         disabled={oidcLoadingProvider !== null}
-        class="w-full px-4 py-2 text-sm font-medium rounded-md border transition-all duration-300 bg-card border-border text-muted-foreground hover:bg-muted hover:text-foreground hover:border-input disabled:opacity-50 disabled:cursor-not-allowed"
         aria-label={provider.label}
       >
         {#if oidcLoadingProvider === provider.id}
-          <div class="flex items-center justify-center">
-            <LoadingSpinner size="sm" label="Redirecting..." />
-          </div>
+          <span class="hstack gap-2 justify-center" aria-busy="true" data-spinner="small">Redirecting...</span>
         {:else}
-          <div class="flex items-center justify-center">
-            <IconKey class="w-4 h-4 mr-2" aria-hidden="true" />
+          <span class="hstack gap-2 justify-center">
+            <IconKey size={16} aria-hidden="true" />
             {provider.label}
-          </div>
+          </span>
         {/if}
       </button>
     {/each}
   </form>
 </article>
+
+<style>
+  .login-card {
+    padding: var(--space-8);
+  }
+
+  .login-submit {
+    text-align: center;
+  }
+</style>

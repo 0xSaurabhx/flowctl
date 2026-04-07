@@ -8,9 +8,9 @@
     disabled?: boolean;
   };
 
-  let { 
-    currentPage, 
-    totalPages, 
+  let {
+    currentPage,
+    totalPages,
     loading = false,
     disabled = false
   }: Props = $props();
@@ -31,7 +31,7 @@
   const getVisiblePages = () => {
     const pages: number[] = [];
     const maxVisible = 7;
-    
+
     if (totalPages <= maxVisible) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
@@ -39,12 +39,12 @@
     } else {
       const start = Math.max(1, currentPage - 3);
       const end = Math.min(totalPages, start + maxVisible - 1);
-      
+
       for (let i = start; i <= end; i++) {
         pages.push(i);
       }
     }
-    
+
     return pages;
   };
 
@@ -52,12 +52,12 @@
 </script>
 
 {#if totalPages > 1}
-  <div class="flex justify-center mt-8">
-    <nav class="flex items-center space-x-2">
+  <div class="flex justify-center mt-6">
+    <nav class="hstack gap-2">
       <button
         onclick={() => handlePageChange(currentPage - 1)}
         disabled={isPreviousDisabled}
-        class="px-3 py-2 text-sm font-medium text-muted-foreground bg-card border border-input rounded-lg hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        data-variant="secondary"
       >
         Previous
       </button>
@@ -66,8 +66,8 @@
         <button
           onclick={() => handlePageChange(page)}
           disabled={disabled || loading}
-          class="px-3 py-2 text-sm font-medium border border-input rounded-lg disabled:cursor-not-allowed cursor-pointer
-                 {page === currentPage ? 'bg-primary-500 text-white hover:bg-primary-600' : 'bg-card text-foreground hover:bg-muted'}"
+          data-variant={page === currentPage ? undefined : 'secondary'}
+          aria-current={page === currentPage ? 'page' : undefined}
         >
           {page}
         </button>
@@ -76,7 +76,7 @@
       <button
         onclick={() => handlePageChange(currentPage + 1)}
         disabled={isNextDisabled}
-        class="px-3 py-2 text-sm font-medium text-muted-foreground bg-card border border-input rounded-lg hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        data-variant="secondary"
       >
         Next
       </button>

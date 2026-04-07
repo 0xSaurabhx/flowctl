@@ -26,52 +26,6 @@
     change: { tabId: string; tab: Tab };
   }>();
 
-  const getTabClasses = (tab: Tab, isActive: boolean) => {
-    const baseClasses = 'font-medium transition-colors focus:outline-none border-b-2';
-    const sizeClasses = {
-      sm: 'py-2 px-4 text-xs',
-      md: 'py-4 px-1 text-sm',
-      lg: 'py-4 px-8 text-base'
-    };
-
-    if (variant === 'pills') {
-      const pillBaseClasses = 'font-medium transition-colors rounded-lg focus:outline-none';
-      const pillSizeClasses = {
-        sm: 'py-1 px-3 text-xs',
-        md: 'py-2 px-4 text-sm',
-        lg: 'py-3 px-6 text-base'
-      };
-
-      if (tab.disabled) {
-        return `${pillBaseClasses} ${pillSizeClasses[size]} bg-subtle text-muted-foreground cursor-not-allowed`;
-      }
-
-      if (isActive) {
-        return `${pillBaseClasses} ${pillSizeClasses[size]} bg-primary-500 text-white shadow-sm`;
-      }
-
-      return `${pillBaseClasses} ${pillSizeClasses[size]} text-muted-foreground hover:text-foreground hover:bg-subtle`;
-    }
-
-    // Default variant
-    if (tab.disabled) {
-      return `${baseClasses} ${sizeClasses[size]} border-transparent text-muted-foreground cursor-not-allowed`;
-    }
-
-    if (isActive) {
-      return `${baseClasses} ${sizeClasses[size]} border-link text-link`;
-    }
-
-    return `${baseClasses} ${sizeClasses[size]} border-transparent text-muted-foreground hover:text-foreground`;
-  };
-
-  const getContainerClasses = () => {
-    if (variant === 'pills') {
-      return 'flex space-x-1 p-1 bg-subtle rounded-lg';
-    }
-    return 'flex space-x-8 px-6';
-  };
-
   const handleTabClick = (tab: Tab) => {
     if (tab.disabled) return;
 
@@ -80,24 +34,20 @@
   };
 </script>
 
-<nav class={getContainerClasses()} aria-label="Tabs">
+<div role="tablist" class={variant === 'pills' ? 'pills' : ''}>
   {#each tabs as tab}
     {@const isActive = activeTab === tab.id}
     <button
+      role="tab"
+      aria-selected={isActive}
       type="button"
       onclick={() => handleTabClick(tab)}
       disabled={tab.disabled}
-      class="{getTabClasses(tab, isActive)} cursor-pointer"
-      aria-current={isActive ? 'page' : undefined}
     >
-      <span class="whitespace-nowrap">
-        {tab.label}
-        {#if tab.badge}
-          <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {isActive && variant !== 'pills' ? 'bg-primary-100 text-primary-900' : variant === 'pills' && isActive ? 'bg-primary-600 text-white' : 'bg-subtle text-foreground'}">
-            {tab.badge}
-          </span>
-        {/if}
-      </span>
+      {tab.label}
+      {#if tab.badge != null}
+        <span class="badge">{tab.badge}</span>
+      {/if}
     </button>
   {/each}
-</nav>
+</div>

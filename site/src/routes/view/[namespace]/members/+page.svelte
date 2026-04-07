@@ -15,7 +15,7 @@
 	import { handleInlineError, showSuccess } from '$lib/utils/errorHandling';
 	import type { TableAction } from '$lib/types';
 	import { formatDateTime } from '$lib/utils';
-	import { IconUsers } from '@tabler/icons-svelte';
+	import { IconUsers, IconPlus } from '@tabler/icons-svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -80,7 +80,7 @@
 			header: 'Added',
 			sortable: true,
 			render: (_value: any, member: NamespaceMemberResp) => `
-			  <div class="text-sm text-muted-foreground">${formatDateTime(member.created_at)}</div>
+			  <span class="cell-muted">${formatDateTime(member.created_at)}</span>
 			`
 		}
 	]);
@@ -193,12 +193,10 @@
   { label: page.params.namespace!, url: `/view/${page.params.namespace}/flows` },
   { label: "Members" }
 ]}>
-  {#snippet children()}
-    <div class="mb-10"></div>
-  {/snippet}
+
 </Header>
 
-<div class="p-12">
+<div class="page-content">
 	<!-- Page Header -->
 	<PageHeader
 		title="Members"
@@ -208,13 +206,14 @@
 				label: 'Add',
 				onClick: handleAdd,
 				variant: 'primary',
-				icon: '<svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>'
+				IconComponent: IconPlus,
+				iconSize: 16
 			}
 		] : []}
 	/>
 
 	<!-- Members Table -->
-	<div class="pt-6">
+	<div class="mt-4">
 		<Table
 			data={members}
 			columns={tableColumns}
@@ -223,6 +222,8 @@
 			emptyMessage="No members found. Get started by adding users or groups to this namespace."
 			EmptyIconComponent={IconUsers}
 			emptyIconSize={64}
+			emptyActionLabel={permissions.canCreate ? "Add your first member" : undefined}
+			onEmptyAction={permissions.canCreate ? handleAdd : undefined}
 		/>
 	</div>
 </div>

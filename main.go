@@ -6,8 +6,7 @@ import (
 	"github.com/cvhariharan/flowctl/cmd"
 )
 
-//go:embed site/build/*
-//go:embed site/build/_app
+//go:embed all:site/build
 //go:embed configs
 //go:embed migrations
 var staticFiles embed.FS

@@ -1,62 +1,61 @@
-import { writable } from 'svelte/store';
-
 export interface Notification {
   id: string;
   type: 'success' | 'error' | 'warning' | 'info';
   title: string;
   message: string;
-  duration?: number; // Duration in ms, 0 for persistent
+  duration?: number;
   dismissible?: boolean;
 }
 
+type NotificationType = Notification['type'];
+
+const variantMap: Record<NotificationType, string | undefined> = {
+  success: 'success',
+  error: 'danger',
+  warning: 'warning',
+  info: undefined
+};
+
+function toastNotification(type: NotificationType, title: string, message: string, options?: Partial<Notification>) {
+  const duration = options?.duration ?? (type === 'error' ? 0 : 5000);
+
+  if (typeof window !== 'undefined' && typeof (window as any).ot?.toast === 'function') {
+    (window as any).ot.toast(message, title, {
+      variant: variantMap[type],
+      duration
+    });
+  }
+}
+
 function createNotificationStore() {
-  const { subscribe, update } = writable<Notification[]>([]);
-  let counter = 0;
-
-  const store = {
-    subscribe,
-    add: (notification: Omit<Notification, 'id'>) => {
-      const id = `notification-${Date.now()}-${counter++}`;
-      const newNotification: Notification = {
-        id,
-        duration: 5000, // Default 5 seconds
-        dismissible: true,
-        ...notification,
-      };
-
-      update(notifications => [...notifications, newNotification]);
-
-      // Auto-remove after duration if specified
-      if (newNotification.duration && newNotification.duration > 0) {
-        setTimeout(() => {
-          update(notifications => notifications.filter(n => n.id !== id));
-        }, newNotification.duration);
-      }
-
-      return id;
-    },
-    remove: (id: string) => {
-      update(notifications => notifications.filter(n => n.id !== id));
-    },
-    clear: () => {
-      update(() => []);
-    }
-  };
-
   return {
-    ...store,
-    // Helper methods for different notification types
+    // Keep the same public API so callers don't need to change
+    add: (notification: Omit<Notification, 'id'>) => {
+      toastNotification(notification.type, notification.title, notification.message, notification);
+      return `notification-${Date.now()}`;
+    },
+    remove: (_id: string) => { /* ot.toast handles auto-dismiss */ },
+    clear: () => {
+      if (typeof window !== 'undefined' && typeof (window as any).ot?.toast?.clear === 'function') {
+        (window as any).ot.toast.clear();
+      }
+    },
     success: (title: string, message: string, options?: Partial<Notification>) => {
-      return store.add({ type: 'success', title, message, ...options });
+      toastNotification('success', title, message, options);
     },
     error: (title: string, message: string, options?: Partial<Notification>) => {
-      return store.add({ type: 'error', title, message, ...options, duration: options?.duration ?? 0 });
+      toastNotification('error', title, message, { duration: 0, ...options });
     },
     warning: (title: string, message: string, options?: Partial<Notification>) => {
-      return store.add({ type: 'warning', title, message, ...options });
+      toastNotification('warning', title, message, options);
     },
     info: (title: string, message: string, options?: Partial<Notification>) => {
-      return store.add({ type: 'info', title, message, ...options });
+      toastNotification('info', title, message, options);
+    },
+    // Svelte store compatibility - provide subscribe that returns empty array
+    subscribe: (fn: (value: Notification[]) => void) => {
+      fn([]);
+      return () => {};
     }
   };
 }

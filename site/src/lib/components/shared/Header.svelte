@@ -31,53 +31,76 @@
   };
 </script>
 
-<!-- Header -->
-<header class="bg-card border-b border-border px-6 py-4">
-  <div class="flex items-center justify-between">
-    <div class="flex items-center gap-5">
-      {#if normalizedBreadcrumbs.length > 0}
-        <nav aria-label="Breadcrumb" class="flex items-center text-sm text-muted-foreground">
-          <ol class="flex items-center">
-            {#each normalizedBreadcrumbs as crumb, index}
-              <li class="flex items-center">
-                {#if crumb.url && index < normalizedBreadcrumbs.length - 1}
-                  <button
-                    onclick={() => handleBreadcrumbClick(crumb)}
-                    class="hover:text-primary-500 hover:underline transition-colors cursor-pointer"
-                  >
-                    {crumb.label}
-                  </button>
-                {:else}
-                  <span class={index === normalizedBreadcrumbs.length - 1 ? 'text-foreground' : ''} aria-current={index === normalizedBreadcrumbs.length - 1 ? 'page' : undefined}>{crumb.label}</span>
-                {/if}
-                {#if index < normalizedBreadcrumbs.length - 1}
-                  <span class="mx-2" aria-hidden="true">/</span>
-                {/if}
-              </li>
-            {/each}
-          </ol>
-        </nav>
-      {/if}
-    </div>
+<header class="header-bar hstack justify-between">
+  <div class="hstack gap-5">
+    {#if normalizedBreadcrumbs.length > 0}
+      <nav aria-label="Breadcrumb" class="hstack text-sm text-light">
+        <ol class="hstack">
+          {#each normalizedBreadcrumbs as crumb, index}
+            <li class="hstack">
+              {#if crumb.url && index < normalizedBreadcrumbs.length - 1}
+                <button
+                  onclick={() => handleBreadcrumbClick(crumb)}
+                  class="breadcrumb-link"
+                >
+                  {crumb.label}
+                </button>
+              {:else}
+                <span class={index === normalizedBreadcrumbs.length - 1 ? '' : 'text-light'} aria-current={index === normalizedBreadcrumbs.length - 1 ? 'page' : undefined}>{crumb.label}</span>
+              {/if}
+              {#if index < normalizedBreadcrumbs.length - 1}
+                <span class="mx-2" aria-hidden="true">/</span>
+              {/if}
+            </li>
+          {/each}
+        </ol>
+      </nav>
+    {/if}
+  </div>
 
-    <div class="flex items-center space-x-4">
-      {#if children}
-        {@render children()}
-      {/if}
+  <div class="hstack gap-4 nowrap">
+    {#if children}
+      {@render children()}
+    {/if}
 
-      {#each actions as action}
-        <button
-          onclick={action.onClick}
-          title={action.tooltip || ''}
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-md transition-colors cursor-pointer {action.variant === 'primary' ? 'bg-primary-500 text-white hover:bg-primary-600' : action.variant === 'danger' ? 'bg-danger-500 text-white hover:bg-danger-600' : action.variant === 'ghost' ? 'text-primary-500 hover:text-primary-600 font-medium' : 'bg-card border border-input text-foreground hover:bg-muted'}"
-        >
-          {#if action.icon}
-            {@const Icon = action.icon}
-            <Icon size={16} />
-          {/if}
-          {action.label}
-        </button>
-      {/each}
-    </div>
+    {#each actions as action}
+      <button
+        onclick={action.onClick}
+        title={action.tooltip || ''}
+        data-variant={action.variant === 'danger' ? 'danger' : action.variant === 'secondary' ? 'secondary' : action.variant === 'ghost' ? 'ghost' : undefined}
+        class="hstack gap-2"
+      >
+        {#if action.icon}
+          {@const Icon = action.icon}
+          <Icon size={16} />
+        {/if}
+        {action.label}
+      </button>
+    {/each}
   </div>
 </header>
+
+<style>
+  .header-bar {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: var(--space-3) var(--space-6);
+    height: 3.75rem;
+    align-items: center;
+    align-content: center;
+    flex-wrap: nowrap;
+  }
+
+  .breadcrumb-link {
+    all: unset;
+    cursor: pointer;
+    color: var(--muted-foreground);
+    transition: color 0.15s ease;
+  }
+
+  .breadcrumb-link:hover {
+    color: var(--primary);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+</style>

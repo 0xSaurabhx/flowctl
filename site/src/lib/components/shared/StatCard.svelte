@@ -10,25 +10,25 @@
 		color?: 'blue' | 'green' | 'purple' | 'red' | 'yellow' | 'gray';
 	}
 
-	let { title, value, icon, IconComponent, iconSize = 24, color = 'blue' }: Props = $props();
+	let { title, value, icon, IconComponent, iconSize = 40, color = 'blue' }: Props = $props();
 
-	const colorClasses = {
-		blue: 'bg-info-100 text-info-600',
-		green: 'bg-success-100 text-success-600',
-		purple: 'bg-primary-100 text-primary-600',
-		red: 'bg-danger-100 text-danger-600',
-		yellow: 'bg-warning-100 text-warning-600',
-		gray: 'bg-subtle text-muted-foreground'
+	const colorMap: Record<string, string> = {
+		blue: '',
+		green: 'success',
+		purple: '',
+		red: 'danger',
+		yellow: 'warning',
+		gray: 'muted'
 	};
 </script>
 
-<div class="bg-card rounded-lg border border-border p-6">
-	<div class="flex items-center justify-between">
+<article class="card p-4">
+	<div class="hstack justify-between">
 		<div>
-			<p class="text-sm font-medium text-muted-foreground">{title}</p>
-			<p class="text-2xl font-bold text-foreground">{value}</p>
+			<p class="text-sm text-light">{title}</p>
+			<p class="stat-value">{value}</p>
 		</div>
-		<div class="w-12 h-12 {colorClasses[color]} rounded-lg flex items-center justify-center">
+		<div class="stat-icon {colorMap[color] || ''}">
 			{#if IconComponent}
 				<IconComponent size={iconSize} />
 			{:else if icon}
@@ -36,4 +36,18 @@
 			{/if}
 		</div>
 	</div>
-</div>
+</article>
+
+<style>
+	.stat-value {
+		font-size: var(--text-3);
+		font-weight: 700;
+	}
+	.stat-icon {
+		color: var(--primary);
+	}
+	.stat-icon.success { color: var(--success); }
+	.stat-icon.danger { color: var(--danger); }
+	.stat-icon.warning { color: var(--warning); }
+	.stat-icon.muted { color: var(--muted-foreground); }
+</style>

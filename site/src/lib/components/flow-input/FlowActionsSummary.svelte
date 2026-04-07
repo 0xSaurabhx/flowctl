@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { FlowAction } from '$lib/types';
-  
-  let { 
+
+  let {
     actions,
     title = 'Flow Actions'
   }: {
@@ -11,26 +11,64 @@
 </script>
 
 {#if actions && actions.length > 0}
-  <div class="bg-card rounded-lg border border-border mt-6">
-    <div class="px-4 py-3 border-b border-border">
-      <h3 class="text-sm font-semibold text-foreground">
+  <article class="card">
+    <header class="card-list-header">
+      <h3 class="text-sm font-medium">
         {title} ({actions.length})
       </h3>
-    </div>
-    <div class="divide-y divide-border">
+    </header>
+    <div class="vstack gap-1">
       {#each actions as action, index}
-        <div class="px-4 py-3 flex items-center justify-between hover:bg-muted transition-colors">
-          <div class="flex items-center gap-3">
-            <div class="w-6 h-6 bg-primary-100 text-primary-600 rounded flex items-center justify-center text-xs font-medium">
-              {index + 1}
-            </div>
-            <div class="text-sm text-foreground">{action.name}</div>
+        <div class="action-item">
+          <div class="action-number">
+            {index + 1}
           </div>
-          <span class="inline-flex px-2 py-1 text-xs font-medium rounded bg-subtle text-foreground">
+          <div class="text-sm action-name">{action.name}</div>
+          <span class="badge shrink-0">
             {action.executor}
           </span>
         </div>
       {/each}
     </div>
-  </div>
+  </article>
 {/if}
+
+<style>
+  .card-list-header {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border);
+  }
+  .action-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border);
+  }
+  .action-item:last-child {
+    border-bottom: none;
+  }
+  .action-item:hover {
+    background: var(--faint);
+  }
+  .action-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .action-number {
+    flex-shrink: 0;
+    width: 1.5rem;
+    height: 1.5rem;
+    background: var(--faint);
+    color: var(--primary);
+    border-radius: var(--radius-small);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--text-8);
+    font-weight: var(--font-medium);
+  }
+</style>

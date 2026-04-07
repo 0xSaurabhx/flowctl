@@ -23,7 +23,6 @@
 		refreshTrigger: boolean;
 	} = $props();
 
-	// State
 	let groups = $state(initialGroups);
 	let totalCount = $state(initialTotalCount);
 	let pageCount = $state(initialPageCount);
@@ -37,25 +36,30 @@
 	let editingGroupData = $state<GroupWithUsers | null>(null);
 	let deleteData = $state<{ id: string; name: string } | null>(null);
 
-	// Table configuration
+	const avatarColors = [
+		{ bg: 'color-mix(in srgb, var(--danger) 15%, transparent)', fg: 'var(--danger)' },
+		{ bg: 'color-mix(in srgb, var(--primary) 15%, transparent)', fg: 'var(--primary)' },
+		{ bg: 'color-mix(in srgb, var(--success) 15%, transparent)', fg: 'var(--success)' },
+		{ bg: 'color-mix(in srgb, var(--warning) 15%, transparent)', fg: 'var(--warning)' },
+		{ bg: 'color-mix(in srgb, var(--primary) 15%, transparent)', fg: 'var(--primary)' },
+	];
+
 	let tableColumns = [
 		{
 			key: 'name',
 			header: 'Name',
 			render: (_value: any, group: Group) => {
 				const firstLetter = group.name.charAt(0).toUpperCase();
-				const colors = ['bg-danger-100 text-danger-600', 'bg-primary-100 text-primary-600', 'bg-success-100 text-success-600', 'bg-warning-100 text-warning-600', 'bg-primary-100 text-primary-600', 'bg-pink-100 text-pink-600', 'bg-indigo-100 text-indigo-600'];
-				const colorIndex = group.name.charCodeAt(0) % colors.length;
-				const colorClass = colors[colorIndex];
-				
+				const c = avatarColors[group.name.charCodeAt(0) % avatarColors.length];
+
 				return `
-					<div class="flex items-center">
-						<div class="w-10 h-10 rounded-lg flex items-center justify-center mr-3 ${colorClass} font-medium text-sm">
+					<div class="name-cell">
+						<div class="avatar" style="background:${c.bg};color:${c.fg}">
 							${firstLetter}
 						</div>
 						<div>
-							<div class="text-sm font-medium text-foreground cursor-pointer hover:text-primary-600 transition-colors" onclick="document.dispatchEvent(new CustomEvent('editGroup', {detail: {id: '${group.id}'}}))">${group.name}</div>
-							<div class="text-sm text-muted-foreground">${group.description || 'No description'}</div>
+							<div class="name-link" onclick="document.dispatchEvent(new CustomEvent('editGroup', {detail: {id: '${group.id}'}}))">${group.name}</div>
+							<div class="name-sub">${group.description || 'No description'}</div>
 						</div>
 					</div>
 				`;
@@ -66,7 +70,7 @@
 			header: 'Users',
 			render: (_value: any, group: Group) => {
 				const userCount = group.users?.length || 0;
-				return `<span class="text-foreground">${userCount} ${userCount === 1 ? 'user' : 'users'}</span>`;
+				return `${userCount} ${userCount === 1 ? 'user' : 'users'}`;
 			}
 		}
 	];
@@ -75,19 +79,16 @@
 		{
 			label: 'Edit',
 			onClick: (group: Group) => handleEdit(group.id),
-			className: 'text-link border border-link hover:bg-link-hover rounded px-2 py-1'
 		},
 		{
 			label: 'Delete',
 			onClick: (group: Group) => handleDelete(group.id, group.name),
-			className: 'text-danger-600 hover:text-danger-800'
 		}
 	];
 
-	// Functions
 	async function fetchGroups(filter: string = '', pageNumber: number = 1) {
 		if (!browser) return;
-		
+
 		loading = true;
 		try {
 			const response = await apiClient.groups.list({
@@ -128,7 +129,7 @@
 		try {
 			loading = true;
 			const group = await apiClient.groups.getById(groupId);
-			
+
 			isEditMode = true;
 			editingGroupId = groupId;
 			editingGroupData = group;
@@ -183,14 +184,12 @@
 		deleteData = null;
 	}
 
-	// Handle group name clicks
 	if (browser) {
 		document.addEventListener('editGroup', ((event: CustomEvent) => {
 			handleEdit(event.detail.id);
 		}) as EventListener);
 	}
 
-	// Refresh data when refreshTrigger changes
 	$effect(() => {
 		refreshTrigger;
 		fetchGroups(searchQuery, currentPage);
@@ -198,8 +197,7 @@
 </script>
 
 <!-- Groups Header Actions -->
-<div class="flex items-center justify-between mb-6">
-	<!-- Search -->
+<div class="hstack mb-4 justify-between">
 	<SearchInput
 		bind:value={searchQuery}
 		placeholder="Search groups..."
@@ -207,18 +205,14 @@
 		onSearch={handleSearch}
 	/>
 
-	<!-- Add Group Button -->
-	<button
-		onclick={handleAdd}
-		class="bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center cursor-pointer"
-	>
-		<IconPlus class="mr-2" size={16} />
+	<button onclick={handleAdd}>
+		<IconPlus size={16} />
 		Add Group
 	</button>
 </div>
 
 <!-- Groups Table -->
-<div class="mb-6">
+<div class="mb-4">
 	<Table
 		data={groups}
 		columns={tableColumns}
@@ -256,3 +250,7 @@
 		onClose={handleModalClose}
 	/>
 {/if}
+
+<style>
+	.mb-4 { margin-bottom: 1.5rem; }
+</style>

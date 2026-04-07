@@ -17,38 +17,44 @@
     triggeredBy?: string
   } = $props();
 
-  // Extract just the name from "Name <username>" format
   function extractName(triggeredBy: string): string {
     const match = triggeredBy.match(/^(.+?)\s*</);
     return match ? match[1].trim() : triggeredBy;
   }
 </script>
 
-<!-- Flow Info Card -->
-<div class="bg-card rounded-lg border border-input p-6 mb-6">
-  <div class="flex justify-between items-start">
-    <div>
-      <div class="flex items-center gap-3">
-        <h1 class="text-2xl font-semibold text-foreground">{flowName}</h1>
+<article class="card mb-4">
+  <div class="row" style="align-items: start">
+    <!-- Left: title, badge, started -->
+    <div class="col-6">
+      <div class="hstack gap-3 items-center">
+        <h1 style="font-size: var(--text-4); margin: 0">{flowName}</h1>
         {#if triggerType}
-          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {triggerType === 'manual' ? 'bg-primary-100 text-primary-900' : 'bg-success-100 text-success-900'}">
+          <span class="badge {triggerType === 'manual' ? '' : 'success'}">
             {triggerType}
           </span>
         {/if}
       </div>
-      <p class="text-muted-foreground mt-1">Started at {startTime}</p>
-      {#if triggeredBy}
-        <p class="text-sm text-muted-foreground mt-3">Triggered By</p>
-        <p class="text-sm text-foreground">{extractName(triggeredBy)}</p>
-      {/if}
+      <p class="text-sm text-light mt-2" style="margin-bottom: 0">Started at {startTime}</p>
     </div>
-    <div class="text-right">
-      <p class="text-sm text-muted-foreground">Execution ID</p>
-      <p class="font-mono text-sm text-foreground">{executionId}</p>
+    <!-- Right: exec id, triggered by -->
+    <div class="col-6 align-right">
+      <div class="hstack gap-2 text-sm justify-end">
+        <span class="text-light">Execution ID</span>
+        <span class="font-mono">{executionId}</span>
+      </div>
+      {#if triggeredBy}
+        <div class="hstack gap-2 text-sm mt-2 justify-end">
+          <span class="text-light">Triggered by</span>
+          <span>{extractName(triggeredBy)}</span>
+        </div>
+      {/if}
       {#if scheduledAt}
-        <p class="text-sm text-muted-foreground mt-3">Scheduled At</p>
-        <p class="text-sm text-foreground">{scheduledAt}</p>
+        <div class="hstack gap-2 text-sm mt-2 justify-end">
+          <span class="text-light">Scheduled at</span>
+          <span>{scheduledAt}</span>
+        </div>
       {/if}
     </div>
   </div>
-</div>
+</article>

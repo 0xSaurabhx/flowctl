@@ -1,4 +1,5 @@
 <script lang="ts">
+  import OatSelect from '$lib/components/shared/OatSelect.svelte';
   import { onMount, onDestroy } from 'svelte';
   import { EditorView, basicSetup } from 'codemirror';
   import { EditorState } from '@codemirror/state';
@@ -65,8 +66,14 @@
   onMount(() => {
     if (!editorContainer) return;
 
+    const editorFontTheme = EditorView.theme({
+      '&': { fontSize: '0.875rem' },
+      '.cm-gutters': { fontSize: '0.875rem' },
+    });
+
     const extensions = [
       basicSetup,
+      editorFontTheme,
       keymap.of([indentWithTab]),
       getLanguageExtension(language),
       EditorView.updateListener.of((update) => {
@@ -118,8 +125,14 @@
   // Update language when changed
   $effect(() => {
     if (editor) {
+      const editorFontTheme = EditorView.theme({
+        '&': { fontSize: '0.875rem' },
+        '.cm-gutters': { fontSize: '0.875rem' },
+      });
+
       const newExtensions = [
         basicSetup,
+        editorFontTheme,
         keymap.of([indentWithTab]),
         getLanguageExtension(language),
         EditorView.updateListener.of((update) => {
@@ -190,24 +203,18 @@
 
 <div class="code-editor-wrapper">
   <!-- Language selector -->
-  <div class="flex items-center justify-between mb-2">
-    <div class="flex items-center gap-2">
-      <label for="language-select" class="text-sm font-medium text-foreground">
-        Language:
-      </label>
-      <select
-        id="language-select"
-        value={language}
+  <div class="hstack mb-2 justify-between">
+    <div class="hstack gap-2 items-center">
+      <label for="language-select" style="margin: 0">Language:</label>
+      <OatSelect
+        bind:value={language}
+        options={languageOptions}
         onchange={handleLanguageChange}
-        class="px-2 py-1 text-sm text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-      >
-        {#each languageOptions as option}
-          <option value={option.value}>{option.label}</option>
-        {/each}
-      </select>
+        id="language-select"
+      />
     </div>
 
-    <div class="flex items-center gap-2 text-xs text-muted-foreground">
+    <div class="text-lighter text-xs">
       <span>Ctrl+Space for suggestions</span>
     </div>
   </div>
@@ -216,7 +223,7 @@
   <div class="editor-container-wrapper">
     <div
       bind:this={editorContainer}
-      class="border border-input rounded-t-md overflow-auto"
+      class="editor-box"
       style="height: {currentHeight}"
       onwheel={(e) => e.stopPropagation()}
     ></div>
@@ -243,9 +250,15 @@
     position: relative;
   }
 
+  .editor-box {
+    border: 1px solid var(--border);
+    border-radius: 0.375rem 0.375rem 0 0;
+    overflow: auto;
+  }
+
   .resize-handle {
     height: 12px;
-    background: var(--subtle);
+    background: var(--faint);
     border: 1px solid var(--border);
     border-top: none;
     border-radius: 0 0 0.375rem 0.375rem;
@@ -268,12 +281,12 @@
   .resize-handle-line {
     width: 40px;
     height: 3px;
-    background: var(--muted-fg);
+    background: var(--muted-foreground);
     border-radius: 2px;
   }
 
   .resize-handle:hover .resize-handle-line {
-    background: var(--fg);
+    background: var(--foreground);
   }
 
   /* Ensure CodeMirror editor fills the container */

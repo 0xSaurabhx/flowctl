@@ -16,21 +16,19 @@
 
     let searchQuery = $state("");
     let groups = $state<FlowGroupResp[]>([]);
-    let showDropdown = $state(false);
     let loading = $state(false);
+    let searchInput: HTMLInputElement;
+    let triggerEl: HTMLButtonElement;
+    let popoverEl: HTMLDivElement;
 
     let filteredGroups = $derived(
-        groups.filter((g) =>
-            g.prefix.toLowerCase().includes(searchQuery.toLowerCase()),
-        ),
+        groups.filter((g) => g.prefix.toLowerCase().includes(searchQuery.toLowerCase())),
     );
 
     let showCreateOption = $derived(
         allowCreate &&
             searchQuery.trim() !== "" &&
-            !groups.some(
-                (g) => g.prefix.toLowerCase() === searchQuery.toLowerCase(),
-            ),
+            !groups.some((g) => g.prefix.toLowerCase() === searchQuery.toLowerCase()),
     );
 
     async function loadGroups() {
@@ -46,17 +44,29 @@
         }
     }
 
-    async function handleFocus() {
-        if (groups.length === 0) {
-            await loadGroups();
-        }
-        showDropdown = true;
+    function positionPopover() {
+        if (!triggerEl || !popoverEl) return;
+        const r = triggerEl.getBoundingClientRect();
+        popoverEl.style.top = `${r.bottom + 4}px`;
+        popoverEl.style.left = `${r.left}px`;
+        popoverEl.style.width = `${r.width}px`;
+    }
+
+    function openDropdown() {
+        try { popoverEl?.showPopover(); } catch {}
+        positionPopover();
+        loadGroups();
+        setTimeout(() => searchInput?.focus(), 0);
+    }
+
+    function closeDropdown() {
+        try { popoverEl?.hidePopover(); } catch {}
     }
 
     function selectGroup(name: string) {
         value = name;
         searchQuery = "";
-        showDropdown = false;
+        closeDropdown();
     }
 
     function clear() {
@@ -66,140 +76,98 @@
 
     function handleOutsideClick(event: MouseEvent) {
         const target = event.target as HTMLElement;
-        if (!target.closest(".flow-group-selector")) {
-            showDropdown = false;
+        if (!target.closest('.flow-group-selector') && !target.closest('[popover]')) {
+            closeDropdown();
         }
     }
+
+    import { onMount, onDestroy } from "svelte";
+
+    let scrollCleanup: (() => void) | null = null;
+
+    onMount(() => {
+        const onScroll = () => {
+            if (popoverEl?.matches(':popover-open')) closeDropdown();
+        };
+        document.addEventListener('scroll', onScroll, { capture: true, passive: true });
+        scrollCleanup = () => document.removeEventListener('scroll', onScroll, { capture: true });
+    });
+
+    onDestroy(() => scrollCleanup?.());
 </script>
 
-<svelte:window onclick={handleOutsideClick} />
+<svelte:window on:click={handleOutsideClick} />
 
-<div class="flow-group-selector">
-    <label
-        for="flow-group"
-        class="block text-sm font-medium text-foreground mb-2"
-    >
+<div class="flow-group-selector vstack" style="gap: 0.25rem">
+    <label for="flow-group">
         Group
-        <span class="text-sm text-muted-foreground font-normal">(optional)</span
-        >
+        <span class="text-lighter" style="font-weight: normal; font-size: 0.875rem">(optional)</span>
     </label>
 
     {#if value}
-        <div
-            class="flex items-center gap-2 px-3 py-2 bg-card border border-input rounded-md"
-        >
-            <IconFolder class="w-4 h-4 text-muted-foreground" />
-            <span class="text-sm text-foreground flex-1">{value}</span>
-            <button
-                type="button"
-                onclick={clear}
-                class="text-muted-foreground hover:text-foreground cursor-pointer"
-            >
-                <IconX class="w-4 h-4" />
+        <div class="hstack gap-2" style="padding: 0.5rem 0.75rem; background: var(--card); border: 1px solid var(--border); border-radius: 0.375rem">
+            <IconFolder size={16} class="text-lighter" />
+            <span style="flex: 1; font-size: 0.875rem">{value}</span>
+            <button type="button" class="ghost icon small" onclick={clear} style="padding: 0.125rem">
+                <IconX size={16} />
             </button>
         </div>
     {:else}
-        <div class="relative">
-            <input
-                type="text"
-                id="flow-group"
-                bind:value={searchQuery}
-                oninput={loadGroups}
-                onfocus={handleFocus}
-                placeholder={allowCreate ? "Search or create a group..." : "Search groups..."}
-                class="w-full px-3 py-2 text-sm text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                autocomplete="off"
-            />
+        <div>
+            <button
+                type="button"
+                bind:this={triggerEl}
+                onclick={openDropdown}
+                class="outline small w-100 hstack justify-between"
+            >
+                <span class="text-lighter">
+                    {allowCreate ? "Search or create a group..." : "Search groups..."}
+                </span>
+            </button>
 
-            {#if loading}
-                <div
-                    class="absolute right-3 top-1/2 transform -translate-y-1/2"
-                >
-                    <svg
-                        class="animate-spin h-4 w-4 text-muted-foreground"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                    >
-                        <circle
-                            class="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            stroke-width="4"
-                        ></circle>
-                        <path
-                            class="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                    </svg>
+            <div bind:this={popoverEl} popover="manual" class="selector-popover">
+                <div style="padding: var(--space-2); border-bottom: 1px solid var(--border)">
+                    <input
+                        type="search"
+                        bind:this={searchInput}
+                        bind:value={searchQuery}
+                        placeholder={allowCreate ? "Search or create a group..." : "Search groups..."}
+                        aria-busy={loading}
+                        autocomplete="off"
+                    />
                 </div>
-            {/if}
-
-            {#if showDropdown}
-                <div
-                    class="absolute z-10 w-full mt-1 bg-card border border-input rounded-lg shadow-lg max-h-48 overflow-y-auto"
-                >
+                <div style="max-height: 14rem; overflow-y: auto">
                     {#if showCreateOption}
-                        <button
-                            type="button"
-                            class="w-full px-4 py-2 hover:bg-muted cursor-pointer border-b border-border text-left"
-                            onclick={() => selectGroup(searchQuery.trim())}
-                        >
-                            <div class="flex items-center gap-2">
-                                <IconPlus
-                                    class="w-4 h-4 text-primary-600"
-                                />
-                                <span class="text-sm text-foreground"
-                                    >Create "{searchQuery.trim()}"</span
-                                >
-                            </div>
+                        <button type="button" class="dropdown-item" onclick={() => selectGroup(searchQuery.trim())}>
+                            <IconPlus size={16} style="color: var(--primary)" />
+                            <span>Create "{searchQuery.trim()}"</span>
                         </button>
                     {/if}
                     {#if filteredGroups.length > 0}
                         {#each filteredGroups as group}
-                            <button
-                                type="button"
-                                class="w-full px-4 py-2 hover:bg-muted cursor-pointer border-b border-border last:border-b-0 text-left"
-                                onclick={() => selectGroup(group.prefix)}
-                            >
-                                <div class="flex items-center gap-2">
-                                    <IconFolder
-                                        class="w-4 h-4 text-muted-foreground"
-                                    />
-                                    <div>
-                                        <div
-                                            class="text-sm font-medium text-foreground"
-                                        >
-                                            {group.prefix}
+                            <button type="button" class="dropdown-item" onclick={() => selectGroup(group.prefix)}>
+                                <IconFolder size={16} class="text-lighter" />
+                                <div>
+                                    <div class="font-medium text-sm">{group.prefix}</div>
+                                    {#if group.flow_count > 0}
+                                        <div class="text-lighter text-xs">
+                                            {group.flow_count} flow{group.flow_count !== 1 ? "s" : ""}
                                         </div>
-                                        {#if group.flow_count > 0}
-                                            <div
-                                                class="text-xs text-muted-foreground"
-                                            >
-                                                {group.flow_count} flow{group.flow_count !== 1 ? "s" : ""}
-                                            </div>
-                                        {/if}
-                                    </div>
+                                    {/if}
                                 </div>
                             </button>
                         {/each}
                     {:else if !loading && !showCreateOption}
-                        <div
-                            class="px-4 py-3 text-sm text-muted-foreground text-center"
-                        >
+                        <div class="dropdown-empty">
                             {allowCreate ? "No groups found. Type to create one." : "No groups found."}
                         </div>
                     {/if}
                 </div>
-            {/if}
+            </div>
         </div>
     {/if}
 
-    <p class="text-xs text-muted-foreground mt-1">
-        Assign this flow to a group for organization. Groups are created
-        automatically.
+    <p class="text-lighter" style="font-size: 0.75rem; margin-top: 0.25rem">
+        Assign this flow to a group for organization. Groups are created automatically.
     </p>
 </div>

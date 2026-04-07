@@ -3,12 +3,12 @@
     import { page } from "$app/stores";
     import { apiClient } from "$lib/apiClient.js";
     import Header from "$lib/components/shared/Header.svelte";
+    import PageHeader from "$lib/components/shared/PageHeader.svelte";
     import FlowMetadata from "$lib/components/flow-create/FlowMetadata.svelte";
     import FlowInputs from "$lib/components/flow-create/FlowInputs.svelte";
     import FlowActions from "$lib/components/flow-create/FlowActions.svelte";
     import FlowNotifications from "$lib/components/flow-create/FlowNotifications.svelte";
     import ValidationModal from "$lib/components/flow-create/ValidationModal.svelte";
-    import Tabs from "$lib/components/shared/Tabs.svelte";
     import SecretsTab from "$lib/components/secrets/SecretsTab.svelte";
     import type { PageData } from "./$types";
     import type {
@@ -61,17 +61,8 @@
     // Messenger configs for notifications (pre-loaded in page loader)
     const messengerConfigs = data.messengerConfigs || {};
 
-    // Tab state
-    let activeTab = $state("metadata");
     let formElement: HTMLFormElement;
-
-    const tabs = [
-        { id: "metadata", label: "General" },
-        { id: "inputs", label: "Inputs" },
-        { id: "actions", label: "Actions" },
-        { id: "notifications", label: "Notifications" },
-        ...(!readonly ? [{ id: "secrets", label: "Secrets" }] : []),
-    ];
+    let onSecretsTab = $state(false);
 
     onMount(async () => {
         await loadFlowConfig();
@@ -308,65 +299,49 @@
     <title>{readonly ? "View" : "Edit"} Flow - {flow.metadata.name || "Loading..."} | Flowctl</title>
 </svelte:head>
 
-<div class="flex h-screen bg-muted">
-    <!-- Main Content -->
-    <div class="flex-1 flex flex-col overflow-hidden">
-        <Header
-            breadcrumbs={[
-                { label: namespace, url: `/view/${namespace}/flows` },
-                { label: "Flows", url: `/view/${namespace}/flows` },
-                ...(flow.metadata.prefix
-                    ? [{ label: flow.metadata.prefix, url: `/view/${namespace}/flows?group=${encodeURIComponent(flow.metadata.prefix)}` }]
-                    : []),
-                {
-                    label: flow.metadata.name || "Loading...",
-                    url: `/view/${namespace}/flows/${flowId}`,
-                },
-                { label: readonly ? "View Config" : "Edit" },
-            ]}
-        />
+<Header
+    breadcrumbs={[
+        { label: namespace, url: `/view/${namespace}/flows` },
+        { label: "Flows", url: `/view/${namespace}/flows` },
+        ...(flow.metadata.prefix
+            ? [{ label: flow.metadata.prefix, url: `/view/${namespace}/flows?group=${encodeURIComponent(flow.metadata.prefix)}` }]
+            : []),
+        {
+            label: flow.metadata.name || "Loading...",
+            url: `/view/${namespace}/flows/${flowId}`,
+        },
+        { label: readonly ? "View Config" : "Edit" },
+    ]}
+/>
 
-        <!-- Page Content -->
-        <div class="flex-1 overflow-y-auto bg-muted">
-            <div class="max-w-6xl mx-auto px-6 py-8">
-                {#if loading}
-                    <div
-                        class="bg-card rounded-lg shadow border border-border p-8"
-                    >
-                        <div class="animate-pulse">
-                            <div
-                                class="h-4 bg-subtle rounded w-1/4 mb-4"
-                            ></div>
-                            <div
-                                class="h-4 bg-subtle rounded w-1/2 mb-2"
-                            ></div>
-                            <div class="h-4 bg-subtle rounded w-1/3"></div>
-                        </div>
-                    </div>
-                {:else}
-                    <!-- Page Title -->
-                    <div class="mb-8">
-                        <h1 class="text-2xl font-bold text-foreground">
-                            {readonly ? "View Flow Config" : "Edit Flow"}
-                        </h1>
-                        <p class="mt-1 text-sm text-muted-foreground">
-                            {readonly
-                                ? `Viewing read-only configuration for ${flow.metadata.name}`
-                                : `Update workflow configuration for ${flow.metadata.name}`}
-                        </p>
-                    </div>
+<div class="page-content">
+        {#if loading}
+            <div class="card p-4" aria-busy="true">
+                <div class="skeleton line mb-4" style="width: 25%" role="status"></div>
+                <div class="skeleton line mb-2" style="width: 50%" role="status"></div>
+                <div class="skeleton line" style="width: 25%" role="status"></div>
+            </div>
+        {:else}
+            <PageHeader
+                title={readonly ? "View Flow Config" : "Edit Flow"}
+                subtitle={readonly
+                    ? `Viewing read-only configuration for ${flow.metadata.name}`
+                    : `Update workflow configuration for ${flow.metadata.name}`}
+            />
 
-                    <!-- Main Card -->
-                    <div class="bg-card rounded-lg border border-input">
-                        <!-- Tab Navigation -->
-                        <div class="border-b border-border">
-                            <Tabs bind:activeTab {tabs} />
-                        </div>
-
-                        <!-- Tab Content -->
-                        <form bind:this={formElement} class="p-6">
-                            <fieldset disabled={readonly} class="contents">
-                                {#if activeTab === "metadata"}
+                    <form bind:this={formElement}>
+                        <ot-tabs onot-tab-change={(e: CustomEvent) => { onSecretsTab = !readonly && e.detail.index === 4; }}>
+                            <div role="tablist">
+                                <button role="tab" aria-selected="true">General</button>
+                                <button role="tab">Inputs</button>
+                                <button role="tab">Actions</button>
+                                <button role="tab">Notifications</button>
+                                {#if !readonly}
+                                    <button role="tab">Secrets</button>
+                                {/if}
+                            </div>
+                            <div role="tabpanel">
+                                <fieldset disabled={readonly} class="contents">
                                     <FlowMetadata
                                         bind:metadata={flow.metadata}
                                         {namespace}
@@ -374,13 +349,19 @@
                                         updatemode={true}
                                         disabled={readonly}
                                     />
-                                {:else if activeTab === "inputs"}
+                                </fieldset>
+                            </div>
+                            <div role="tabpanel">
+                                <fieldset disabled={readonly} class="contents">
                                     <FlowInputs
                                         bind:inputs={flow.inputs}
                                         {addInput}
                                         disabled={readonly}
                                     />
-                                {:else if activeTab === "actions"}
+                                </fieldset>
+                            </div>
+                            <div role="tabpanel">
+                                <fieldset disabled={readonly} class="contents">
                                     <FlowActions
                                         {namespace}
                                         bind:actions={flow.actions}
@@ -389,7 +370,10 @@
                                         bind:executorConfigs
                                         disabled={readonly}
                                     />
-                                {:else if activeTab === "notifications"}
+                                </fieldset>
+                            </div>
+                            <div role="tabpanel">
+                                <fieldset disabled={readonly} class="contents">
                                     <FlowNotifications
                                         bind:notifications={flow.notifications}
                                         {addNotification}
@@ -397,24 +381,25 @@
                                         {messengerConfigs}
                                         disabled={readonly}
                                     />
-                                {:else if activeTab === "secrets"}
+                                </fieldset>
+                            </div>
+                            {#if !readonly}
+                                <div role="tabpanel">
                                     <SecretsTab {namespace} {flowId} />
-                                {/if}
-                            </fieldset>
-                        </form>
+                                </div>
+                            {/if}
+                        </ot-tabs>
 
                         <!-- Action Buttons -->
-                        {#if activeTab !== "secrets"}
-                            <div
-                                class="px-6 py-4 bg-muted border-t border-border flex justify-end gap-3"
-                            >
+                        {#if !onSecretsTab}
+                            <div class="hstack gap-2 justify-end mt-6">
                                 <button
                                     type="button"
                                     onclick={() =>
                                         goto(
                                             `/view/${namespace}/flows/${flowId}`,
                                         )}
-                                    class="px-6 py-2 cursor-pointer text-sm font-medium text-foreground bg-card border border-input rounded-md hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-400"
+                                    data-variant="secondary"
                                 >
                                     {readonly ? "Back" : "Cancel"}
                                 </button>
@@ -427,20 +412,34 @@
                                             }
                                         }}
                                         disabled={saving}
-                                        class="px-6 py-2 cursor-pointer text-sm font-medium text-white bg-primary-500 border border-transparent rounded-md hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        aria-busy={saving}
                                     >
                                         {saving ? "Updating..." : "Update"}
                                     </button>
                                 {/if}
                             </div>
                         {/if}
-                    </div>
-                {/if}
-            </div>
-        </div>
-    </div>
+                    </form>
+        {/if}
 </div>
 
 {#if showValidation}
     <ValidationModal bind:show={showValidation} {validationResult} />
 {/if}
+
+<style>
+    .contents {
+        display: contents;
+    }
+
+    form {
+        max-width: 64rem;
+    }
+
+    :global([role="tabpanel"]) {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-medium);
+        padding: var(--space-6);
+        background: var(--card);
+    }
+</style>

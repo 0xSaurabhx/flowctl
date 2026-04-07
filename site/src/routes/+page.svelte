@@ -3,7 +3,6 @@
   import { isAuthenticated, isLoading } from '$lib/stores/auth';
   import { getDefaultNamespace } from '$lib/utils/navigation';
   import Logo from '$lib/components/shared/Logo.svelte';
-  import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
 
   // Wait for auth loading to complete
   $effect(() => {
@@ -26,9 +25,19 @@
   <title>Flowctl</title>
 </svelte:head>
 
-<div class="min-h-screen flex items-center justify-center bg-card">
-  <div class="flex flex-col items-center gap-6">
-    <Logo height="h-16" />
-    <LoadingSpinner label="Loading..." />
+<div class="loading-page">
+  <div class="vstack items-center gap-6">
+    <Logo height="4rem" />
+    <div aria-busy="true">Loading...</div>
   </div>
 </div>
+
+<style>
+  .loading-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--card);
+  }
+</style>

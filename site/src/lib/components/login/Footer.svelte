@@ -1,6 +1,6 @@
 <!-- Footer Link -->
 <div class="mt-6 text-center">
-  <p class="text-xs text-muted-foreground">
+  <p class="text-lighter text-sm">
     Need help? Contact your system administrator
   </p>
 </div>

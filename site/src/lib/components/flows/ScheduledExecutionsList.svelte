@@ -59,49 +59,40 @@
 </script>
 
 {#if upcomingRuns.length > 0}
-  <div class="bg-card rounded-lg border border-border">
-    <div class="px-4 py-4 border-b border-border">
-      <h3 class="text-sm font-semibold text-foreground">{title}</h3>
-      <p class="text-xs text-muted-foreground mt-0.5">{upcomingRuns.length} {upcomingRuns.length === 1 ? 'run' : 'runs'} scheduled</p>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-border">
-        <thead class="bg-muted">
+  <article class="card">
+    <header>
+      <h3>{title}</h3>
+      <p class="text-lighter text-xs">{upcomingRuns.length} {upcomingRuns.length === 1 ? 'run' : 'runs'} scheduled</p>
+    </header>
+    <div class="table">
+      <table>
+        <thead>
           <tr>
-            <th scope="col" class="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Type
-            </th>
-            <th scope="col" class="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Scheduled Time
-            </th>
-            <th scope="col" class="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Exec ID
-            </th>
+            <th>Type</th>
+            <th>Scheduled Time</th>
+            <th>Exec ID</th>
           </tr>
         </thead>
-        <tbody class="bg-card divide-y divide-border">
+        <tbody>
           {#each upcomingRuns as run}
-            <tr class="hover:bg-muted transition-colors">
-              <td class="px-4 py-3 whitespace-nowrap">
+            <tr>
+              <td>
                 {#if run.type === 'cron'}
-                  <code class="text-xs font-mono bg-subtle px-2 py-0.5 rounded text-foreground">{run.label}</code>
+                  <code>{run.label}</code>
                 {:else}
-                  <span class="text-sm text-foreground">{run.label}</span>
+                  {run.label}
                 {/if}
               </td>
-              <td class="px-4 py-3 whitespace-nowrap text-sm text-foreground">
+              <td>
                 {formatScheduledTime(run.scheduledAt)}
               </td>
-              <td class="px-4 py-3 whitespace-nowrap">
+              <td>
                 {#if run.execId}
-                  <a
-                    href="/view/{namespace}/results/{flowId}/{run.execId}"
-                    class="text-sm font-mono text-link hover:underline"
-                  >
+                  <a href="/view/{namespace}/results/{flowId}/{run.execId}" style="font-family: var(--font-mono); font-size: var(--text-7)">
                     {run.execId.substring(0, 8)}
                   </a>
                 {:else}
-                  <span class="text-sm text-muted-foreground">-</span>
+                  <span class="text-lighter">-</span>
                 {/if}
               </td>
             </tr>
@@ -109,5 +100,5 @@
         </tbody>
       </table>
     </div>
-  </div>
+  </article>
 {/if}

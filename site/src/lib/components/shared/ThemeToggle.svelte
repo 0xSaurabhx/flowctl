@@ -6,6 +6,7 @@
 
     const icons = { light: IconSun, dark: IconMoon, system: IconDeviceDesktop };
     const order: Theme[] = ['light', 'dark', 'system'];
+    const nextLabels: Record<Theme, string> = { system: 'Switch to light mode', light: 'Switch to dark mode', dark: 'Switch to system theme' };
 
     function cycle() {
         const next = order[(order.indexOf($theme) + 1) % 3];
@@ -16,13 +17,29 @@
 <button
     type="button"
     onclick={cycle}
-    class="flex items-center justify-center p-2 text-muted-foreground
-           hover:bg-subtle rounded-lg transition-colors cursor-pointer
-           {collapsed ? '' : 'w-full px-4'}"
-    title="{$theme} theme"
+    class={collapsed ? "ghost icon small" : "ghost hstack gap-3 w-100"}
+    aria-label={nextLabels[$theme]}
+    title={nextLabels[$theme]}
 >
-    <svelte:component this={icons[$theme]} size={20} />
+    <span class="theme-icon" aria-hidden="true">
+        <svelte:component this={icons[$theme]} size={collapsed ? 18 : 20} />
+    </span>
     {#if !collapsed}
-        <span class="ml-3 capitalize">{$theme}</span>
+        <span class="theme-label">{$theme}</span>
     {/if}
 </button>
+
+<style>
+    .theme-label {
+        text-transform: capitalize;
+    }
+
+    .theme-icon {
+        display: inline-flex;
+        transition: transform 0.25s ease;
+    }
+
+    button:active .theme-icon {
+        transform: rotate(60deg);
+    }
+</style>

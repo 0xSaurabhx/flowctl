@@ -1,6 +1,7 @@
 <script lang="ts">
     import { apiClient } from "$lib/apiClient";
     import { handleInlineError } from "$lib/utils/errorHandling";
+    import OatSelect from "$lib/components/shared/OatSelect.svelte";
     import type { User, Group } from "$lib/types";
     import { IconUsers, IconUser, IconX, IconMail } from "@tabler/icons-svelte";
 
@@ -15,330 +16,227 @@
     let searchQuery = $state("");
     let searchType = $state<"user" | "group">("user");
     let searchResults = $state<(User | Group)[]>([]);
-    let showDropdown = $state(false);
     let loading = $state(false);
+    let searchInput: HTMLInputElement;
+    let triggerEl: HTMLButtonElement;
+    let popoverEl: HTMLDivElement;
 
     interface SelectedItem {
         type: "user" | "group";
         id: string;
         name: string;
-        value: string; // The formatted string: email or group:name
+        value: string;
     }
 
     function isValidEmail(email: string): boolean {
         if (email.length < 3 || email.length > 254) return false;
-        return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(
-            email,
-        );
+        return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(email);
     }
 
-    // Show "Add email" option when user types a valid email that's not already selected
     let showAddEmailOption = $derived(
-        searchType === "user" &&
-            isValidEmail(searchQuery) &&
-            !selectedReceivers.includes(searchQuery),
+        searchType === "user" && isValidEmail(searchQuery) && !selectedReceivers.includes(searchQuery),
     );
 
-    // Derived state: parse receivers into items for display
     let selectedItems = $derived.by(() => {
-        if (!selectedReceivers || selectedReceivers.length === 0) {
-            return [];
-        }
+        if (!selectedReceivers || selectedReceivers.length === 0) return [];
         return selectedReceivers.map((r) => {
-            // Check if it's a group (has "group:" prefix) or a user (no prefix)
             if (r.startsWith("group:")) {
-                const groupName = r.substring(6); // Remove "group:" prefix
-                return {
-                    type: "group" as const,
-                    id: groupName,
-                    name: groupName,
-                    value: r,
-                };
+                const groupName = r.substring(6);
+                return { type: "group" as const, id: groupName, name: groupName, value: r };
             } else {
-                // User email (no prefix needed)
-                return {
-                    type: "user" as const,
-                    id: r,
-                    name: r,
-                    value: r,
-                };
+                return { type: "user" as const, id: r, name: r, value: r };
             }
         });
     });
 
     async function loadSubjects() {
         loading = true;
-        showDropdown = true;
         try {
             if (searchType === "user") {
-                const response = await apiClient.users.list({
-                    filter: searchQuery,
-                    count_per_page: 20,
-                });
+                const response = await apiClient.users.list({ filter: searchQuery, count_per_page: 20 });
                 searchResults = response.users || [];
             } else {
-                const response = await apiClient.groups.list({
-                    filter: searchQuery,
-                    count_per_page: 20,
-                });
+                const response = await apiClient.groups.list({ filter: searchQuery, count_per_page: 20 });
                 searchResults = response.groups || [];
             }
         } catch (error) {
-            handleInlineError(
-                error,
-                searchType === "user"
-                    ? "Unable to Load Users"
-                    : "Unable to Load Groups",
-            );
+            handleInlineError(error, searchType === "user" ? "Unable to Load Users" : "Unable to Load Groups");
             searchResults = [];
-            showDropdown = false;
+            closeDropdown();
         } finally {
             loading = false;
         }
     }
 
-    async function handleFocus() {
-        if (searchResults.length === 0) {
-            await loadSubjects();
-        } else {
-            showDropdown = true;
-        }
+    function positionPopover() {
+        if (!triggerEl || !popoverEl) return;
+        const r = triggerEl.getBoundingClientRect();
+        popoverEl.style.top = `${r.bottom + 4}px`;
+        popoverEl.style.left = `${r.left}px`;
+        popoverEl.style.width = `${r.width}px`;
+    }
+
+    function openDropdown() {
+        if (disabled) return;
+        try { popoverEl?.showPopover(); } catch {}
+        positionPopover();
+        loadSubjects();
+        setTimeout(() => searchInput?.focus(), 0);
+    }
+
+    function closeDropdown() {
+        try { popoverEl?.hidePopover(); } catch {}
+    }
+
+    async function handleSearchInput() {
+        await loadSubjects();
     }
 
     async function handleTypeChange() {
         searchQuery = "";
         searchResults = [];
         await loadSubjects();
+        openDropdown();
     }
 
     function selectSubject(subject: User | Group) {
         const isUser = "username" in subject;
-        const name = isUser
-            ? (subject as User).username
-            : (subject as Group).name;
-        // Users don't need a prefix, groups use "group:" prefix
-        const value = isUser ? name : `group:${name}`;
-
-        // Check if already selected
-        if (selectedReceivers.includes(value)) {
-            return;
-        }
-
-        // Update the bindable array
-        selectedReceivers = [...selectedReceivers, value];
-
+        const name = isUser ? (subject as User).username : (subject as Group).name;
+        const subjectValue = isUser ? name : `group:${name}`;
+        if (selectedReceivers.includes(subjectValue)) return;
+        selectedReceivers = [...selectedReceivers, subjectValue];
         searchQuery = "";
-        showDropdown = false;
+        closeDropdown();
         searchResults = [];
     }
 
     function addCustomEmail() {
-        if (
-            !isValidEmail(searchQuery) ||
-            selectedReceivers.includes(searchQuery)
-        )
-            return;
+        if (!isValidEmail(searchQuery) || selectedReceivers.includes(searchQuery)) return;
         selectedReceivers = [...selectedReceivers, searchQuery];
         searchQuery = "";
-        showDropdown = false;
+        closeDropdown();
     }
 
     function removeReceiver(index: number) {
         selectedReceivers = selectedReceivers.filter((_, i) => i !== index);
     }
 
-    // Close dropdown when clicking outside
     function handleOutsideClick(event: MouseEvent) {
         const target = event.target as HTMLElement;
-        if (!target.closest(".multi-receiver-selector")) {
-            showDropdown = false;
+        if (!target.closest('.multi-receiver-selector') && !target.closest('[popover]')) {
+            closeDropdown();
         }
     }
+
+    import { onMount, onDestroy } from 'svelte';
+
+    let scrollCleanup: (() => void) | null = null;
+
+    onMount(() => {
+        const onScroll = () => {
+            if (popoverEl?.matches(':popover-open')) closeDropdown();
+        };
+        document.addEventListener('scroll', onScroll, { capture: true, passive: true });
+        scrollCleanup = () => document.removeEventListener('scroll', onScroll, { capture: true });
+    });
+
+    onDestroy(() => scrollCleanup?.());
 </script>
 
-<svelte:window onclick={handleOutsideClick} />
+<svelte:window on:click={handleOutsideClick} />
 
-<div class="multi-receiver-selector">
-    <!-- Search Input -->
-    <div class="mb-2">
-        <div class="flex gap-2 mb-2">
-            <select
-                bind:value={searchType}
-                onchange={handleTypeChange}
-                class="px-3 py-2 text-sm text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+<div class="multi-receiver-selector vstack gap-2">
+    <div class="hstack gap-2">
+        <OatSelect
+            bind:value={searchType}
+            options={[
+                { value: 'user', label: 'User' },
+                { value: 'group', label: 'Group' }
+            ]}
+            onchange={handleTypeChange}
+            {disabled}
+        />
+
+        <div style="flex: 1">
+            <button
+                type="button"
+                bind:this={triggerEl}
+                onclick={openDropdown}
+                class="outline small w-100 hstack justify-between"
                 {disabled}
             >
-                <option value="user">User</option>
-                <option value="group">Group</option>
-            </select>
+                <span class="text-lighter">
+                    {searchType === "user" ? "Search users or enter email..." : "Search groups..."}
+                </span>
+            </button>
 
-            <div class="relative flex-1">
-                <input
-                    type="text"
-                    bind:value={searchQuery}
-                    oninput={loadSubjects}
-                    onfocus={handleFocus}
-                    placeholder={searchType === "user"
-                        ? "Search users or enter email..."
-                        : "Search groups..."}
-                    class="w-full px-3 py-2 text-sm text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent pr-10"
-                    autocomplete="off"
-                    {disabled}
-                />
-
-                {#if loading}
-                    <div
-                        class="absolute right-3 top-1/2 transform -translate-y-1/2"
-                    >
-                        <svg
-                            class="animate-spin h-4 w-4 text-muted-foreground"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                        >
-                            <circle
-                                class="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                stroke-width="4"
-                            ></circle>
-                            <path
-                                class="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                        </svg>
-                    </div>
-                {:else}
-                    <svg
-                        class="w-5 h-5 absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                        />
-                    </svg>
-                {/if}
-
-                <!-- Dropdown -->
-                {#if showDropdown}
-                    <div
-                        class="absolute z-10 w-full mt-1 bg-card border border-input rounded-lg shadow-lg max-h-48 overflow-y-auto"
-                    >
-                        {#if showAddEmailOption}
-                            <button
-                                type="button"
-                                class="w-full px-4 py-2 hover:bg-primary-50 cursor-pointer border-b border-border text-left bg-muted"
-                                onclick={addCustomEmail}
-                            >
-                                <div class="flex items-center">
-                                    <div
-                                        class="w-8 h-8 rounded-lg flex items-center justify-center mr-3 bg-primary-100"
-                                    >
-                                        <IconMail
-                                            class="w-4 h-4 text-primary-600"
-                                        />
-                                    </div>
-                                    <div>
-                                        <div
-                                            class="text-sm font-medium text-foreground"
-                                        >
-                                            Add "{searchQuery}"
-                                        </div>
-                                        <div class="text-xs text-muted-foreground">
-                                            Add external email
-                                        </div>
-                                    </div>
+            <div bind:this={popoverEl} popover="manual" class="selector-popover">
+                <div style="padding: var(--space-2); border-bottom: 1px solid var(--border)">
+                    <input
+                        type="search"
+                        bind:this={searchInput}
+                        bind:value={searchQuery}
+                        oninput={handleSearchInput}
+                        placeholder={searchType === "user" ? "Search users or enter email..." : "Search groups..."}
+                        aria-busy={loading}
+                        autocomplete="off"
+                    />
+                </div>
+                <div style="max-height: 14rem; overflow-y: auto">
+                    {#if showAddEmailOption}
+                        <button type="button" class="dropdown-item" onclick={addCustomEmail} style="background: var(--faint)">
+                            <div class="icon-box">
+                                <IconMail size={16} />
+                            </div>
+                            <div>
+                                <div class="font-medium">Add "{searchQuery}"</div>
+                                <div class="text-lighter text-xs">Add external email</div>
+                            </div>
+                        </button>
+                    {/if}
+                    {#if searchResults.length > 0}
+                        {#each searchResults as subject}
+                            <button type="button" class="dropdown-item" onclick={() => selectSubject(subject)}>
+                                <div class="icon-box">
+                                    {#if searchType === "user"}
+                                        <IconUser size={16} />
+                                    {:else}
+                                        <IconUsers size={16} />
+                                    {/if}
+                                </div>
+                                <div>
+                                    <div class="font-medium">{"name" in subject ? subject.name : subject.username}</div>
+                                    <div class="text-lighter text-xs">{subject.id}</div>
                                 </div>
                             </button>
-                        {/if}
-                        {#if searchResults.length > 0}
-                            {#each searchResults as subject}
-                                <button
-                                    type="button"
-                                    class="w-full px-4 py-2 hover:bg-muted cursor-pointer border-b border-border last:border-b-0 text-left"
-                                    onclick={() => selectSubject(subject)}
-                                >
-                                    <div class="flex items-center">
-                                        <div
-                                            class="w-8 h-8 rounded-lg flex items-center justify-center mr-3 bg-primary-50"
-                                        >
-                                            {#if searchType === "user"}
-                                                <IconUser
-                                                    class="w-4 h-4 text-primary-600"
-                                                />
-                                            {:else}
-                                                <IconUsers
-                                                    class="w-4 h-4 text-primary-600"
-                                                />
-                                            {/if}
-                                        </div>
-                                        <div>
-                                            <div
-                                                class="text-sm font-medium text-foreground"
-                                            >
-                                                {"name" in subject
-                                                    ? subject.name
-                                                    : subject.username}
-                                            </div>
-                                            <div class="text-xs text-muted-foreground">
-                                                {subject.id}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </button>
-                            {/each}
-                        {:else if !loading && !showAddEmailOption}
-                            <div
-                                class="px-4 py-3 text-sm text-muted-foreground text-center"
-                            >
-                                {searchType === "user"
-                                    ? "No users found. Enter a valid email to add."
-                                    : "No groups found"}
-                            </div>
-                        {/if}
-                    </div>
-                {/if}
+                        {/each}
+                    {:else if !loading && !showAddEmailOption}
+                        <div class="dropdown-empty">
+                            {searchType === "user" ? "No users found. Enter a valid email to add." : "No groups found"}
+                        </div>
+                    {/if}
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Selected Receivers -->
     {#if selectedItems.length > 0}
-        <div class="flex flex-wrap gap-2">
+        <div class="hstack" style="flex-wrap: wrap; gap: 0.5rem">
             {#each selectedItems as item, index (item.value)}
-                <div
-                    class="inline-flex items-center gap-1 px-3 py-1 bg-card border border-input rounded-md text-sm"
-                >
-                    <div class="w-4 h-4 flex items-center justify-center">
-                        {#if item.type === "user"}
-                            <IconUser class="w-3 h-3 text-muted-foreground" />
-                        {:else}
-                            <IconUsers class="w-3 h-3 text-muted-foreground" />
-                        {/if}
-                    </div>
-                    <span class="text-foreground">{item.name}</span>
-                    <button
-                        type="button"
-                        onclick={() => removeReceiver(index)}
-                        class="ml-1 text-muted-foreground hover:text-foreground"
-                        {disabled}
-                    >
-                        <IconX class="w-3 h-3" />
+                <span class="badge hstack gap-1">
+                    {#if item.type === "user"}
+                        <IconUser size={12} />
+                    {:else}
+                        <IconUsers size={12} />
+                    {/if}
+                    {item.name}
+                    <button type="button" onclick={() => removeReceiver(index)} {disabled} aria-label="Remove {item.name}" style="all: unset; cursor: pointer; display: flex">
+                        <IconX size={12} />
                     </button>
-                </div>
+                </span>
             {/each}
         </div>
     {:else}
-        <div class="text-center text-sm text-muted-foreground">
-            No receivers selected
-        </div>
+        <div class="text-lighter align-center text-sm">No receivers selected</div>
     {/if}
 </div>

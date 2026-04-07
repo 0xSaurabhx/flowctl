@@ -1,16 +1,16 @@
 <script lang="ts">
   import type { ComponentType } from 'svelte';
 
-  let { 
+  let {
     title,
     subtitle,
     actions = []
   }: {
     title: string,
     subtitle?: string,
-    actions?: Array<{ 
-      label: string, 
-      onClick: () => void, 
+    actions?: Array<{
+      label: string,
+      onClick: () => void,
       variant?: 'primary' | 'secondary',
       icon?: string,
       IconComponent?: ComponentType,
@@ -19,21 +19,22 @@
   } = $props();
 </script>
 
-<header class="flex items-center justify-between mb-6">
+<header class="hstack justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-bold text-foreground">{title}</h1>
+    <h2>{title}</h2>
     {#if subtitle}
-      <p class="text-muted-foreground">{subtitle}</p>
+      <p class="text-light">{subtitle}</p>
     {/if}
   </div>
 
   {#if actions.length > 0}
-    <div class="flex items-center gap-3">
+    <div class="hstack gap-3">
       {#each actions as action}
         <button
           onclick={action.onClick}
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-md transition-colors cursor-pointer {action.variant === 'primary' ? 'bg-primary-500 text-white hover:bg-primary-600' : 'bg-card border border-input text-foreground hover:bg-muted'}"
+          data-variant={action.variant === 'secondary' ? 'secondary' : undefined}
           aria-label={action.label}
+          class="hstack gap-2"
         >
           {#if action.IconComponent}
             <action.IconComponent size={action.iconSize || 16} aria-hidden="true" />

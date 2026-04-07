@@ -1,4 +1,6 @@
 <script lang="ts">
+    import OatSelect from "$lib/components/shared/OatSelect.svelte";
+
     let {
         inputs = $bindable(),
         addInput,
@@ -64,7 +66,6 @@
         if (!input.remote_options.headers) {
             input.remote_options.headers = {};
         }
-        // Use a temporary array to track header key/value pairs for the UI
         if (!input.remoteHeaders) {
             input.remoteHeaders = [];
         }
@@ -90,183 +91,137 @@
 
 <!-- Flow Inputs Section -->
 <div>
-    <div class="flex items-center justify-between mb-6">
-        <h3 class="text-base font-medium text-foreground">Flow Inputs</h3>
+    <div class="hstack mb-4 justify-between">
+        <h3>Flow Inputs</h3>
         {#if !disabled}
-            <button
-                onclick={addInput}
-                class="px-4 py-2 text-sm font-medium bg-primary-500 text-white rounded-md hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 cursor-pointer"
-            >
+            <button onclick={addInput}>
                 + Add Input
             </button>
         {/if}
     </div>
 
-    <div class="space-y-4">
+    <div class="vstack gap-4">
         {#each inputs as input, index (index)}
-            <div class="border border-border rounded-lg p-4 relative">
+            <div class="input-card">
                 {#if !disabled}
                 <button
+                    type="button"
+                    data-variant="danger"
+                    class="remove-btn"
                     onclick={() => removeInput(index)}
-                    class="absolute top-4 right-4 text-muted-foreground hover:text-danger-600 cursor-pointer"
                 >
-                    <svg
-                        class="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12"
-                        />
+                    <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
                 {/if}
 
-                <div class="grid grid-cols-3 gap-4">
-                    <div>
-                        <label
-                            class="block text-sm font-medium text-foreground mb-1"
-                            >Input Name *</label
-                        >
+                <div class="grid-3">
+                    <div data-field>
+                        <label>Input Name *</label>
                         <input
                             type="text"
                             bind:value={input.name}
-                            oninput={(e) =>
-                                (input.name = sanitizeName(
-                                    e.currentTarget.value,
-                                ))}
-                            class="w-full px-3 py-2 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                            oninput={(e) => (input.name = sanitizeName(e.currentTarget.value))}
                             placeholder="input_name"
                             required
                         />
                     </div>
-                    <div>
-                        <label
-                            class="block text-sm font-medium text-foreground mb-1"
-                            >Type *</label
-                        >
-                        <select
+                    <div data-field>
+                        <label>Type *</label>
+                        <OatSelect
                             bind:value={input.type}
+                            options={[
+                                { value: 'string', label: 'String' },
+                                { value: 'number', label: 'Number' },
+                                { value: 'checkbox', label: 'Checkbox' },
+                                { value: 'password', label: 'Password' },
+                                { value: 'file', label: 'File' },
+                                { value: 'datetime', label: 'DateTime' },
+                                { value: 'select', label: 'Select' }
+                            ]}
                             onchange={() => onInputTypeChange(input)}
-                            class="w-full px-3 py-2 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
                             required
-                        >
-                            <option value="string">String</option>
-                            <option value="number">Number</option>
-                            <option value="checkbox">Checkbox</option>
-                            <option value="password">Password</option>
-                            <option value="file">File</option>
-                            <option value="datetime">DateTime</option>
-                            <option value="select">Select</option>
-                        </select>
+                        />
                     </div>
-                    <div>
-                        <label
-                            class="block text-sm font-medium text-foreground mb-1"
-                            >Label</label
-                        >
+                    <div data-field>
+                        <label>Label</label>
                         <input
                             type="text"
                             bind:value={input.label}
-                            class="w-full px-3 py-2 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
                             placeholder="Display Label"
                         />
                     </div>
-                    <div class="col-span-2">
-                        <label
-                            class="block text-sm font-medium text-foreground mb-1"
-                            >Description</label
-                        >
+                    <div class="col-span-2" data-field>
+                        <label>Description</label>
                         <input
                             type="text"
                             bind:value={input.description}
-                            class="w-full px-3 py-2 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
                             placeholder="Help text for this input"
                         />
                     </div>
-                    <div>
-                        <label
-                            class="block text-sm font-medium mb-1"
-                            class:text-foreground={input.type !== "file"}
-                            class:text-muted-foreground={input.type === "file"}
-                            >Default Value</label
-                        >
+                    <div data-field>
+                        <label class:text-lighter={input.type === "file"}>Default Value</label>
                         <input
                             type="text"
                             bind:value={input.default}
                             disabled={input.type === "file"}
-                            class="w-full px-3 py-2 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm disabled:bg-subtle disabled:text-muted-foreground disabled:cursor-not-allowed"
                             placeholder={input.type === "file" ? "Not available for file inputs" : "Default value"}
                         />
                     </div>
-                    <div class="col-span-2">
-                        <label
-                            class="block text-sm font-medium text-foreground mb-1"
-                            >Validation</label
-                        >
+                    <div class="col-span-2" data-field>
+                        <label>Validation</label>
                         <input
                             type="text"
                             bind:value={input.validation}
-                            class="w-full px-3 py-2 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm font-mono"
+                            class="mono"
                             placeholder="len(input_name) > 3"
                         />
                     </div>
-                    <div class="flex items-center">
+                    <div class="hstack gap-2">
                         <input
                             type="checkbox"
                             bind:checked={input.required}
-                            class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-input rounded"
                         />
-                        <label class="ml-2 block text-sm text-foreground"
-                            >Required</label
-                        >
+                        <label>Required</label>
                     </div>
                 </div>
 
                 {#if input.type === "select"}
-                    <div class="mt-4 p-3 bg-muted rounded-md space-y-3">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm font-medium text-foreground">Options Source</span>
-                            <div class="flex items-center gap-2">
-                                <span class="text-sm text-muted-foreground">Static</span>
-                                <button
-                                    type="button"
-                                    onclick={() => toggleRemoteOptions(input)}
-                                    class="relative inline-flex h-5 w-9 cursor-pointer rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 {input.useRemoteOptions ? 'bg-primary-500' : 'bg-muted-foreground/30'}"
+                    <div class="options-section">
+                        <div class="hstack justify-between">
+                            <span>Options Source</span>
+                            <div class="hstack gap-2">
+                                <span class="text-lighter">Static</span>
+                                <input
+                                    type="checkbox"
                                     role="switch"
-                                    aria-checked={input.useRemoteOptions ?? false}
-                                >
-                                    <span
-                                        class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform mt-0.5 {input.useRemoteOptions ? 'translate-x-4' : 'translate-x-0.5'}"
-                                    ></span>
-                                </button>
-                                <span class="text-sm text-muted-foreground">Remote API</span>
+                                    checked={input.useRemoteOptions ?? false}
+                                    onchange={() => toggleRemoteOptions(input)}
+                                />
+                                <span class="text-lighter">Remote API</span>
                             </div>
                         </div>
 
                         {#if input.useRemoteOptions}
-                            <div class="space-y-3">
-                                <div class="grid grid-cols-4 gap-2">
-                                    <div class="col-span-1">
-                                        <label class="block text-xs font-medium text-foreground mb-1">Method</label>
-                                        <select
+                            <div class="vstack gap-2 mt-2">
+                                <div class="grid-4">
+                                    <div data-field>
+                                        <label>Method</label>
+                                        <OatSelect
                                             bind:value={input.remote_options.method}
-                                            class="w-full px-2 py-1.5 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-                                        >
-                                            <option value="GET">GET</option>
-                                            <option value="POST">POST</option>
-                                        </select>
+                                            options={[
+                                                { value: 'GET', label: 'GET' },
+                                                { value: 'POST', label: 'POST' }
+                                            ]}
+                                        />
                                     </div>
-                                    <div class="col-span-3">
-                                        <label class="block text-xs font-medium text-foreground mb-1">URL *</label>
+                                    <div class="col-span-3" data-field>
+                                        <label>URL *</label>
                                         <input
                                             type="url"
                                             bind:value={input.remote_options.url}
-                                            class="w-full px-2 py-1.5 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm font-mono"
+                                            class="mono"
                                             placeholder="https://api.example.com/options"
                                             required
                                         />
@@ -274,40 +229,42 @@
                                 </div>
 
                                 <div>
-                                    <div class="flex items-center justify-between mb-1">
-                                        <label class="block text-xs font-medium text-foreground">Headers</label>
+                                    <div class="hstack justify-between mb-2">
+                                        <label>Headers</label>
                                         <button
                                             type="button"
+                                            data-variant="secondary"
+                                            class="add-header-btn"
                                             onclick={() => addRemoteHeader(input)}
-                                            class="text-xs text-primary-600 hover:text-primary-700 font-medium cursor-pointer"
                                         >
                                             + Add Header
                                         </button>
                                     </div>
                                     {#if input.remoteHeaders && input.remoteHeaders.length > 0}
-                                        <div class="space-y-1.5">
+                                        <div class="vstack gap-1">
                                             {#each input.remoteHeaders as header, hi (hi)}
-                                                <div class="flex gap-2 items-center">
+                                                <div class="hstack gap-2">
                                                     <input
                                                         type="text"
                                                         bind:value={header.key}
                                                         oninput={() => syncHeaders(input)}
-                                                        class="flex-1 px-2 py-1.5 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-xs font-mono"
+                                                        class="mono"
                                                         placeholder="Header name"
                                                     />
                                                     <input
                                                         type="text"
                                                         bind:value={header.value}
                                                         oninput={() => syncHeaders(input)}
-                                                        class="flex-1 px-2 py-1.5 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-xs font-mono"
+                                                        class="mono"
                                                         placeholder="Value or {'{{ secrets.KEY }}'}"
                                                     />
                                                     <button
                                                         type="button"
+                                                        data-variant="danger"
+                                                        class="ghost icon small"
                                                         onclick={() => removeRemoteHeader(input, hi)}
-                                                        class="text-muted-foreground hover:text-danger-600 cursor-pointer flex-shrink-0"
                                                     >
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                                         </svg>
                                                     </button>
@@ -315,20 +272,17 @@
                                             {/each}
                                         </div>
                                     {:else}
-                                        <p class="text-xs text-muted-foreground">No headers. Use <code class="font-mono bg-card px-1 rounded">{'{{ secrets.KEY }}'}</code> for interpolation.</p>
+                                        <p class="text-lighter hint">No headers. Use <code>{'{{ secrets.KEY }}'}</code> for interpolation.</p>
                                     {/if}
                                 </div>
                             </div>
                         {:else}
-                            <div>
-                                <label
-                                    class="block text-sm font-medium text-foreground mb-2"
-                                    >Options (one per line)</label
-                                >
+                            <div data-field class="mt-2">
+                                <label>Options (one per line)</label>
                                 <textarea
                                     bind:value={input.optionsText}
                                     oninput={() => updateOptions(input)}
-                                    class="w-full px-3 py-2 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm font-mono h-20"
+                                    class="mono options-textarea"
                                     placeholder="option1&#10;option2&#10;option3"
                                 ></textarea>
                             </div>
@@ -337,45 +291,30 @@
                 {/if}
 
                 {#if input.type === "file"}
-                    <div class="mt-4 p-3 bg-muted rounded-md">
-                        <label
-                            class="block text-sm font-medium text-foreground mb-2"
-                            >Max File Size (MB)</label
-                        >
-                        <input
-                            type="number"
-                            bind:value={input.maxFileSizeMB}
-                            class="w-full px-3 py-2 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-                            placeholder="Leave empty for default (100MB)"
-                            min="1"
-                        />
-                        <p class="text-xs text-muted-foreground mt-1">Optional. Leave empty to use server default.</p>
+                    <div class="options-section mt-4">
+                        <div data-field>
+                            <label>Max File Size (MB)</label>
+                            <input
+                                type="number"
+                                bind:value={input.maxFileSizeMB}
+                                placeholder="Leave empty for default (100MB)"
+                                min="1"
+                            />
+                            <p class="text-lighter hint">Optional. Leave empty to use server default.</p>
+                        </div>
                     </div>
                 {/if}
             </div>
         {/each}
 
         {#if inputs.length === 0}
-            <div class="text-center py-8 text-muted-foreground">
-                <svg
-                    class="mx-auto h-12 w-12 text-muted-foreground mb-3"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
+            <div class="empty-state vstack">
+                <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 <p>No inputs defined yet</p>
                 {#if !disabled}
-                    <button
-                        onclick={addInput}
-                        class="mt-2 text-sm text-primary-600 hover:text-primary-700 font-medium cursor-pointer"
-                    >
+                    <button data-variant="secondary" onclick={addInput}>
                         Add your first input
                     </button>
                 {/if}
@@ -383,3 +322,82 @@
         {/if}
     </div>
 </div>
+
+<style>
+    .input-card {
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        position: relative;
+    }
+    .remove-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        padding: 0.25rem;
+        border: none;
+        background: none;
+    }
+    .grid-3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 1rem;
+    }
+    .grid-4 {
+        display: grid;
+        grid-template-columns: 1fr 3fr;
+        gap: 0.5rem;
+    }
+    .col-span-2 {
+        grid-column: span 2;
+    }
+    .col-span-3 {
+        grid-column: span 3;
+    }
+    .mono {
+        font-family: monospace;
+    }
+    .icon-sm {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+    .icon-btn {
+        padding: 0.25rem;
+        border: none;
+        background: none;
+        flex-shrink: 0;
+    }
+    .options-section {
+        margin-top: 1rem;
+        padding: 0.75rem;
+        background: var(--faint);
+        border-radius: 0.375rem;
+    }
+    .options-textarea {
+        height: 5rem;
+    }
+    .add-header-btn {
+        font-size: 0.75rem;
+        padding: 0.125rem 0.5rem;
+        border: none;
+        background: none;
+    }
+    .hint {
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+    }
+    .mt-2 { margin-top: 0.5rem; }
+    .mt-4 { margin-top: 1rem; }
+    .empty-state {
+        text-align: center;
+        padding: 2rem 1rem;
+        color: var(--muted-foreground);
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .empty-icon {
+        width: 3rem;
+        height: 3rem;
+        color: var(--muted-foreground);
+    }
+</style>

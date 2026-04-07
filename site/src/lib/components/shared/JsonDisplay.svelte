@@ -30,17 +30,17 @@
 </script>
 
 {#if hasData}
-  <div class="bg-card rounded-lg border border-input">
+  <article class="card" style="padding:0">
     <button
-      class="w-full flex items-center justify-between px-6 py-3 hover:bg-muted transition-colors duration-200 cursor-pointer"
+      class="json-toggle"
       onclick={toggleExpanded}
       type="button"
     >
-      <span class="font-bold text-base text-foreground">{title}</span>
-      <div class="flex items-center space-x-2">
-        <span class="text-xs text-muted-foreground bg-subtle px-2 py-1 rounded">JSON</span>
+      <strong>{title}</strong>
+      <div class="hstack gap-2">
+        <span class="badge">JSON</span>
         <svg
-          class="w-4 h-4 text-muted-foreground transition-transform duration-200 {isExpanded ? 'transform rotate-180' : ''}"
+          class="chevron {isExpanded ? 'expanded' : ''}"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -51,9 +51,50 @@
     </button>
 
     {#if isExpanded}
-      <div class="p-4">
-        <pre class="bg-gray-900 dark:bg-gray-950 text-gray-100 p-4 rounded-md text-sm overflow-x-auto font-mono leading-relaxed whitespace-pre-wrap">{jsonString}</pre>
+      <div class="json-content">
+        <pre><code>{jsonString}</code></pre>
       </div>
     {/if}
-  </div>
+  </article>
 {/if}
+
+<style>
+  .json-toggle {
+    all: unset;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: var(--space-2) var(--space-4);
+    box-sizing: border-box;
+  }
+
+  .json-toggle:hover {
+    background: var(--muted);
+  }
+
+  .chevron {
+    width: 1rem;
+    height: 1rem;
+    color: var(--muted-foreground);
+    transition: transform 0.2s;
+  }
+
+  .chevron.expanded {
+    transform: rotate(180deg);
+  }
+
+  .json-content {
+    padding: var(--space-4);
+  }
+
+  pre {
+    padding: var(--space-4);
+    border-radius: var(--radius-medium);
+    font-size: var(--text-7);
+    overflow-x: auto;
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+</style>

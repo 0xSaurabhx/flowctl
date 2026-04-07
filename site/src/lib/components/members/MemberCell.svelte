@@ -5,20 +5,40 @@
   let { row, onClick }: { row: NamespaceMemberResp; onClick?: (member: NamespaceMemberResp) => void } = $props();
 </script>
 
-<div class="flex items-center">
-  <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-3 bg-primary-100">
+<div class="hstack gap-2">
+  <div class="icon-box cell-icon">
     {#if row.subject_type === 'user'}
-      <IconUser class="w-5 h-5 text-primary-600" />
+      <IconUser size={20} />
     {:else}
-      <IconUsers class="w-5 h-5 text-primary-600" />
+      <IconUsers size={20} />
     {/if}
   </div>
-  <div class="transition-colors">
+  <div>
     {#if onClick}
-      <a href="#" class="text-sm hover:underline cursor-pointer hover:text-primary-600 font-medium text-foreground" onclick={(e) => { e.preventDefault(); onClick(row); }}>{row.subject_name}</a>
+      <a href="#" class="cell-link" onclick={(e) => { e.preventDefault(); onClick(row); }}>{row.subject_name}</a>
     {:else}
-      <div class="text-sm font-medium text-foreground">{row.subject_name}</div>
+      <div class="cell-name font-medium">{row.subject_name}</div>
     {/if}
-    <div class="text-sm text-muted-foreground">{row.subject_id}</div>
+    <div class="text-lighter text-sm">{row.subject_id}</div>
   </div>
 </div>
+
+<style>
+  .cell-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  .cell-link {
+    font-size: var(--text-7);
+    font-weight: var(--font-medium);
+    color: var(--primary);
+    text-decoration: none;
+  }
+  .cell-link:hover {
+    color: var(--primary);
+    text-decoration: underline;
+  }
+  .cell-name {
+    font-size: var(--text-7);
+  }
+</style>

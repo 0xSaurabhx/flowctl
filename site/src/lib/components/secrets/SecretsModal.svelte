@@ -17,7 +17,6 @@
 		onClose
 	}: Props = $props();
 
-	// Form state
 	let formData = $state({
 		key: '',
 		value: '',
@@ -25,22 +24,27 @@
 	});
 
 	let loading = $state(false);
+	let dialogEl: HTMLDialogElement;
 
-	// Initialize form data when secretData changes
 	$effect(() => {
 		if (isEditMode && secretData) {
 			formData = {
 				key: secretData.key || '',
-				value: '', // Don't load existing secret value for security
+				value: '',
 				description: secretData.description || ''
 			};
 		} else if (!isEditMode) {
-			// Reset form for new secret
 			formData = {
 				key: '',
 				value: '',
 				description: ''
 			};
+		}
+	});
+
+	$effect(() => {
+		if (dialogEl) {
+			dialogEl.showModal();
 		}
 	});
 
@@ -69,92 +73,84 @@
 	}
 </script>
 
-<!-- Modal overlay -->
-<!-- svelte-ignore a11y_click_events_have_key_events -->
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="fixed inset-0 z-50 flex items-center justify-center bg-overlay" onclick={onClose} role="dialog" aria-modal="true">
-	<!-- Modal content -->
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="bg-card rounded-lg shadow-xl w-full max-w-md mx-4" onclick={(e) => e.stopPropagation()}>
-		<div class="p-6">
-			<h2 class="text-xl font-semibold mb-4 text-foreground">
-				{isEditMode ? 'Edit Secret' : 'Add New Secret'}
-			</h2>
+<dialog bind:this={dialogEl} onclose={onClose}>
+	<form onsubmit={handleSubmit}>
+		<header>
+			<h3>{isEditMode ? 'Edit Secret' : 'Add New Secret'}</h3>
+		</header>
 
-			<form onsubmit={handleSubmit} class="space-y-4">
-				<!-- Secret Key -->
-				<div>
-					<label for="key" class="block text-sm font-medium text-foreground mb-1">
-						Key <span class="text-red-500">*</span>
-					</label>
-					<input
-						type="text"
-						id="key"
-						bind:value={formData.key}
-						required
-						disabled={loading || isEditMode}
-						class="w-full px-3 py-2 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-subtle disabled:text-muted-foreground"
-						placeholder="SECRET_KEY"
-						use:autofocus
-					/>
-					{#if isEditMode}
-						<p class="mt-1 text-xs text-muted-foreground">Key cannot be changed. Delete and recreate the secret to use a different key.</p>
-					{/if}
-				</div>
+		<section>
+			<div data-field>
+				<label for="key">
+					Key <span style="color: var(--danger)">*</span>
+				</label>
+				<input
+					type="text"
+					id="key"
+					bind:value={formData.key}
+					required
+					disabled={loading || isEditMode}
+					placeholder="SECRET_KEY"
+					use:autofocus
+				/>
+				{#if isEditMode}
+					<p class="text-lighter text-xs mt-1">Key cannot be changed. Delete and recreate the secret to use a different key.</p>
+				{/if}
+			</div>
 
-				<!-- Secret Value -->
-				<div>
-					<label for="value" class="block text-sm font-medium text-foreground mb-1">
-						Value <span class="text-red-500">*</span>
-					</label>
-					<textarea
-						id="value"
-						bind:value={formData.value}
-						required
-						disabled={loading}
-						class="w-full px-3 py-2 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none h-32 font-mono text-xs"
-						placeholder={isEditMode ? 'Enter new value to update' : 'Enter value'}
-					></textarea>
-					{#if isEditMode}
-						<p class="mt-1 text-xs text-muted-foreground">Enter a new value to update. Previous value is not shown for security.</p>
-					{/if}
-				</div>
+			<div data-field>
+				<label for="value">
+					Value <span style="color: var(--danger)">*</span>
+				</label>
+				<textarea
+					id="value"
+					bind:value={formData.value}
+					required
+					disabled={loading}
+					class="font-mono text-xs"
+					rows="5"
+					placeholder={isEditMode ? 'Enter new value to update' : 'Enter value'}
+				></textarea>
+				{#if isEditMode}
+					<p class="text-lighter text-xs mt-1">Enter a new value to update. Previous value is not shown for security.</p>
+				{/if}
+			</div>
 
-				<!-- Description -->
-				<div>
-					<label for="description" class="block text-sm font-medium text-foreground mb-1">
-						Description
-					</label>
-					<textarea
-						id="description"
-						bind:value={formData.description}
-						disabled={loading}
-						rows="3"
-						class="w-full px-3 py-2 text-foreground bg-card border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-						placeholder="Optional description"
-					></textarea>
-				</div>
+			<div data-field>
+				<label for="description">Description</label>
+				<textarea
+					id="description"
+					bind:value={formData.description}
+					disabled={loading}
+					rows="3"
+					placeholder="Optional description"
+				></textarea>
+			</div>
+		</section>
 
-				<!-- Action buttons -->
-				<div class="flex justify-end gap-2 pt-4">
-					<button
-						type="button"
-						onclick={onClose}
-						disabled={loading}
-						class="px-4 py-2 text-muted-foreground bg-subtle rounded hover:bg-subtle-hover disabled:opacity-50 cursor-pointer"
-					>
-						Cancel
-					</button>
-					<button
-						type="submit"
-						disabled={loading || !formData.key || !formData.value}
-						class="px-4 py-2 bg-primary-500 text-white rounded hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-					>
-						{loading ? 'Saving...' : isEditMode ? 'Update' : 'Create'}
-					</button>
-				</div>
-			</form>
-		</div>
-	</div>
-</div>
+		<footer>
+			<button
+				type="button"
+				data-variant="secondary"
+				onclick={onClose}
+				disabled={loading}
+			>
+				Cancel
+			</button>
+			<button
+				type="submit"
+				disabled={loading || !formData.key || !formData.value}
+				aria-busy={loading}
+			>
+				{loading ? 'Saving...' : isEditMode ? 'Update' : 'Create'}
+			</button>
+		</footer>
+	</form>
+</dialog>
+
+<style>
+	dialog {
+		max-width: 28rem;
+		width: 100%;
+	}
+</style>

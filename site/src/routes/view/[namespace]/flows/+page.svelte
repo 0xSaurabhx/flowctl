@@ -16,6 +16,7 @@
     } from "$lib/utils/permissions";
     import DeleteModal from "$lib/components/shared/DeleteModal.svelte";
     import GroupEditModal from "$lib/components/shared/GroupEditModal.svelte";
+    import { IconPlus } from "@tabler/icons-svelte";
 
     interface FlowTableRow {
         _kind: 'group' | 'flow';
@@ -299,6 +300,10 @@
         return rows;
     });
 
+    const iconBoxStyle = "flex-shrink: 0; width: 2rem; height: 2rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; background: var(--faint)";
+    const iconStyle = "width: 1rem; height: 1rem; color: var(--primary)";
+    const linkClass = "cell-link";
+
     const columns: TableColumn<FlowTableRow>[] = [
         {
             key: "name",
@@ -307,27 +312,27 @@
             render: (value: string, row: FlowTableRow) => {
                 if (row._kind === 'group') {
                     return `
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0 h-8 w-8 bg-primary-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-4 h-4 text-primary-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                    <div style="display: flex; align-items: center; gap: 0.5rem">
+                        <div style="${iconBoxStyle}">
+                            <svg style="${iconStyle}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
                         </div>
-                        <div class="ml-4">
-                            <a href="/view/${page.params.namespace}/flows?group=${encodeURIComponent(row.prefix)}" class="text-sm hover:text-primary-600 hover:underline font-medium text-foreground">
+                        <div>
+                            <a href="/view/${page.params.namespace}/flows?group=${encodeURIComponent(row.prefix)}" class="${linkClass}">
                                 ${value}
                             </a>
-                            <div class="text-xs text-muted-foreground">${row.flow_count} flow${row.flow_count !== 1 ? 's' : ''}</div>
+                            <div class="text-lighter text-xs">${row.flow_count} flow${row.flow_count !== 1 ? 's' : ''}</div>
                         </div>
                     </div>`;
                 }
                 return `
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 h-8 w-8 bg-primary-100 rounded-lg flex items-center justify-center">
-                        <svg class="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div style="display: flex; align-items: center; gap: 0.5rem">
+                    <div style="${iconBoxStyle}">
+                        <svg style="${iconStyle}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
                     </div>
-                    <div class="ml-4">
-                        <a href="/view/${page.params.namespace}/flows/${row.slug}" class="text-sm hover:text-primary-600 hover:underline font-medium text-foreground">
+                    <div>
+                        <a href="/view/${page.params.namespace}/flows/${row.slug}" class="${linkClass}">
                             ${value}
                         </a>
                     </div>
@@ -339,7 +344,7 @@
             header: "Description",
             render: (value: string) => {
                 if (!value) return '';
-                return `<div class="text-sm text-muted-foreground max-w-xs truncate">${value}</div>`;
+                return `<div style="font-size: 0.875rem; max-width: 20rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted-foreground)">${value}</div>`;
             },
         },
     ];
@@ -413,7 +418,7 @@
 </Header>
 
 <!-- Page Content -->
-<div class="p-12">
+<div class="page-content">
     <PageHeader
         title={activeGroup ? activeGroup : "Flows"}
         subtitle={activeGroup ? `Flows in the ${activeGroup} group` : "Manage and run your workflows"}
@@ -423,7 +428,8 @@
                       label: "Add",
                       onClick: handleAdd,
                       variant: "primary",
-                      icon: '<svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>',
+                      IconComponent: IconPlus,
+                      iconSize: 16,
                   },
               ]
             : []}
@@ -433,9 +439,10 @@
     {#if activeGroup}
         <button
             onclick={navigateToRoot}
-            class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 cursor-pointer"
+            class="back-btn mb-4"
+            data-variant="secondary"
         >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
             </svg>
             Back to all flows
@@ -453,8 +460,10 @@
             : searchValue
                 ? "Try adjusting your search"
                 : "No flows are available in this namespace"}
+        emptyActionLabel={!activeGroup && !searchValue && permissions.canCreate ? "Create your first flow" : undefined}
+        onEmptyAction={!activeGroup && !searchValue && permissions.canCreate ? handleAdd : undefined}
         emptyIcon={`
-        <svg class="mx-auto h-12 w-12 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
         </svg>
       `}
@@ -462,8 +471,8 @@
 
     <!-- Pagination and Count (root view only) -->
     {#if !activeGroup && flows.length > 0}
-        <div class="mt-6 flex items-center justify-between">
-            <div class="text-sm text-foreground">
+        <div class="mt-6 hstack justify-between items-center">
+            <div class="text-light text-sm">
                 Showing {flows.length} of {totalCount} flows
             </div>
             <Pagination
@@ -476,7 +485,7 @@
     {/if}
 
     {#if activeGroup && flows.length > 0}
-        <div class="mt-6 text-sm text-foreground">
+        <div class="mt-6 text-light text-sm">
             {flows.length} flow{flows.length !== 1 ? 's' : ''} in this group
         </div>
     {/if}
@@ -502,3 +511,4 @@
         onClose={cancelEditGroup}
     />
 {/if}
+
