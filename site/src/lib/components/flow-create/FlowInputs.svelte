@@ -124,7 +124,6 @@
                             bind:value={input.name}
                             oninput={(e) => (input.name = sanitizeName(e.currentTarget.value))}
                             placeholder="input_name"
-                            required
                         />
                     </div>
                     <div data-field>
@@ -141,7 +140,6 @@
                                 { value: 'select', label: 'Select' }
                             ]}
                             onchange={() => onInputTypeChange(input)}
-                            required
                         />
                     </div>
                     <div data-field>
@@ -223,7 +221,6 @@
                                             bind:value={input.remote_options.url}
                                             class="mono"
                                             placeholder="https://api.example.com/options"
-                                            required
                                         />
                                     </div>
                                 </div>

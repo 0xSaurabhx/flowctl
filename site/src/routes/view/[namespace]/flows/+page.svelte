@@ -274,33 +274,56 @@
 
     const tableData = $derived.by(() => {
         const rows: FlowTableRow[] = [];
-        if (!activeGroup && !isSearching) {
-            for (const g of groups) {
+
+        if (activeGroup || isSearching) {
+            for (const f of flows) {
                 rows.push({
-                    _kind: 'group',
-                    name: g.prefix,
-                    description: g.description || '',
-                    prefix: g.prefix,
-                    flow_count: g.flow_count,
-                    slug: '',
-                    id: g.id,
-                    step_count: 0,
+                    _kind: 'flow',
+                    name: f.name,
+                    description: f.description,
+                    slug: f.slug,
+                    id: f.id,
+                    prefix: f.prefix,
+                    step_count: f.step_count,
+                    flow_count: 0,
                 });
             }
+        } else {
+            // Build a lookup from the groups API response for metadata (description, flow_count, id)
+            const groupMeta = new Map(groups.map(g => [g.prefix, g]));
+            const seenPrefixes = new Set<string>();
+
+            for (const f of flows) {
+                if (f.prefix) {
+                    if (!seenPrefixes.has(f.prefix)) {
+                        seenPrefixes.add(f.prefix);
+                        const meta = groupMeta.get(f.prefix);
+                        rows.push({
+                            _kind: 'group',
+                            name: f.prefix,
+                            description: meta?.description || '',
+                            prefix: f.prefix,
+                            flow_count: meta?.flow_count ?? 0,
+                            slug: '',
+                            id: meta?.id || '',
+                            step_count: 0,
+                        });
+                    }
+                } else {
+                    rows.push({
+                        _kind: 'flow',
+                        name: f.name,
+                        description: f.description,
+                        slug: f.slug,
+                        id: f.id,
+                        prefix: f.prefix,
+                        step_count: f.step_count,
+                        flow_count: 0,
+                    });
+                }
+            }
         }
-        const visibleFlows = activeGroup || isSearching ? flows : flows.filter(f => !f.prefix);
-        for (const f of visibleFlows) {
-            rows.push({
-                _kind: 'flow',
-                name: f.name,
-                description: f.description,
-                slug: f.slug,
-                id: f.id,
-                prefix: f.prefix,
-                step_count: f.step_count,
-                flow_count: 0,
-            });
-        }
+
         return rows;
     });
 

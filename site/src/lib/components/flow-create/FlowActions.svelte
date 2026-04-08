@@ -227,7 +227,6 @@
                                 value={action.name}
                                 oninput={(e) => updateActionName(action, e.currentTarget.value)}
                                 placeholder="Action Display Name"
-                                required
                             />
                         </div>
 
@@ -239,7 +238,6 @@
                                     options={availableExecutors.map((e: any) => ({ value: e.name, label: e.name }))}
                                     placeholder="Select Executor"
                                     onchange={() => onExecutorChange(action)}
-                                    required
                                 />
                             </div>
                             {#if executorHasCapability(action.executor, 'remote_execution')}

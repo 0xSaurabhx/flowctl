@@ -95,7 +95,6 @@
                 oninput={(e) => updateName(e.currentTarget.value)}
                 placeholder="My Flow Name"
                 disabled={updatemode}
-                required
             />
         </div>
         <div data-field>

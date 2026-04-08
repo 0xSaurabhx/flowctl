@@ -205,6 +205,38 @@
         });
     }
 
+    function validateFlow(): boolean {
+        const errors: string[] = [];
+
+        if (!flow.metadata.name?.trim()) {
+            errors.push("Flow name is required.");
+        }
+
+        for (const [i, action] of flow.actions.entries()) {
+            const label = `Action ${i + 1}`;
+            if (!action.name?.trim()) {
+                errors.push(`${label}: Action name is required.`);
+            }
+            if (!action.executor) {
+                errors.push(`${label} ("${action.name || "Untitled"}"): Executor is required.`);
+            }
+        }
+
+        for (const [i, input] of flow.inputs.entries()) {
+            if (!input.name?.trim()) {
+                errors.push(`Input ${i + 1}: Input name is required.`);
+            }
+        }
+
+        if (errors.length > 0) {
+            validationResult = { success: false, errors };
+            showValidation = true;
+            return false;
+        }
+
+        return true;
+    }
+
     async function updateFlow() {
         saving = true;
 
@@ -407,7 +439,7 @@
                                     <button
                                         type="button"
                                         onclick={() => {
-                                            if (formElement?.reportValidity()) {
+                                            if (validateFlow()) {
                                                 updateFlow();
                                             }
                                         }}

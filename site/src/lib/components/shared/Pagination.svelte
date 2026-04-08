@@ -53,33 +53,41 @@
 
 {#if totalPages > 1}
   <div class="flex justify-center mt-6">
-    <nav class="hstack gap-2">
-      <button
-        onclick={() => handlePageChange(currentPage - 1)}
-        disabled={isPreviousDisabled}
-        data-variant="secondary"
-      >
-        Previous
-      </button>
+    <nav aria-label="Pagination">
+      <menu class="buttons">
+        <li>
+          <button
+            onclick={() => handlePageChange(currentPage - 1)}
+            disabled={isPreviousDisabled}
+            class="outline small"
+          >
+            &larr; Previous
+          </button>
+        </li>
 
-      {#each visiblePages as page}
-        <button
-          onclick={() => handlePageChange(page)}
-          disabled={disabled || loading}
-          data-variant={page === currentPage ? undefined : 'secondary'}
-          aria-current={page === currentPage ? 'page' : undefined}
-        >
-          {page}
-        </button>
-      {/each}
+        {#each visiblePages as page}
+          <li>
+            <button
+              onclick={() => handlePageChange(page)}
+              disabled={disabled || loading}
+              class={page === currentPage ? 'small' : 'outline small'}
+              aria-current={page === currentPage ? 'page' : undefined}
+            >
+              {page}
+            </button>
+          </li>
+        {/each}
 
-      <button
-        onclick={() => handlePageChange(currentPage + 1)}
-        disabled={isNextDisabled}
-        data-variant="secondary"
-      >
-        Next
-      </button>
+        <li>
+          <button
+            onclick={() => handlePageChange(currentPage + 1)}
+            disabled={isNextDisabled}
+            class="outline small"
+          >
+            Next &rarr;
+          </button>
+        </li>
+      </menu>
     </nav>
   </div>
 {/if}
