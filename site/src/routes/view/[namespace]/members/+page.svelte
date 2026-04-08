@@ -4,7 +4,8 @@
 	import type { PageData } from './$types';
 	import PageHeader from '$lib/components/shared/PageHeader.svelte';
 	import Table from '$lib/components/shared/Table.svelte';
-	import MemberCell from '$lib/components/members/MemberCell.svelte';
+	import NameLinkCell from '$lib/components/shared/cells/NameLinkCell.svelte';
+	import MutedTextCell from '$lib/components/shared/cells/MutedTextCell.svelte';
 	import MemberTypeBadge from '$lib/components/members/MemberTypeBadge.svelte';
 	import MemberRoleBadge from '$lib/components/members/MemberRoleBadge.svelte';
 	import MemberModal from '$lib/components/members/MemberModal.svelte';
@@ -15,7 +16,7 @@
 	import { handleInlineError, showSuccess } from '$lib/utils/errorHandling';
 	import type { TableAction } from '$lib/types';
 	import { formatDateTime } from '$lib/utils';
-	import { IconUsers, IconPlus } from '@tabler/icons-svelte';
+	import { IconUsers, IconUser, IconPlus } from '@tabler/icons-svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -60,8 +61,12 @@
 			key: 'subject_name',
 			header: 'Member',
 			sortable: true,
-			component: MemberCell,
-			componentProps: permissions.canUpdate ? { onClick: handleEdit } : {}
+			component: NameLinkCell,
+			componentProps: {
+				getIcon: (row: NamespaceMemberResp) => row.subject_type === 'user' ? IconUser : IconUsers,
+				subtitleKey: 'subject_id',
+				...(permissions.canUpdate ? { onClick: handleEdit } : {})
+			}
 		},
 		{
 			key: 'subject_type',
@@ -79,9 +84,8 @@
 			key: 'created_at',
 			header: 'Added',
 			sortable: true,
-			render: (_value: any, member: NamespaceMemberResp) => `
-			  <span class="cell-muted">${formatDateTime(member.created_at)}</span>
-			`
+			component: MutedTextCell,
+			componentProps: { format: (v: any) => formatDateTime(v) }
 		}
 	]);
 

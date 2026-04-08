@@ -12,6 +12,7 @@
 	import { handleInlineError, showSuccess } from '$lib/utils/errorHandling';
 	import { formatDateTime } from '$lib/utils';
 	import { IconPlus, IconLock } from '@tabler/icons-svelte';
+	import MutedTextCell from '$lib/components/shared/cells/MutedTextCell.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -129,16 +130,15 @@
 		{
 			key: 'description',
 			header: 'Description',
-			render: (value: string) => {
-				if (!value) return '';
-				return `<span class="text-lighter">${value}</span>`;
-			}
+			component: MutedTextCell,
+			componentProps: { lighter: true }
 		},
 		{
 			key: 'created_at',
 			header: 'Created',
 			sortable: true,
-			render: (value: string) => formatDateTime(value)
+			component: MutedTextCell,
+			componentProps: { format: (v: string) => formatDateTime(v) }
 		}
 	];
 

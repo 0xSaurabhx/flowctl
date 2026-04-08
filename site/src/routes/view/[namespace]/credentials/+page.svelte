@@ -14,8 +14,11 @@
     import { DEFAULT_PAGE_SIZE } from "$lib/constants";
     import Header from "$lib/components/shared/Header.svelte";
     import { handleInlineError, showSuccess } from "$lib/utils/errorHandling";
-    import { IconPlus, IconKey } from "@tabler/icons-svelte";
+    import { IconPlus, IconKey, IconShieldCheck, IconLock } from "@tabler/icons-svelte";
     import { formatDateTime } from "$lib/utils";
+    import NameLinkCell from "$lib/components/shared/cells/NameLinkCell.svelte";
+    import BadgeCell from "$lib/components/shared/cells/BadgeCell.svelte";
+    import MutedTextCell from "$lib/components/shared/cells/MutedTextCell.svelte";
 
     let { data }: { data: PageData } = $props();
 
@@ -69,41 +72,30 @@
             key: "name",
             header: "Name",
             sortable: true,
-            render: (_value: any, credential: CredentialResp) => `
-				<div style="display: flex; align-items: center">
-				<div style="width: 2.5rem; height: 2.5rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; margin-right: 0.75rem; background: color-mix(in srgb, var(${credential.key_type === "private_key" ? "--success" : "--warning"}) 15%, transparent)">
-					${
-                        credential.key_type === "private_key"
-                            ? `<svg style="width: 1.25rem; height: 1.25rem; color: var(--success)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>`
-                            : `<svg style="width: 1.25rem; height: 1.25rem; color: var(--warning)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>`
-                    }
-				</div>
-					<div>
-						<a href="#" class="cell-link" onclick="event.preventDefault(); document.dispatchEvent(new CustomEvent('editCredential', {detail: {id: '${credential.id}'}}))">${credential.name}</a>
-						<div class="cell-muted">${credential.id}</div>
-					</div>
-				</div>
-			`,
+            component: NameLinkCell,
+            componentProps: {
+                getIcon: (row: CredentialResp) => row.key_type === "private_key" ? IconShieldCheck : IconLock,
+                iconVariant: (row: CredentialResp) => row.key_type === "private_key" ? "success" : "warning",
+                subtitleKey: "id",
+                onClick: (row: CredentialResp) => handleEdit(row.id)
+            }
         },
         {
             key: "key_type",
             header: "Type",
             sortable: true,
-            render: (_value: any, credential: CredentialResp) => `
-				<span class="badge ${
-                    credential.key_type === "private_key"
-                        ? "success"
-                        : "warning"
-                }">${credential.key_type === "private_key" ? "SSH Key" : "Password"}</span>
-			`,
+            component: BadgeCell,
+            componentProps: {
+                variant: (row: CredentialResp) => row.key_type === "private_key" ? "success" : "warning",
+                label: (row: CredentialResp) => row.key_type === "private_key" ? "SSH Key" : "Password"
+            }
         },
         {
             key: "last_accessed",
             header: "Last Accessed",
             sortable: true,
-            render: (_value: any, credential: CredentialResp) => `
-			  <span class="cell-muted">${formatDateTime(credential.last_accessed, "Never")}</span>
-			`,
+            component: MutedTextCell,
+            componentProps: { format: (v: any) => formatDateTime(v, "Never") }
         },
     ];
 
@@ -267,12 +259,6 @@
         editingCredentialData = null;
     }
 
-    // Handle credential name clicks
-    if (browser) {
-        document.addEventListener("editCredential", ((event: CustomEvent) => {
-            handleEdit(event.detail.id);
-        }) as EventListener);
-    }
 </script>
 
 <svelte:head>

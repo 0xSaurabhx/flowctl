@@ -16,7 +16,9 @@
     } from "$lib/utils/permissions";
     import DeleteModal from "$lib/components/shared/DeleteModal.svelte";
     import GroupEditModal from "$lib/components/shared/GroupEditModal.svelte";
-    import { IconPlus } from "@tabler/icons-svelte";
+    import { IconPlus, IconBolt, IconFolder, IconChevronLeft } from "@tabler/icons-svelte";
+    import NameLinkCell from "$lib/components/shared/cells/NameLinkCell.svelte";
+    import MutedTextCell from "$lib/components/shared/cells/MutedTextCell.svelte";
 
     interface FlowTableRow {
         _kind: 'group' | 'flow';
@@ -300,52 +302,27 @@
         return rows;
     });
 
-    const iconBoxStyle = "flex-shrink: 0; width: 2rem; height: 2rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; background: var(--faint)";
-    const iconStyle = "width: 1rem; height: 1rem; color: var(--primary)";
-    const linkClass = "cell-link";
-
     const columns: TableColumn<FlowTableRow>[] = [
         {
             key: "name",
             header: "Name",
             sortable: true,
-            render: (value: string, row: FlowTableRow) => {
-                if (row._kind === 'group') {
-                    return `
-                    <div style="display: flex; align-items: center; gap: 0.5rem">
-                        <div style="${iconBoxStyle}">
-                            <svg style="${iconStyle}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-                        </div>
-                        <div>
-                            <a href="/view/${page.params.namespace}/flows?group=${encodeURIComponent(row.prefix)}" class="${linkClass}">
-                                ${value}
-                            </a>
-                            <div class="text-lighter text-xs">${row.flow_count} flow${row.flow_count !== 1 ? 's' : ''}</div>
-                        </div>
-                    </div>`;
-                }
-                return `
-                <div style="display: flex; align-items: center; gap: 0.5rem">
-                    <div style="${iconBoxStyle}">
-                        <svg style="${iconStyle}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                        </svg>
-                    </div>
-                    <div>
-                        <a href="/view/${page.params.namespace}/flows/${row.slug}" class="${linkClass}">
-                            ${value}
-                        </a>
-                    </div>
-                </div>`;
-            },
+            component: NameLinkCell,
+            componentProps: {
+                getIcon: (row: FlowTableRow) => row._kind === 'group' ? IconFolder : IconBolt,
+                href: (row: FlowTableRow) => row._kind === 'group'
+                    ? `/view/${page.params.namespace}/flows?group=${encodeURIComponent(row.prefix)}`
+                    : `/view/${page.params.namespace}/flows/${row.slug}`,
+                subtitle: (row: FlowTableRow) => row._kind === 'group'
+                    ? `${row.flow_count} flow${row.flow_count !== 1 ? 's' : ''}`
+                    : undefined,
+            }
         },
         {
             key: "description",
             header: "Description",
-            render: (value: string) => {
-                if (!value) return '';
-                return `<div style="font-size: 0.875rem; max-width: 20rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted-foreground)">${value}</div>`;
-            },
+            component: MutedTextCell,
+            componentProps: { truncate: 40 }
         },
     ];
 
@@ -442,9 +419,7 @@
             class="back-btn mb-4"
             data-variant="secondary"
         >
-            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-            </svg>
+            <IconChevronLeft size={16} />
             Back to all flows
         </button>
     {/if}
@@ -462,11 +437,8 @@
                 : "No flows are available in this namespace"}
         emptyActionLabel={!activeGroup && !searchValue && permissions.canCreate ? "Create your first flow" : undefined}
         onEmptyAction={!activeGroup && !searchValue && permissions.canCreate ? handleAdd : undefined}
-        emptyIcon={`
-        <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-        </svg>
-      `}
+        EmptyIconComponent={IconBolt}
+        emptyIconSize={48}
     />
 
     <!-- Pagination and Count (root view only) -->

@@ -88,10 +88,31 @@ dialog > form > footer {
   gap: var(--space-6);
 }
 
-/* ── Table cell helpers (used by render() template strings) ── */
+/* ── Table cell helpers ── */
 .cell-muted {
   font-size: var(--text-7);
   color: var(--muted-foreground);
+}
+
+.cell-link {
+  font-size: var(--text-7);
+  font-weight: var(--font-medium);
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.cell-link:hover,
+.cell-link-mono:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.cell-link-mono {
+  font-size: var(--text-7);
+  font-family: var(--font-mono);
+  font-weight: var(--font-medium);
+  color: var(--primary);
+  text-decoration: none;
 }
 
 /* ── Icon box used inside selector items & table cells ── */

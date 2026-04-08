@@ -6,8 +6,11 @@
 	import SearchInput from '$lib/components/shared/SearchInput.svelte';
 	import Table from '$lib/components/shared/Table.svelte';
 	import Pagination from '$lib/components/shared/Pagination.svelte';
-	import ExecutionIdCell from '$lib/components/shared/ExecutionIdCell.svelte';
 	import StatusBadge from '$lib/components/shared/StatusBadge.svelte';
+	import LinkCell from '$lib/components/shared/cells/LinkCell.svelte';
+	import MutedTextCell from '$lib/components/shared/cells/MutedTextCell.svelte';
+	import UserAvatarCell from '$lib/components/shared/cells/UserAvatarCell.svelte';
+	import BadgeCell from '$lib/components/shared/cells/BadgeCell.svelte';
 	import { apiClient } from '$lib/apiClient';
 	import type { ExecutionSummary, ExecutionsPaginateResponse } from '$lib/types';
 	import { DEFAULT_PAGE_SIZE } from '$lib/constants';
@@ -60,25 +63,18 @@
 			key: 'flow_name',
 			header: 'Flow Name',
 			sortable: true,
-			render: (_value: any, execution: ExecutionSummary) => `
-					<a href="/view/${data.namespace}/flows/${execution.flow_id}"
-					   class="cell-link"
-					>
-					  ${execution.flow_name}
-					</a>
-			`
+			component: LinkCell,
+			componentProps: { href: (row: ExecutionSummary) => `/view/${data.namespace}/flows/${row.flow_id}` }
 		},
 		{
 			key: 'id',
 			header: 'Exec ID',
-			render: (_value: any, execution: ExecutionSummary) => `
-     			<a
-      				href="/view/${data.namespace}/results/${execution.flow_id}/${execution.id}"
-      				class="cell-link-mono"
-     			>
-                    ${execution.id.substring(0, 8)}
-				</a>
-			`
+			component: LinkCell,
+			componentProps: {
+				href: (row: ExecutionSummary) => `/view/${data.namespace}/results/${row.flow_id}/${row.id}`,
+				mono: true,
+				truncate: 8
+			}
 		},
 		{
 			key: 'status',
@@ -90,45 +86,27 @@
 			key: 'started_at',
 			header: 'Started At',
 			sortable: true,
-			render: (_value: any, execution: ExecutionSummary) => `
-				<span class="cell-muted">${formatDateTime(getStartTime(execution))}</span>
-			`
+			component: MutedTextCell,
+			componentProps: { format: (_v: any, row: ExecutionSummary) => formatDateTime(getStartTime(row)) }
 		},
 		{
 			key: 'duration',
 			header: 'Duration',
-			render: (_value: any, execution: ExecutionSummary) => `
-				<span class="cell-muted">${formatDuration(getStartTime(execution), execution.completed_at)}</span>
-			`
+			component: MutedTextCell,
+			componentProps: { format: (_v: any, row: ExecutionSummary) => formatDuration(getStartTime(row), row.completed_at) }
 		},
 		{
 			key: 'triggered_by',
 			header: 'Triggered By',
 			sortable: true,
-			render: (_value: any, execution: ExecutionSummary) => `
-				<div style="display: flex; align-items: center">
-					<div style="width: 2rem; height: 2rem; border-radius: 50%; background: var(--faint); display: flex; align-items: center; justify-content: center; margin-right: 0.75rem">
-						<svg style="width: 1rem; height: 1rem; color: var(--primary)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-						</svg>
-					</div>
-					<span style="font-size: 0.875rem">${execution.triggered_by || 'System'}</span>
-				</div>
-			`
+			component: UserAvatarCell
 		},
 		{
 			key: 'trigger_type',
 			header: 'Trigger Type',
 			sortable: true,
-			render: (_value: any, execution: ExecutionSummary) => `
-				<span class="badge ${
-					execution.trigger_type === 'manual'
-						? ''
-						: 'success'
-				}">
-					${execution.trigger_type}
-				</span>
-			`
+			component: BadgeCell,
+			componentProps: { variant: (row: ExecutionSummary) => row.trigger_type === 'manual' ? '' : 'success' }
 		}
 	];
 

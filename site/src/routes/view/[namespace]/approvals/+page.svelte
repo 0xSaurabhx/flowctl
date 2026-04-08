@@ -7,7 +7,8 @@
 	import Table from '$lib/components/shared/Table.svelte';
 	import Pagination from '$lib/components/shared/Pagination.svelte';
 	import StatusBadge from '$lib/components/shared/StatusBadge.svelte';
-	import ApprovalIdCell from '$lib/components/approvals/ApprovalIdCell.svelte';
+	import NameLinkCell from '$lib/components/shared/cells/NameLinkCell.svelte';
+	import MutedTextCell from '$lib/components/shared/cells/MutedTextCell.svelte';
 	import StatusFilter from '$lib/components/approvals/StatusFilter.svelte';
 	import ApprovalDetailsModal from '$lib/components/approvals/ApprovalDetailsModal.svelte';
 	import { apiClient } from '$lib/apiClient';
@@ -68,43 +69,40 @@
 
 	// Table configuration
 	let tableColumns = [
-        {
-            key: 'id',
-            header: 'Approval',
-            component: ApprovalIdCell,
-            componentProps: { onClick: handleRowClick }
-        },
+		{
+			key: 'id',
+			header: 'Approval',
+			component: NameLinkCell,
+			componentProps: {
+				icon: IconCircleCheck,
+				nameKey: 'action_id',
+				subtitleKey: 'id',
+				onClick: handleRowClick
+			}
+		},
 		{
 			key: 'flow_name',
 			header: 'Flow Name',
-			sortable: true,
-			render: (_value: any, approval: ApprovalResp) => `
-				<span class="text-sm font-medium">${approval.flow_name}</span>
-			`
+			sortable: true
 		},
 		{
 			key: 'created_at',
 			header: 'Created',
 			sortable: true,
-			render: (_value: any, approval: ApprovalResp) => `
-			    <span class="cell-muted">${formatDateTime(approval.created_at)}</span>
-			`
+			component: MutedTextCell,
+			componentProps: { format: (v: any) => formatDateTime(v) }
 		},
 		{
 			key: 'requested_by',
 			header: 'Requested By',
-			sortable: true,
-			render: (_value: any, approval: ApprovalResp) => `
-				<span class="text-sm font-medium">${approval.requested_by}</span>
-			`
+			sortable: true
 		},
 		{
 			key: 'exec_id',
 			header: 'Execution',
 			sortable: true,
-			render: (_value: any, approval: ApprovalResp) => `
-				<span class="cell-muted font-mono">${approval.exec_id.substring(0, 8)}</span>
-			`
+			component: MutedTextCell,
+			componentProps: { mono: true, truncate: 8 }
 		},
 		{
 			key: 'status',

@@ -1,6 +1,7 @@
 <script lang="ts" generics="T">
     import type { TableColumn, TableAction } from "$lib/types";
     import type { ComponentType } from "svelte";
+    import { IconClipboardList, IconChevronUp, IconChevronDown } from "@tabler/icons-svelte";
 
     type SortDirection = "asc" | "desc" | null;
 
@@ -155,19 +156,9 @@
             {:else if emptyIcon}
                 {@html emptyIcon}
             {:else}
-                <svg
-                    class="empty-icon"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-                    />
-                </svg>
+                <div class="text-light mb-4">
+                    <IconClipboardList size={48} />
+                </div>
             {/if}
             <h3>{emptyMessage}</h3>
             {#if emptyActionLabel && onEmptyAction}
@@ -201,28 +192,8 @@
                                 <span>{column.header}</span>
                                 {#if column.sortable}
                                     <div class="sort-indicators" aria-hidden="true">
-                                        <svg
-                                            class="sort-arrow {sortKey === column.key && sortDirection === 'asc' ? 'active' : ''}"
-                                            fill="currentColor"
-                                            viewBox="0 0 20 20"
-                                        >
-                                            <path
-                                                fill-rule="evenodd"
-                                                d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
-                                                clip-rule="evenodd"
-                                            />
-                                        </svg>
-                                        <svg
-                                            class="sort-arrow sort-arrow-down {sortKey === column.key && sortDirection === 'desc' ? 'active' : ''}"
-                                            fill="currentColor"
-                                            viewBox="0 0 20 20"
-                                        >
-                                            <path
-                                                fill-rule="evenodd"
-                                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                clip-rule="evenodd"
-                                            />
-                                        </svg>
+                                        <IconChevronUp size={14} class="sort-arrow {sortKey === column.key && sortDirection === 'asc' ? 'active' : ''}" />
+                                        <IconChevronDown size={14} class="sort-arrow sort-arrow-down {sortKey === column.key && sortDirection === 'desc' ? 'active' : ''}" />
                                     </div>
                                 {/if}
                             </div>
@@ -322,13 +293,6 @@
         color: var(--muted-foreground);
     }
 
-    .empty-icon {
-        width: 3rem;
-        height: 3rem;
-        color: var(--muted-foreground);
-        margin-bottom: var(--space-3);
-    }
-
     th.sortable {
         cursor: pointer;
         user-select: none;
@@ -374,24 +338,4 @@
         border-width: 0;
     }
 
-    :global(.cell-link) {
-        font-size: var(--text-7);
-        font-weight: var(--font-medium);
-        color: var(--primary);
-        text-decoration: none;
-    }
-
-    :global(.cell-link:hover),
-    :global(.cell-link-mono:hover) {
-        color: var(--primary);
-        text-decoration: underline;
-    }
-
-    :global(.cell-link-mono) {
-        font-size: var(--text-7);
-        font-family: var(--font-mono);
-        font-weight: var(--font-medium);
-        color: var(--primary);
-        text-decoration: none;
-    }
 </style>

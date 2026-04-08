@@ -1,22 +1,22 @@
 <script lang="ts">
+  import { IconLayoutGrid } from '@tabler/icons-svelte';
+  import type { ComponentType } from 'svelte';
+
   let {
     name,
     description,
-    icon = `<svg class="hero-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
-    </svg>`
+    IconComponent = IconLayoutGrid
   }: {
     name: string,
     description?: string,
-    icon?: string
+    IconComponent?: ComponentType
   } = $props();
 </script>
 
-<!-- Hero Section -->
 <div class="hero-section">
   <div class="hero-inner hstack gap-4 items-center">
     <div class="icon-box shrink-0" style="width:2.5rem;height:2.5rem">
-      {@html icon}
+      <IconComponent size={20} />
     </div>
     <div class="flex-1 min-w-0">
       <h1 class="hero-title">{name}</h1>

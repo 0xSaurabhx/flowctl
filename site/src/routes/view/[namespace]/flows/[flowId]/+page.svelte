@@ -18,7 +18,10 @@
     import { permissionChecker } from "$lib/utils/permissions";
     import { formatDateTime, getStartTime } from "$lib/utils";
     import { apiClient } from "$lib/apiClient";
-    import { IconPencil, IconEye } from "@tabler/icons-svelte";
+    import { IconPencil, IconEye, IconInfoCircle, IconX } from "@tabler/icons-svelte";
+    import LinkCell from "$lib/components/shared/cells/LinkCell.svelte";
+    import MutedTextCell from "$lib/components/shared/cells/MutedTextCell.svelte";
+    import BadgeCell from "$lib/components/shared/cells/BadgeCell.svelte";
 
     let { data }: { data: PageData } = $props();
 
@@ -147,28 +150,24 @@
         {
             key: "id",
             header: "Exec ID",
-            render: (value) => `
-        <a
-          href="/view/${namespace}/results/${flowId}/${value}"
-          class="cell-link-mono"
-          style="display: block"
-        >
-          ${value.substring(0, 8)}
-        </a>
-      `,
+            component: LinkCell,
+            componentProps: {
+                href: (row: any) => `/view/${namespace}/results/${flowId}/${row.id}`,
+                mono: true,
+                truncate: 8
+            }
         },
         {
             key: "started_at",
             header: "Started At",
-            width: "w-40",
-            render: (_value, row) =>
-                `<span class="text-lighter text-sm">${formatDateTime(getStartTime(row))}</span>`,
+            component: MutedTextCell,
+            componentProps: { format: (_v: any, row: any) => formatDateTime(getStartTime(row)), lighter: true }
         },
         {
             key: "duration",
             header: "Duration",
-            render: (_value, row) =>
-                `<span class="text-lighter text-sm">${formatDuration(getStartTime(row), row.completed_at)}</span>`,
+            component: MutedTextCell,
+            componentProps: { format: (_v: any, row: any) => formatDuration(getStartTime(row), row.completed_at), lighter: true }
         },
         {
             key: "status",
@@ -178,19 +177,12 @@
         {
             key: "triggered_by",
             header: "Triggered By",
-            width: "w-32",
-            render: (value) =>
-                `<span class="text-sm">${value || "System"}</span>`,
         },
         {
             key: "trigger_type",
             header: "Trigger Type",
-            render: (value, row) =>
-                `<span class="badge ${
-                    row.trigger_type === "manual"
-                        ? ""
-                        : "success"
-                }">${row.trigger_type}</span>`,
+            component: BadgeCell,
+            componentProps: { variant: (row: any) => row.trigger_type === "manual" ? "" : "success" }
         },
     ];
 
@@ -261,9 +253,7 @@
                     <div class="mb-4">
                         <div role="alert" class="hstack gap-2 items-start justify-between">
                             <div class="hstack gap-2 flex-1 items-start">
-                                <svg style="width: 1.25rem; height: 1.25rem; color: var(--primary); margin-top: 0.125rem; flex-shrink: 0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
+                                <IconInfoCircle size={20} style="color: var(--primary); margin-top: 0.125rem; flex-shrink: 0" />
                                 <div class="flex-1">
                                     <h3 class="text-sm font-medium">Rerunning execution</h3>
                                     <p class="text-sm text-light mt-2">
@@ -275,9 +265,7 @@
                                 </div>
                             </div>
                             <button onclick={() => (showRerunBanner = false)} class="ghost icon small" aria-label="Dismiss">
-                                <svg style="width: 1.25rem; height: 1.25rem" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                                <IconX size={20} />
                             </button>
                         </div>
                     </div>
