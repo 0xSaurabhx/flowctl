@@ -38,10 +38,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get previous stable tag
+      - name: Get previous tag for changelog
         id: prev_tag
         run: |
-          PREV=$(git tag --sort=-version:refname | grep -v -e '-beta' -e '-alpha' -e '-rc' | sed -n '2p')
+          CURRENT_TAG=${GITHUB_REF#refs/tags/}
+          if echo "$CURRENT_TAG" | grep -qE '(-beta|-alpha|-rc)'; then
+            # Beta/pre-release: use immediately previous tag (any kind)
+            PREV=$(git tag --sort=-version:refname | sed -n '2p')
+          else
+            # Stable release: use previous stable tag (skip pre-releases)
+            PREV=$(git tag --sort=-version:refname | grep -v -e '-beta' -e '-alpha' -e '-rc' | sed -n '2p')
+          fi
           echo "tag=$PREV" >> $GITHUB_OUTPUT
 
       - name: Run GoReleaser

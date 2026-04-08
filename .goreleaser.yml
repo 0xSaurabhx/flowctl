@@ -88,7 +88,7 @@ docker_manifests:
       - "ghcr.io/cvhariharan/flowctl:{{ .Version }}-arm64"
       - "ghcr.io/cvhariharan/flowctl:{{ .Version }}-armv7"
 
-  - name_template: "ghcr.io/cvhariharan/flowctl:latest"
+  - name_template: "ghcr.io/cvhariharan/flowctl:{{ if .Prerelease }}unstable{{ else }}latest{{ end }}"
     image_templates:
       - "ghcr.io/cvhariharan/flowctl:{{ .Version }}-amd64"
       - "ghcr.io/cvhariharan/flowctl:{{ .Version }}-arm64"
