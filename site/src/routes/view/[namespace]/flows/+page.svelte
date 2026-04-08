@@ -270,9 +270,11 @@
         goToPage(event.detail.page);
     };
 
+    const isSearching = $derived(searchValue.trim().length > 0);
+
     const tableData = $derived.by(() => {
         const rows: FlowTableRow[] = [];
-        if (!activeGroup) {
+        if (!activeGroup && !isSearching) {
             for (const g of groups) {
                 rows.push({
                     _kind: 'group',
@@ -286,7 +288,7 @@
                 });
             }
         }
-        const visibleFlows = activeGroup ? flows : flows.filter(f => !f.prefix);
+        const visibleFlows = activeGroup || isSearching ? flows : flows.filter(f => !f.prefix);
         for (const f of visibleFlows) {
             rows.push({
                 _kind: 'flow',
@@ -315,7 +317,7 @@
                     : `/view/${page.params.namespace}/flows/${row.slug}`,
                 subtitle: (row: FlowTableRow) => row._kind === 'group'
                     ? `${row.flow_count} flow${row.flow_count !== 1 ? 's' : ''}`
-                    : undefined,
+                    : row.prefix ? row.prefix : undefined,
             }
         },
         {
