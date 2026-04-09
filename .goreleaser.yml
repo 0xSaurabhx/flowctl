@@ -100,6 +100,9 @@ checksum:
 snapshot:
   version_template: "{{ incpatch .Version }}-alpha"
 
+release:
+  prerelease: auto
+
 changelog:
   use: github
   format: "{{.SHA}}: {{.Message}} (@{{.AuthorUsername}})"
@@ -111,3 +114,4 @@ changelog:
       - "^ci:"
       - "^chore:"
       - "^wip:"
+      - "^Merge "
