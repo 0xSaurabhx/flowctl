@@ -21,6 +21,7 @@
     import { IconPencil, IconEye, IconInfoCircle, IconX } from "@tabler/icons-svelte";
     import LinkCell from "$lib/components/shared/cells/LinkCell.svelte";
     import MutedTextCell from "$lib/components/shared/cells/MutedTextCell.svelte";
+    import UserAvatarCell from "$lib/components/shared/cells/UserAvatarCell.svelte";
     import BadgeCell from "$lib/components/shared/cells/BadgeCell.svelte";
 
     let { data }: { data: PageData } = $props();
@@ -177,6 +178,7 @@
         {
             key: "triggered_by",
             header: "Triggered By",
+            component: UserAvatarCell,
         },
         {
             key: "trigger_type",
