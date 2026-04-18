@@ -131,7 +131,7 @@
 			key: 'description',
 			header: 'Description',
 			component: MutedTextCell,
-			componentProps: { lighter: true }
+			componentProps: { lighter: true, truncate: 40 }
 		},
 		{
 			key: 'created_at',

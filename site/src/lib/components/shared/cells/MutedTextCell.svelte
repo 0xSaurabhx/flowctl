@@ -16,11 +16,15 @@
   } = $props();
 
   const formatted = $derived(format ? format(value, row) : (value ?? ''));
-  const display = $derived(truncate > 0 && typeof formatted === 'string' ? formatted.substring(0, truncate) : formatted);
+  const isTruncated = $derived(truncate > 0 && typeof formatted === 'string' && formatted.length > truncate);
 </script>
 
 {#if truncate > 0}
-  <span class="{lighter ? 'text-lighter' : 'cell-muted'} {mono ? 'font-mono' : ''}" style="max-width:20rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">{display}</span>
+  <span
+    class="{lighter ? 'text-lighter' : 'cell-muted'} {mono ? 'font-mono' : ''}"
+    style="max-width:20rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block"
+    title={isTruncated ? formatted : undefined}
+  >{formatted}</span>
 {:else}
-  <span class="{lighter ? 'text-lighter' : 'cell-muted'} {mono ? 'font-mono' : ''}">{display}</span>
+  <span class="{lighter ? 'text-lighter' : 'cell-muted'} {mono ? 'font-mono' : ''}">{formatted}</span>
 {/if}
