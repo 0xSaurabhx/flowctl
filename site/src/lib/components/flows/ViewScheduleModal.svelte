@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { autofocus } from '$lib/utils/autofocus';
-	import JsonDisplay from '$lib/components/shared/JsonDisplay.svelte';
-	import type { UserSchedule } from '$lib/types';
+import type { UserSchedule } from '$lib/types';
 
 	interface Props {
 		schedule: UserSchedule;
@@ -40,9 +39,12 @@
 		</article>
 
 		<!-- Schedule Inputs -->
-		<div>
-			<JsonDisplay data={schedule.inputs} title="Inputs" expanded={true} />
-		</div>
+		{#if schedule.inputs}
+			<details open>
+				<summary>Inputs</summary>
+				<pre><code>{JSON.stringify(schedule.inputs, null, 2)}</code></pre>
+			</details>
+		{/if}
 	</section>
 
 	<footer>

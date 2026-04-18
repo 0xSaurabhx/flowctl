@@ -1,7 +1,6 @@
 <script lang="ts">
     import { apiClient } from "$lib/apiClient";
     import type { ApprovalDetailsResp } from "$lib/types";
-    import JsonDisplay from "$lib/components/shared/JsonDisplay.svelte";
     import { handleInlineError } from "$lib/utils/errorHandling";
     import { autofocus } from "$lib/utils/autofocus";
     import { formatDateTime } from "$lib/utils";
@@ -148,10 +147,10 @@
 
                     <!-- Execution Inputs -->
                     {#if approval.inputs}
-                        <div>
-                            <h4>Execution Inputs</h4>
-                            <JsonDisplay data={approval.inputs} />
-                        </div>
+                        <details>
+                            <summary>Inputs</summary>
+                            <pre><code>{JSON.stringify(approval.inputs, null, 2)}</code></pre>
+                        </details>
                     {/if}
                 </div>
             {/if}
@@ -221,10 +220,5 @@
     }
     .capitalize {
         text-transform: capitalize;
-    }
-    h4 {
-        font-size: 1rem;
-        font-weight: 600;
-        margin-bottom: 0.75rem;
     }
 </style>
