@@ -121,6 +121,7 @@
 					id="description"
 					bind:value={formData.description}
 					disabled={loading}
+					readonly={isEditMode}
 					rows="3"
 					placeholder="Optional description"
 				></textarea>
