@@ -197,7 +197,7 @@ func (h *FlowExecutionHandler) executeFlow(ctx context.Context, execID string, p
 	for i := payload.StartingActionIdx; i < len(payload.Workflow.Actions); i++ {
 		action := payload.Workflow.Actions[i]
 
-		res, err := h.executeSingleAction(ctx, action, payload.Workflow.Meta.SrcDir, payload.Input, streamLogger, artifactDir, flowSecrets, outputs, execID, payload.NamespaceID, payload.UserUUID, payload.Workflow.Meta.Namespace)
+		res, err := h.executeSingleAction(ctx, action, payload.Workflow.Meta.SrcDir, payload.Input, streamLogger, artifactDir, flowSecrets, outputs, execID, payload.NamespaceID, payload.UserUUID, payload.Workflow.Meta.Namespace, payload.Workflow.Meta.ID, payload.Workflow.Meta.Name)
 		if err != nil {
 			return err
 		}
@@ -305,7 +305,7 @@ func (h *FlowExecutionHandler) copyFlowFilesToArtifacts(flowDir string, artifact
 }
 
 // executeSingleAction executes a single action within a flow, handling approval and error checkpointing
-func (h *FlowExecutionHandler) executeSingleAction(ctx context.Context, action Action, srcDir string, input map[string]any, streamLogger streamlogger.Logger, artifactDir string, secrets map[string]string, outputs map[string]any, execID string, namespaceID string, userUUID string, namespaceName string) (map[string]string, error) {
+func (h *FlowExecutionHandler) executeSingleAction(ctx context.Context, action Action, srcDir string, input map[string]any, streamLogger streamlogger.Logger, artifactDir string, secrets map[string]string, outputs map[string]any, execID string, namespaceID string, userUUID string, namespaceName string, flowID string, flowName string) (map[string]string, error) {
 	// Check for context cancellation
 	if ctx.Err() != nil {
 		if err := streamLogger.Checkpoint("", "", "execution cancelled", streamlogger.CancelledMessageType); err != nil {
@@ -338,7 +338,7 @@ func (h *FlowExecutionHandler) executeSingleAction(ctx context.Context, action A
 	h.logger.Debug("action retry count", "action", action.ID, "retry", row.RetryCount)
 
 	// Run the action
-	res, err := h.runAction(ctx, execID, action, input, streamLogger, artifactDir, secrets, outputs, userUUID, namespaceName)
+	res, err := h.runAction(ctx, execID, action, input, streamLogger, artifactDir, secrets, outputs, userUUID, namespaceName, flowID, flowName)
 	if err != nil {
 		// Check if the error is due to context cancellation
 		if errors.Is(err, context.Canceled) {
@@ -379,7 +379,7 @@ func processActionResults(results map[string]string, outputs map[string]any) {
 }
 
 // executeOnNode executes an action on a single node and returns the results
-func (h *FlowExecutionHandler) executeOnNode(ctx context.Context, execID string, node Node, action Action, streamLogger streamlogger.Logger, inputVars map[string]any, withConfig []byte, artifactDir string, userUUID string, namespaceName string, allNodes []Node) ExecResults {
+func (h *FlowExecutionHandler) executeOnNode(ctx context.Context, execID string, node Node, action Action, streamLogger streamlogger.Logger, inputVars map[string]any, withConfig []byte, artifactDir string, userUUID string, namespaceName string, flowID string, flowName string, allNodes []Node) ExecResults {
 	// Create a separate executor instance for each node
 	var exec executor.Executor
 	nodeExecutorID := fmt.Sprintf("%s-%s", action.ID, node.Name)
@@ -486,6 +486,11 @@ func (h *FlowExecutionHandler) executeOnNode(ctx context.Context, execID string,
 		NamespaceName: namespaceName,
 		APIKey:        apiKey,
 		APIBaseURL:    h.apiBaseURL,
+		ExecID:        execID,
+		FlowID:        flowID,
+		FlowName:      flowName,
+		ActionID:      action.ID,
+		ActionName:    action.Name,
 		Nodes:         execNodes,
 	})
 
@@ -564,7 +569,7 @@ func (h *FlowExecutionHandler) interpolateVariables(action Action, input map[str
 }
 
 // runAction executes a single action
-func (h *FlowExecutionHandler) runAction(ctx context.Context, execID string, action Action, input map[string]any, streamLogger streamlogger.Logger, artifactDir string, secrets map[string]string, outputs map[string]any, userUUID string, namespaceName string) (map[string]string, error) {
+func (h *FlowExecutionHandler) runAction(ctx context.Context, execID string, action Action, input map[string]any, streamLogger streamlogger.Logger, artifactDir string, secrets map[string]string, outputs map[string]any, userUUID string, namespaceName string, flowID string, flowName string) (map[string]string, error) {
 	streamLogger.SetActionID(action.ID)
 
 	jobCtx, cancel := context.WithTimeout(ctx, h.executionTimeout)
@@ -592,7 +597,7 @@ func (h *FlowExecutionHandler) runAction(ctx context.Context, execID string, act
 		wg.Add(1)
 		go func(node Node) {
 			defer wg.Done()
-			result := h.executeOnNode(jobCtx, execID, node, action, streamLogger, inputVars, withConfig, artifactDir, userUUID, namespaceName, action.On)
+			result := h.executeOnNode(jobCtx, execID, node, action, streamLogger, inputVars, withConfig, artifactDir, userUUID, namespaceName, flowID, flowName, action.On)
 			resChan <- result
 		}(node)
 	}
