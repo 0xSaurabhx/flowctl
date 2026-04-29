@@ -46,11 +46,10 @@ func (h *Handler) HandleGetSchedule(c echo.Context) error {
 		return wrapError(ErrAuthenticationFailed, "could not get user details", err, nil)
 	}
 
-	var req ScheduleGetReq
-	if err := c.Bind(&req); err != nil {
-		return wrapError(ErrInvalidInput, "could not decode request", err, nil)
+	req := ScheduleGetReq{
+		FlowID:     c.Param("flowID"),
+		ScheduleID: c.Param("schedule_id"),
 	}
-
 	if err := h.validate.Struct(req); err != nil {
 		return wrapError(ErrValidationFailed, fmt.Sprintf("request validation failed: %s", formatValidationErrors(err)), err, nil)
 	}
@@ -148,11 +147,10 @@ func (h *Handler) HandleDeleteSchedule(c echo.Context) error {
 		return wrapError(ErrAuthenticationFailed, "could not get user details", err, nil)
 	}
 
-	var req ScheduleGetReq
-	if err := c.Bind(&req); err != nil {
-		return wrapError(ErrInvalidInput, "could not decode request", err, nil)
+	req := ScheduleGetReq{
+		FlowID:     c.Param("flowID"),
+		ScheduleID: c.Param("schedule_id"),
 	}
-
 	if err := h.validate.Struct(req); err != nil {
 		return wrapError(ErrValidationFailed, fmt.Sprintf("request validation failed: %s", formatValidationErrors(err)), err, nil)
 	}

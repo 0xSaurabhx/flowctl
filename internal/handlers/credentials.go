@@ -43,11 +43,7 @@ func (h *Handler) HandleGetCredential(c echo.Context) error {
 		return wrapError(ErrRequiredFieldMissing, "could not get namespace", nil, nil)
 	}
 
-	var req CredentialGetReq
-	if err := c.Bind(&req); err != nil {
-		return wrapError(ErrInvalidInput, "could not decode request", err, nil)
-	}
-
+	req := CredentialGetReq{CredID: c.Param("credID")}
 	if err := h.validate.Struct(req); err != nil {
 		return wrapError(ErrValidationFailed, fmt.Sprintf("request validation failed: %s", formatValidationErrors(err)), err, nil)
 	}
@@ -130,11 +126,7 @@ func (h *Handler) HandleDeleteCredential(c echo.Context) error {
 		return wrapError(ErrRequiredFieldMissing, "could not get namespace", nil, nil)
 	}
 
-	var req CredentialGetReq
-	if err := c.Bind(&req); err != nil {
-		return wrapError(ErrInvalidInput, "could not decode request", err, nil)
-	}
-
+	req := CredentialGetReq{CredID: c.Param("credID")}
 	if err := h.validate.Struct(req); err != nil {
 		return wrapError(ErrValidationFailed, fmt.Sprintf("request validation failed: %s", formatValidationErrors(err)), err, nil)
 	}

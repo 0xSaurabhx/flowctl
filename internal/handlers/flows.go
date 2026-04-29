@@ -224,11 +224,7 @@ func (h *Handler) HandleLogStreaming(c echo.Context) error {
 		return wrapError(ErrRequiredFieldMissing, "could not get namespace", nil, nil)
 	}
 
-	var req LogStreamingReq
-	if err := c.Bind(&req); err != nil {
-		return wrapError(ErrValidationFailed, "invalid request", err, nil)
-	}
-
+	req := LogStreamingReq{LogID: c.Param("logID")}
 	if err := h.validate.Struct(req); err != nil {
 		return wrapError(ErrValidationFailed, fmt.Sprintf("request validation failed: %s", formatValidationErrors(err)), err, nil)
 	}
@@ -310,11 +306,7 @@ func (h *Handler) HandleLogDownload(c echo.Context) error {
 		return wrapError(ErrRequiredFieldMissing, "could not get namespace", nil, nil)
 	}
 
-	var req LogStreamingReq
-	if err := c.Bind(&req); err != nil {
-		return wrapError(ErrValidationFailed, "invalid request", err, nil)
-	}
-
+	req := LogStreamingReq{LogID: c.Param("logID")}
 	if err := h.validate.Struct(req); err != nil {
 		return wrapError(ErrValidationFailed, fmt.Sprintf("request validation failed: %s", formatValidationErrors(err)), err, nil)
 	}
@@ -446,11 +438,7 @@ func (h *Handler) HandleGetFlow(c echo.Context) error {
 		return wrapError(ErrRequiredFieldMissing, "could not get namespace", nil, nil)
 	}
 
-	var req FlowGetReq
-	if err := c.Bind(&req); err != nil {
-		return wrapError(ErrInvalidInput, "could not decode request", err, nil)
-	}
-
+	req := FlowGetReq{FlowID: c.Param("flowID")}
 	if err := h.validate.Struct(req); err != nil {
 		return wrapError(ErrValidationFailed, fmt.Sprintf("request validation failed: %s", formatValidationErrors(err)), err, nil)
 	}
@@ -469,11 +457,7 @@ func (h *Handler) HandleGetExecutionSummary(c echo.Context) error {
 		return wrapError(ErrRequiredFieldMissing, "could not get namespace", nil, nil)
 	}
 
-	var req ExecutionGetReq
-	if err := c.Bind(&req); err != nil {
-		return wrapError(ErrInvalidInput, "could not decode request", err, nil)
-	}
-
+	req := ExecutionGetReq{ExecID: c.Param("execID")}
 	if err := h.validate.Struct(req); err != nil {
 		return wrapError(ErrValidationFailed, fmt.Sprintf("request validation failed: %s", formatValidationErrors(err)), err, nil)
 	}
@@ -606,11 +590,7 @@ func (h *Handler) HandleGetFlowInputs(c echo.Context) error {
 		return wrapError(ErrRequiredFieldMissing, "could not get namespace", nil, nil)
 	}
 
-	var req FlowGetReq
-	if err := c.Bind(&req); err != nil {
-		return wrapError(ErrInvalidInput, "could not decode request", err, nil)
-	}
-
+	req := FlowGetReq{FlowID: c.Param("flowID")}
 	if err := h.validate.Struct(req); err != nil {
 		return wrapError(ErrValidationFailed, fmt.Sprintf("request validation failed: %s", formatValidationErrors(err)), err, nil)
 	}
@@ -651,11 +631,7 @@ func (h *Handler) HandleGetFlowMeta(c echo.Context) error {
 		return wrapError(ErrRequiredFieldMissing, "could not get namespace", nil, nil)
 	}
 
-	var req FlowGetReq
-	if err := c.Bind(&req); err != nil {
-		return wrapError(ErrInvalidInput, "could not decode request", err, nil)
-	}
-
+	req := FlowGetReq{FlowID: c.Param("flowID")}
 	if err := h.validate.Struct(req); err != nil {
 		return wrapError(ErrValidationFailed, fmt.Sprintf("request validation failed: %s", formatValidationErrors(err)), err, nil)
 	}

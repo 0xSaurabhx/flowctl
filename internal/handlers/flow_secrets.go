@@ -43,11 +43,7 @@ func (h *Handler) HandleGetFlowSecret(c echo.Context) error {
 		return wrapError(ErrRequiredFieldMissing, "could not get namespace", nil, nil)
 	}
 
-	var req FlowSecretGetReq
-	if err := c.Bind(&req); err != nil {
-		return wrapError(ErrInvalidInput, "could not decode request", err, nil)
-	}
-
+	req := FlowSecretGetReq{SecretID: c.Param("secretID")}
 	if err := h.validate.Struct(req); err != nil {
 		return wrapError(ErrValidationFailed, fmt.Sprintf("request validation failed: %s", formatValidationErrors(err)), err, nil)
 	}
@@ -66,11 +62,7 @@ func (h *Handler) HandleListFlowSecrets(c echo.Context) error {
 		return wrapError(ErrRequiredFieldMissing, "could not get namespace", nil, nil)
 	}
 
-	var req FlowSecretsListReq
-	if err := c.Bind(&req); err != nil {
-		return wrapError(ErrInvalidInput, "could not decode request", err, nil)
-	}
-
+	req := FlowSecretsListReq{FlowID: c.Param("flowID")}
 	if err := h.validate.Struct(req); err != nil {
 		return wrapError(ErrValidationFailed, fmt.Sprintf("request validation failed: %s", formatValidationErrors(err)), err, nil)
 	}
@@ -122,11 +114,7 @@ func (h *Handler) HandleDeleteFlowSecret(c echo.Context) error {
 		return wrapError(ErrRequiredFieldMissing, "could not get namespace", nil, nil)
 	}
 
-	var req FlowSecretGetReq
-	if err := c.Bind(&req); err != nil {
-		return wrapError(ErrInvalidInput, "could not decode request", err, nil)
-	}
-
+	req := FlowSecretGetReq{SecretID: c.Param("secretID")}
 	if err := h.validate.Struct(req); err != nil {
 		return wrapError(ErrValidationFailed, fmt.Sprintf("request validation failed: %s", formatValidationErrors(err)), err, nil)
 	}

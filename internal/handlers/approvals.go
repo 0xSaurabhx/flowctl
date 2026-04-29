@@ -56,11 +56,7 @@ func (h *Handler) HandleGetApproval(c echo.Context) error {
 		return wrapError(ErrRequiredFieldMissing, "could not get namespace", nil, nil)
 	}
 
-	var req ApprovalGetReq
-	if err := c.Bind(&req); err != nil {
-		return wrapError(ErrInvalidInput, "invalid request", err, nil)
-	}
-
+	req := ApprovalGetReq{ApprovalID: c.Param("approvalID")}
 	if err := h.validate.Struct(req); err != nil {
 		return wrapError(ErrValidationFailed, fmt.Sprintf("request validation failed: %s", formatValidationErrors(err)), err, nil)
 	}
