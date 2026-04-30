@@ -707,7 +707,7 @@
                 {/if}
 
                 {#if Object.keys(results).length > 0}
-                    <details>
+                    <details open>
                         <summary>Outputs</summary>
                         <div>
                             <ExecutionOutputTable {results} />
