@@ -140,9 +140,10 @@
 			<button
 				type="submit"
 				disabled={loading || !formData.key || !formData.value}
-				aria-busy={loading}
 			>
-				{loading ? 'Saving...' : isEditMode ? 'Update' : 'Create'}
+				<span class="hstack gap-2 justify-center" aria-busy={loading} data-spinner="small">
+					{loading ? 'Saving...' : isEditMode ? 'Update' : 'Create'}
+				</span>
 			</button>
 		</footer>
 	</form>

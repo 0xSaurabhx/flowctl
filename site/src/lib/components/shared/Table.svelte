@@ -39,6 +39,7 @@
 
     let sortKey = $state<string | null>(null);
     let sortDirection = $state<SortDirection>(null);
+    const tableId = $props.id();
 
     const getValue = (row: T, column: TableColumn<T>) => {
         const keys = column.key.split(".");
@@ -232,7 +233,7 @@
                                 {#if visibleActions.length > 0}
                                     <ot-dropdown>
                                         <button
-                                            popovertarget="table-actions-{rowIndex}"
+                                            popovertarget="table-actions-{tableId}-{rowIndex}"
                                             class="ghost icon small"
                                             aria-label="Actions"
                                         >
@@ -242,7 +243,7 @@
                                                 <circle cx="10" cy="16" r="1.5" />
                                             </svg>
                                         </button>
-                                        <div popover id="table-actions-{rowIndex}" role="menu">
+                                        <div popover id="table-actions-{tableId}-{rowIndex}" role="menu">
                                             {#each visibleActions as action}
                                                 {#if action.href}
                                                     <a

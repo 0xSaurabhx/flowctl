@@ -224,9 +224,10 @@
             <button
                 type="submit"
                 disabled={loading}
-                aria-busy={loading}
             >
-                {isEditMode ? "Update" : "Create"}
+                <span class="hstack gap-2 justify-center" aria-busy={loading} data-spinner="small">
+                    {isEditMode ? "Update" : "Create"}
+                </span>
             </button>
         </footer>
     </form>

@@ -184,11 +184,12 @@
       <button
         type="submit"
         disabled={loading || (scheduleEnabled && !scheduledAt)}
-        aria-busy={loading}
         class="flex-1"
       >
         {#if loading}
-          {scheduleEnabled ? 'Scheduling...' : 'Starting Flow...'}
+          <span class="hstack gap-2 justify-center" aria-busy="true" data-spinner="small">
+            {scheduleEnabled ? 'Scheduling...' : 'Starting Flow...'}
+          </span>
         {:else if scheduleEnabled}
           <IconClock size={20} />
           Schedule

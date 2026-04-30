@@ -444,9 +444,10 @@
                                             }
                                         }}
                                         disabled={saving}
-                                        aria-busy={saving}
                                     >
-                                        {saving ? "Updating..." : "Update"}
+                                        <span class="hstack gap-2 justify-center" aria-busy={saving} data-spinner="small">
+                                            {saving ? "Updating..." : "Update"}
+                                        </span>
                                     </button>
                                 {/if}
                             </div>

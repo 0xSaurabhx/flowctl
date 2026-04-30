@@ -110,9 +110,10 @@
             <button
                 type="submit"
                 disabled={saving}
-                aria-busy={saving}
             >
-                {isEditMode ? "Update" : "Create"}
+                <span class="hstack gap-2 justify-center" aria-busy={saving} data-spinner="small">
+                    {isEditMode ? "Update" : "Create"}
+                </span>
             </button>
         </footer>
     </form>

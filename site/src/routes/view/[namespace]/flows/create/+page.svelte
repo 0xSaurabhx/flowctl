@@ -340,9 +340,10 @@
                                 }
                             }}
                             disabled={saving}
-                            aria-busy={saving}
                         >
-                            {saving ? "Creating..." : "Create"}
+                            <span class="hstack gap-2 justify-center" aria-busy={saving} data-spinner="small">
+                                {saving ? "Creating..." : "Create"}
+                            </span>
                         </button>
                     </div>
                 </form>

@@ -162,16 +162,18 @@
                     data-variant="secondary"
                     onclick={handleReject}
                     disabled={actionLoading}
-                    aria-busy={actionLoading}
                 >
-                    Reject
+                    <span class="hstack gap-2 justify-center" aria-busy={actionLoading} data-spinner="small">
+                        Reject
+                    </span>
                 </button>
                 <button
                     onclick={handleApprove}
                     disabled={actionLoading}
-                    aria-busy={actionLoading}
                 >
-                    Approve
+                    <span class="hstack gap-2 justify-center" aria-busy={actionLoading} data-spinner="small">
+                        Approve
+                    </span>
                 </button>
             </footer>
         {:else}

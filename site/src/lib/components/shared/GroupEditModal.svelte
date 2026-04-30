@@ -101,9 +101,10 @@
             <button
                 type="submit"
                 disabled={saving}
-                aria-busy={saving}
             >
-                Update
+                <span class="hstack gap-2 justify-center" aria-busy={saving} data-spinner="small">
+                    Update
+                </span>
             </button>
         </footer>
     </form>

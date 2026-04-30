@@ -86,41 +86,21 @@
 				html += '</div>';
 				return html;
 			}
-		},
-		{
-			key: 'actions',
-			header: 'Actions',
-			render: (_value: any, user: UserWithGroups) => {
-				if (user.role === 'superuser') {
-					return '<span class="name-sub">Reserved</span>';
-				}
-
-				return `
-					<div class="action-btns">
-						<button data-action="edit" data-user-id="${user.id}" class="action-edit">Edit</button>
-						<button data-action="delete" data-user-id="${user.id}" data-user-name="${user.name}" class="action-delete">Delete</button>
-					</div>
-				`;
-			}
 		}
 	];
 
-	function handleTableClick(event: MouseEvent) {
-		const target = event.target as HTMLElement;
-		const button = target.closest('button[data-action]');
-
-		if (!button) return;
-
-		const action = button.getAttribute('data-action');
-		const userId = button.getAttribute('data-user-id');
-
-		if (action === 'edit' && userId) {
-			handleEdit(userId);
-		} else if (action === 'delete' && userId) {
-			const userName = button.getAttribute('data-user-name') || '';
-			handleDelete(userId, userName);
+	let tableActions = [
+		{
+			label: 'Edit',
+			onClick: (user: UserWithGroups) => handleEdit(user.id),
+			visible: (user: UserWithGroups) => user.role !== 'superuser',
+		},
+		{
+			label: 'Delete',
+			onClick: (user: UserWithGroups) => handleDelete(user.id, user.name),
+			visible: (user: UserWithGroups) => user.role !== 'superuser',
 		}
-	}
+	];
 
 	async function fetchUsers(filter: string = '', pageNumber: number = 1) {
 		if (!browser) return;
@@ -248,10 +228,11 @@
 </div>
 
 <!-- Users Table -->
-<div class="mb-4" onclick={handleTableClick}>
+<div class="mb-4">
 	<Table
 		data={users}
 		columns={tableColumns}
+		actions={tableActions}
 		{loading}
 		emptyMessage="No users found. Get started by adding your first user."
 	/>
@@ -338,36 +319,5 @@
 	:global(.group-chip.extra) {
 		background: var(--faint);
 		color: var(--foreground);
-	}
-	:global(.action-btns) {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-	:global(.action-edit) {
-		all: unset;
-		cursor: pointer;
-		color: var(--primary);
-		border: 1px solid var(--primary);
-		border-radius: 0.25rem;
-		padding: 0.25rem 0.5rem;
-		font-size: 0.875rem;
-		font-weight: 500;
-	}
-	:global(.action-edit:hover) {
-		background: color-mix(in srgb, var(--primary) 10%, transparent);
-	}
-	:global(.action-delete) {
-		all: unset;
-		cursor: pointer;
-		color: var(--danger);
-		border: 1px solid var(--danger);
-		border-radius: 0.25rem;
-		padding: 0.25rem 0.5rem;
-		font-size: 0.875rem;
-		font-weight: 500;
-	}
-	:global(.action-delete:hover) {
-		background: color-mix(in srgb, var(--danger) 10%, transparent);
 	}
 </style>
