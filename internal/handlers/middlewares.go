@@ -102,6 +102,17 @@ func (h *Handler) authenticateExecutor(c echo.Context) (string, error) {
 	return executorName, nil
 }
 
+func (h *Handler) AuthorizeExecutorOnly() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			if isExecutor, _ := c.Get("is_executor").(bool); isExecutor {
+				return next(c)
+			}
+			return wrapError(ErrForbidden, "only executor access allowed", nil, nil)
+		}
+	}
+}
+
 func (h *Handler) AuthorizeForRole(expectedRole string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {

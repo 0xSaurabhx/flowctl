@@ -107,7 +107,7 @@
                 <button
                     type="button"
                     data-variant="danger"
-                    class="remove-btn"
+                    class="ghost icon small remove-btn"
                     onclick={() => removeInput(index)}
                 >
                     <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -329,11 +329,9 @@
     }
     .remove-btn {
         position: absolute;
-        top: 1rem;
-        right: 1rem;
-        padding: 0.25rem;
-        border: none;
-        background: none;
+        top: var(--space-2);
+        right: var(--space-2);
+        z-index: 1;
     }
     .grid-3 {
         display: grid;

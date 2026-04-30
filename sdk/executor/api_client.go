@@ -86,6 +86,60 @@ func (c *APIClient) do(ctx context.Context, method, path string, body io.Reader,
 	return respBody, nil
 }
 
+type KVEntry struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+// KVSet stores a key-value pair in the given bucket.
+func (c *APIClient) KVSet(ctx context.Context, bucket, key, value string) error {
+	payload, err := json.Marshal(KVEntry{Key: key, Value: value})
+	if err != nil {
+		return fmt.Errorf("kv set: %w", err)
+	}
+	path := fmt.Sprintf("/api/v1/executor/kv/%s", bucket)
+	_, err = c.do(ctx, http.MethodPut, path, strings.NewReader(string(payload)), "application/json")
+	return err
+}
+
+// KVGet retrieves the value for a key in the given bucket.
+func (c *APIClient) KVGet(ctx context.Context, bucket, key string) (string, error) {
+	path := fmt.Sprintf("/api/v1/executor/kv/%s/%s", bucket, key)
+	body, err := c.do(ctx, http.MethodGet, path, nil, "")
+	if err != nil {
+		return "", fmt.Errorf("kv get: %w", err)
+	}
+	var entry KVEntry
+	if err := json.Unmarshal(body, &entry); err != nil {
+		return "", fmt.Errorf("kv get: decode response: %w", err)
+	}
+	return entry.Value, nil
+}
+
+// KVList returns all entries in the given bucket.
+func (c *APIClient) KVList(ctx context.Context, bucket string) ([]KVEntry, error) {
+	path := fmt.Sprintf("/api/v1/executor/kv/%s", bucket)
+	body, err := c.do(ctx, http.MethodGet, path, nil, "")
+	if err != nil {
+		return nil, fmt.Errorf("kv list: %w", err)
+	}
+	var entries []KVEntry
+	if err := json.Unmarshal(body, &entries); err != nil {
+		return nil, fmt.Errorf("kv list: decode response: %w", err)
+	}
+	return entries, nil
+}
+
+// KVDelete removes a key from the given bucket.
+func (c *APIClient) KVDelete(ctx context.Context, bucket, key string) error {
+	path := fmt.Sprintf("/api/v1/executor/kv/%s/%s", bucket, key)
+	_, err := c.do(ctx, http.MethodDelete, path, nil, "")
+	if err != nil {
+		return fmt.Errorf("kv delete: %w", err)
+	}
+	return nil
+}
+
 // TriggerFlow triggers a flow execution via the HTTP API. Params are sent as form-encoded data
 func (c *APIClient) TriggerFlow(ctx context.Context, namespace, flowID string, params map[string]any) (TriggerFlowResponse, error) {
 	form := url.Values{}

@@ -39,6 +39,8 @@ type Querier interface {
 	CreateUserSchedule(ctx context.Context, arg CreateUserScheduleParams) (CronSchedule, error)
 	DeleteAllFlows(ctx context.Context) error
 	DeleteCredential(ctx context.Context, arg DeleteCredentialParams) error
+	DeleteExecutorKV(ctx context.Context, arg DeleteExecutorKVParams) error
+	DeleteExecutorKVByBucket(ctx context.Context, bucket string) error
 	DeleteFlow(ctx context.Context, arg DeleteFlowParams) error
 	DeleteFlowPrefix(ctx context.Context, arg DeleteFlowPrefixParams) error
 	DeleteFlowSecret(ctx context.Context, arg DeleteFlowSecretParams) error
@@ -83,6 +85,7 @@ type Querier interface {
 	GetExecutionByID(ctx context.Context, arg GetExecutionByIDParams) (GetExecutionByIDRow, error)
 	GetExecutionsByFlow(ctx context.Context, arg GetExecutionsByFlowParams) ([]GetExecutionsByFlowRow, error)
 	GetExecutionsByFlowPaginated(ctx context.Context, arg GetExecutionsByFlowPaginatedParams) ([]GetExecutionsByFlowPaginatedRow, error)
+	GetExecutorKV(ctx context.Context, arg GetExecutorKVParams) (ExecutorKvStore, error)
 	GetFlowBySlug(ctx context.Context, arg GetFlowBySlugParams) (Flow, error)
 	GetFlowCountByPrefix(ctx context.Context, prefixID sql.NullInt32) (int64, error)
 	GetFlowFromExecID(ctx context.Context, arg GetFlowFromExecIDParams) (Flow, error)
@@ -138,6 +141,7 @@ type Querier interface {
 	GetUserScheduleByUUID(ctx context.Context, arg GetUserScheduleByUUIDParams) (GetUserScheduleByUUIDRow, error)
 	GetUsersByRole(ctx context.Context, role UserRoleType) ([]User, error)
 	IncrementActionRetry(ctx context.Context, arg IncrementActionRetryParams) (IncrementActionRetryRow, error)
+	ListExecutorKVByBucket(ctx context.Context, bucket string) ([]ExecutorKvStore, error)
 	ListFlowPrefixes(ctx context.Context, argUuid uuid.UUID) ([]FlowPrefix, error)
 	ListFlowSecrets(ctx context.Context, arg ListFlowSecretsParams) ([]ListFlowSecretsRow, error)
 	ListFlows(ctx context.Context, arg ListFlowsParams) ([]ListFlowsRow, error)
@@ -193,6 +197,7 @@ type Querier interface {
 	//   AND cs.created_by = (SELECT id FROM users WHERE users.uuid = $6)
 	// RETURNING cs.*;
 	UpdateUserScheduleByUUID(ctx context.Context, arg UpdateUserScheduleByUUIDParams) (CronSchedule, error)
+	UpsertExecutorKV(ctx context.Context, arg UpsertExecutorKVParams) (ExecutorKvStore, error)
 }
 
 var _ Querier = (*Queries)(nil)

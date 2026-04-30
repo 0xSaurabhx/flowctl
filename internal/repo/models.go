@@ -384,6 +384,16 @@ type ExecutionLog struct {
 	StartedAt       sql.NullTime          `db:"started_at" json:"started_at"`
 }
 
+type ExecutorKvStore struct {
+	ID        int32     `db:"id" json:"id"`
+	Uuid      uuid.UUID `db:"uuid" json:"uuid"`
+	Bucket    string    `db:"bucket" json:"bucket"`
+	Key       string    `db:"key" json:"key"`
+	Value     string    `db:"value" json:"value"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+
 type Flow struct {
 	ID          int32          `db:"id" json:"id"`
 	Slug        string         `db:"slug" json:"slug"`

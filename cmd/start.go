@@ -327,6 +327,11 @@ func startServer(db *sqlx.DB, co *core.Core, metricsManager *metrics.Manager, lo
 	api.POST("/groups", h.HandleCreateGroup, h.AuthorizeForRole("superuser"))
 	api.DELETE("/groups/:groupID", h.HandleDeleteGroup, h.AuthorizeForRole("superuser"))
 
+	api.PUT("/executor/kv/:bucket", h.HandleSetExecutorKV, h.AuthorizeExecutorOnly())
+	api.GET("/executor/kv/:bucket/:key", h.HandleGetExecutorKV, h.AuthorizeExecutorOnly())
+	api.GET("/executor/kv/:bucket", h.HandleListExecutorKV, h.AuthorizeExecutorOnly())
+	api.DELETE("/executor/kv/:bucket/:key", h.HandleDeleteExecutorKV, h.AuthorizeExecutorOnly())
+
 	// No authorization required
 	api.GET("/executors/:executor/config", h.HandleGetExecutorConfig)
 	api.GET("/executors", h.HandleListExecutors)

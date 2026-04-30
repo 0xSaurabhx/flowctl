@@ -1024,3 +1024,8 @@ type ExecutorInfo struct {
 type ExecutorsListResponse struct {
 	Executors []ExecutorInfo `json:"executors"`
 }
+
+type KVEntry struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
