@@ -387,8 +387,10 @@ func (h *FlowExecutionHandler) executeOnNode(ctx context.Context, execID string,
 		nodeExecutorID = action.ID
 	}
 
-	// Reset to local execution if the executor doesn't support remote execution
-	if caps, err := executor.GetCapabilities(action.Executor); err == nil && caps&executor.RemoteExecution == 0 {
+	// Reset to local execution if the executor doesn't support remote execution,
+	// or if the executor dispatches to nodes itself
+	if caps, err := executor.GetCapabilities(action.Executor); err == nil &&
+		(caps&executor.RemoteExecution == 0 || caps&executor.NodeDispatch != 0) {
 		node = Node{}
 	}
 
@@ -590,10 +592,17 @@ func (h *FlowExecutionHandler) runAction(ctx context.Context, execID string, act
 		action.On = append(action.On, Node{})
 	}
 
-	var wg sync.WaitGroup
-	resChan := make(chan ExecResults, len(action.On))
+	// Executors with NodeDispatch capability handle node fan-out themselves
+	// so run them once locally and pass the selected nodes through ExecutionContext
+	dispatchNodes := action.On
+	if caps, err := executor.GetCapabilities(action.Executor); err == nil && caps&executor.NodeDispatch != 0 {
+		dispatchNodes = []Node{{}}
+	}
 
-	for _, node := range action.On {
+	var wg sync.WaitGroup
+	resChan := make(chan ExecResults, len(dispatchNodes))
+
+	for _, node := range dispatchNodes {
 		wg.Add(1)
 		go func(node Node) {
 			defer wg.Done()
