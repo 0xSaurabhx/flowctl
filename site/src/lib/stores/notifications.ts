@@ -18,13 +18,40 @@ const variantMap: Record<NotificationType, string | undefined> = {
 
 function toastNotification(type: NotificationType, title: string, message: string, options?: Partial<Notification>) {
   const duration = options?.duration ?? (type === 'error' ? 0 : 5000);
+  const dismissible = options?.dismissible ?? true;
 
-  if (typeof window !== 'undefined' && typeof (window as any).ot?.toast === 'function') {
-    (window as any).ot.toast(message, title, {
-      variant: variantMap[type],
-      duration
-    });
+  if (typeof window === 'undefined' || typeof (window as any).ot?.toast !== 'function') {
+    return;
   }
+
+  const variant = variantMap[type];
+
+  if (!dismissible) {
+    (window as any).ot.toast(message, title, { variant, duration });
+    return;
+  }
+
+  const el = document.createElement('output');
+  el.className = 'toast';
+  if (variant) el.setAttribute('data-variant', variant);
+
+  const heading = document.createElement('h6');
+  heading.className = 'toast-title';
+  heading.textContent = title;
+  el.appendChild(heading);
+
+  const body = document.createElement('p');
+  body.textContent = message;
+  el.appendChild(body);
+
+  const dismiss = document.createElement('button');
+  dismiss.className = 'small';
+  dismiss.setAttribute('data-variant', 'secondary');
+  dismiss.setAttribute('onclick', "this.closest('.toast').remove()");
+  dismiss.textContent = 'Dismiss';
+  el.appendChild(dismiss);
+
+  (window as any).ot.toast.el(el, { duration });
 }
 
 function createNotificationStore() {
