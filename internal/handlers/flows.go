@@ -700,6 +700,7 @@ func (h *Handler) HandleCreateFlow(c echo.Context) error {
 			Prefix:       req.Meta.Prefix,
 			Namespace:    namespace,
 			AllowOverlap: req.Meta.AllowOverlap,
+			MaxRetries:   req.Meta.MaxRetries,
 		},
 		Inputs:    convertFlowInputsReqToInputs(req.Inputs),
 		Actions:   convertFlowActionsReqToActions(req.Actions),
@@ -749,6 +750,7 @@ func (h *Handler) HandleUpdateFlow(c echo.Context) error {
 	updatedMeta.Prefix = req.Prefix
 	updatedMeta.AllowOverlap = req.AllowOverlap
 	updatedMeta.UserSchedulable = req.UserSchedulable
+	updatedMeta.MaxRetries = req.MaxRetries
 	updatedMeta.Description = req.Description
 
 	flow := models.Flow{
@@ -814,6 +816,7 @@ func (h *Handler) HandleGetFlowConfig(c echo.Context) error {
 			Schedules:       schedules,
 			AllowOverlap:    f.Meta.AllowOverlap,
 			UserSchedulable: f.Meta.UserSchedulable,
+			MaxRetries:      f.Meta.MaxRetries,
 		},
 		Inputs:        convertFlowInputsToInputsReq(f.Inputs),
 		Actions:       convertFlowActionsToActionsReq(f.Actions),

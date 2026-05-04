@@ -135,6 +135,7 @@ export interface FlowMeta {
   namespace: string;
   allow_overlap: boolean;
   user_schedulable: boolean;
+  max_retries: number;
 }
 
 export interface FlowAction {
@@ -513,6 +514,7 @@ export interface FlowMetaReq {
   prefix?: string;
   schedules?: Schedule[];
   allow_overlap?: boolean;
+  max_retries?: number;
 }
 
 export interface RemoteOptionsReq {
@@ -561,6 +563,7 @@ export interface FlowUpdateReq {
   schedules: Schedule[];
   allow_overlap?: boolean;
   user_schedulable?: boolean;
+  max_retries?: number;
   description?: string;
   inputs: FlowInputReq[];
   actions: FlowActionReq[];

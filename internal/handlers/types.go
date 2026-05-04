@@ -430,6 +430,7 @@ type FlowMeta struct {
 	Namespace       string     `json:"namespace"`
 	AllowOverlap    bool       `json:"allow_overlap"`
 	UserSchedulable bool       `json:"user_schedulable"`
+	MaxRetries      int        `json:"max_retries" validate:"omitempty,min=0,max=10"`
 }
 
 func coreSchedulesToSchedules(schedules []models.Schedule) []Schedule {
@@ -453,6 +454,7 @@ func coreFlowMetatoFlowMeta(m models.Metadata, schedules []models.Schedule) Flow
 		Namespace:       m.Namespace,
 		AllowOverlap:    m.AllowOverlap,
 		UserSchedulable: m.UserSchedulable,
+		MaxRetries:      m.MaxRetries,
 	}
 }
 
@@ -723,6 +725,7 @@ type FlowUpdateReq struct {
 	Notify          []Notify        `json:"notify" validate:"omitempty,dive"`
 	AllowOverlap    bool            `json:"allow_overlap"`
 	UserSchedulable bool            `json:"user_schedulable"`
+	MaxRetries      int             `json:"max_retries" validate:"omitempty,min=0,max=10"`
 	Description     string          `json:"description" validate:"max=255,no_html"`
 	Inputs          []FlowInputReq  `json:"inputs" validate:"required,dive"`
 	Actions         []FlowActionReq `json:"actions" validate:"required,dive"`

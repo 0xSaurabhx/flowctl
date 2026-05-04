@@ -150,6 +150,7 @@ type Metadata struct {
 	Description string `yaml:"description"`
 	SrcDir      string `yaml:"-"`
 	Namespace   string `yaml:"namespace"`
+	MaxRetries  int    `yaml:"max_retries"`
 }
 
 type Variable map[string]any

@@ -419,10 +419,19 @@ func (c *Core) queueFlow(ctx context.Context, f models.Flow, input map[string]in
 	}
 
 	// Queue the task using the scheduler
+	maxRetries := f.Meta.MaxRetries
 	if scheduledAt != nil {
-		_, err = c.scheduler.QueueScheduledTask(ctx, scheduler.PayloadTypeFlowExecution, execID, payload, *scheduledAt)
+		if maxRetries > 0 {
+			_, err = c.scheduler.QueueScheduledTaskWithRetries(ctx, scheduler.PayloadTypeFlowExecution, execID, payload, *scheduledAt, maxRetries)
+		} else {
+			_, err = c.scheduler.QueueScheduledTask(ctx, scheduler.PayloadTypeFlowExecution, execID, payload, *scheduledAt)
+		}
 	} else {
-		_, err = c.scheduler.QueueTask(ctx, scheduler.PayloadTypeFlowExecution, execID, payload)
+		if maxRetries > 0 {
+			_, err = c.scheduler.QueueTaskWithRetries(ctx, scheduler.PayloadTypeFlowExecution, execID, payload, maxRetries)
+		} else {
+			_, err = c.scheduler.QueueTask(ctx, scheduler.PayloadTypeFlowExecution, execID, payload)
+		}
 	}
 	if err != nil {
 		return "", err

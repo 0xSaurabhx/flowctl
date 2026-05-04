@@ -110,6 +110,7 @@ type Metadata struct {
 	Prefix          string `yaml:"prefix" huml:"prefix" validate:"omitempty,alphanum_underscore,max=100"`
 	AllowOverlap    bool   `yaml:"allow_overlap" huml:"allow_overlap"`
 	UserSchedulable bool   `yaml:"user_schedulable" huml:"user_schedulable"`
+	MaxRetries      int    `yaml:"max_retries" huml:"max_retries" validate:"omitempty,min=0,max=10"`
 }
 
 type Variable map[string]any
@@ -567,6 +568,7 @@ func ConvertToSchedulerFlow(ctx context.Context, f Flow, namespaceUUID uuid.UUID
 			Description: f.Meta.Description,
 			SrcDir:      f.Meta.SrcDir,
 			Namespace:   f.Meta.Namespace,
+			MaxRetries:  f.Meta.MaxRetries,
 		},
 		Inputs:    inputs,
 		Actions:   actions,

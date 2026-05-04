@@ -36,6 +36,7 @@
             namespace: namespace,
             allow_overlap: false,
             user_schedulable: false,
+            max_retries: 0,
         },
         inputs: [] as any[],
         actions: [] as any[],
@@ -112,6 +113,7 @@
                 namespace: namespace,
                 allow_overlap: config.metadata.allow_overlap || false,
                 user_schedulable: config.metadata.user_schedulable || false,
+                max_retries: config.metadata.max_retries || 0,
             };
 
             // Transform inputs
@@ -248,6 +250,7 @@
                     flow.metadata.schedules?.filter((s) => s.cron.trim()) || [],
                 allow_overlap: flow.metadata.allow_overlap,
                 user_schedulable: flow.metadata.user_schedulable,
+                max_retries: flow.metadata.max_retries || 0,
                 description: flow.metadata.description || undefined,
                 inputs: flow.inputs
                     .filter((i) => i.name)

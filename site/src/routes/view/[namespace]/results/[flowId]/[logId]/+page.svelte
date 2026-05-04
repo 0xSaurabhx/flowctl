@@ -128,6 +128,7 @@
     let flowId = $derived(data.flowId);
     let logId = $derived(data.logId);
     let actions = $derived(data.flowMeta?.actions || []);
+    let flowHasAutoRetry = $derived((data.flowMeta?.meta?.max_retries ?? 0) > 0);
 
     // Transform actions into list items with status
     let actionsList = $derived(
@@ -648,7 +649,7 @@
                           },
                       ]
                     : []),
-                ...(status === "errored" || status === "cancelled"
+                ...((status === "errored" || status === "cancelled") && !flowHasAutoRetry
                     ? [
                           {
                               label: isRetrying ? "Retrying..." : "Retry",

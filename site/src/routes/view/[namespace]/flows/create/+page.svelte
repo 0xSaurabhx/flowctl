@@ -35,6 +35,7 @@
             namespace: namespace,
             allow_overlap: false,
             user_schedulable: false,
+            max_retries: 0,
         },
         inputs: [] as any[],
         actions: [] as any[],
@@ -178,6 +179,7 @@
                         undefined,
                     allow_overlap: flow.metadata.allow_overlap || false,
                     user_schedulable: flow.metadata.user_schedulable || false,
+                    max_retries: flow.metadata.max_retries || 0,
                 },
                 inputs: flow.inputs
                     .filter((i) => i.name)

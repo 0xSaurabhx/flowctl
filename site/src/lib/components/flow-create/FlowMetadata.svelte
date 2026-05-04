@@ -258,6 +258,22 @@
                 <code>0 */6 * * *</code> (every 6 hours)
             </p>
         </div>
+
+        <div data-field class="mt-4">
+            <label for="max-retries">Maximum Retries</label>
+            <input
+                type="number"
+                id="max-retries"
+                min="0"
+                max="10"
+                bind:value={metadata.max_retries}
+            />
+            <p class="text-lighter hint">
+                Number of times to automatically retry the flow on failure.
+                Uses exponential backoff (15s initial delay, up to 5min).
+                Set to 0 to disable auto-retry.
+            </p>
+        </div>
     </div>
 </div>
 
