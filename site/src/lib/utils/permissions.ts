@@ -1,4 +1,5 @@
 import { handleInlineError } from './errorHandling';
+import { apiClient } from '$lib/apiClient';
 
 export interface ResourcePermissions {
   canCreate: boolean;
@@ -107,24 +108,9 @@ export async function permissionChecker(
   };
 
   try {
-    const response = await fetch('/api/v1/permissions/check', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        permissions: actions.map(action => ({
-          resource: resourceType,
-          action,
-          domain
-        }))
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`Permission check failed: ${response.status}`);
-    }
-
-    const data: { results: Record<string, boolean> } = await response.json();
+    const data: { results: Record<string, boolean> } = await apiClient.permissions.check(
+      actions.map(action => ({ resource: resourceType, action, domain }))
+    );
 
     for (const action of actions) {
       const key = `${domain}:${resourceType}:${action}`;

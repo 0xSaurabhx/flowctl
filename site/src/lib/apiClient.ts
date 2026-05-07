@@ -68,11 +68,23 @@ export class ApiError extends Error {
   }
 }
 
+export function getCsrfToken(): string {
+  const match = document.cookie.match(/(?:^|;\s*)_csrf=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : '';
+}
+
 async function baseFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
+  const method = (options.method ?? 'GET').toUpperCase();
+  const csrfHeaders: Record<string, string> =
+    method !== 'GET' && method !== 'HEAD'
+      ? { 'X-CSRF-Token': getCsrfToken() }
+      : {};
+
   const response = await fetch(url, {
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
+      ...csrfHeaders,
       ...options.headers,
     },
     ...options,
@@ -275,7 +287,9 @@ export const apiClient = {
       return baseFetch<FlowTriggerResp>(`/api/v1/${namespace}/trigger/${flowId}`, {
         method: 'POST',
         body: formData,
-        headers: {},
+        // No Content-Type: browser sets it automatically with the correct multipart boundary.
+        // CSRF token is still required and added here explicitly.
+        headers: { 'X-CSRF-Token': getCsrfToken() },
       });
     },
     groups: {
@@ -454,6 +468,15 @@ export const apiClient = {
   // Messengers
   messengers: {
     list: () => baseFetch<Record<string, any>>('/api/v1/messengers'),
+  },
+
+  // Permissions
+  permissions: {
+    check: (permissions: { resource: string; action: string; domain: string }[]) =>
+      baseFetch<{ results: Record<string, boolean> }>('/api/v1/permissions/check', {
+        method: 'POST',
+        body: JSON.stringify({ permissions }),
+      }),
   },
 
   // Utility endpoints
