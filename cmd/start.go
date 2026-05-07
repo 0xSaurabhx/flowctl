@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/casbin/casbin/v2"
@@ -285,6 +286,18 @@ func startServer(db *sqlx.DB, co *core.Core, metricsManager *metrics.Manager, lo
 
 	e := echo.New()
 	e.Use(middleware.Recover())
+	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
+		TokenLookup:    "header:X-CSRF-Token",
+		CookieName:     "_csrf",
+		CookieHTTPOnly: false,
+		CookieSameSite: http.SameSiteStrictMode,
+		Skipper: func(c echo.Context) bool {
+			// Browsers cannot set Authorization headers on cross-origin requests without triggering a
+			// CORS preflight and the server's CORS policy would block that preflight.
+			// A request with an Authorization header that reaches this server is therefore not a browser-initiated forged request
+			return strings.HasPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+		},
+	}))
 
 	if metricsManager != nil {
 		e.Use(metricsManager.HTTPMetricsMiddleware())

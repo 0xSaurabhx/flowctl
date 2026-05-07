@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import type { FlowInput } from '$lib/types';
-  import { ApiError } from '$lib/apiClient';
+  import { ApiError, getCsrfToken } from '$lib/apiClient';
   import { handleInlineError, showSuccess } from '$lib/utils/errorHandling';
   import { getTimezones } from '$lib/utils/timezone';
   import { DateTime } from 'luxon';
@@ -64,7 +64,7 @@
       url += `?scheduled_at=${encodeURIComponent(scheduledAtRFC3339)}`;
     }
 
-    const headers: Record<string, string> = {};
+    const headers: Record<string, string> = { 'X-CSRF-Token': getCsrfToken() };
     if (optionsRequestId) {
       headers['X-Options-Request-ID'] = optionsRequestId;
     }
