@@ -8,7 +8,7 @@ export default defineConfig({
   cacheDir: "node_modules/.vite",
   build: {
     cssCodeSplit: true,
-    minify: 'esbuild',
+    minify: true,
   },
   optimizeDeps: {
     force: false,
