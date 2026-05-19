@@ -289,6 +289,7 @@ func startServer(db *sqlx.DB, co *core.Core, metricsManager *metrics.Manager, lo
 	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
 		TokenLookup:    "header:X-CSRF-Token",
 		CookieName:     "_csrf",
+		CookiePath:     "/",
 		CookieHTTPOnly: false,
 		CookieSameSite: http.SameSiteStrictMode,
 		Skipper: func(c echo.Context) bool {
