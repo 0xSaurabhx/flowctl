@@ -4,32 +4,61 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-serif: "Bitter", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 
-  --background: light-dark(#ffffff, #030712);
-  --foreground: light-dark(#111827, #f9fafb);
-  --card: light-dark(#ffffff, #111827);
-  --card-foreground: light-dark(#111827, #f9fafb);
-  --primary: light-dark(hsl(221.3 97.5% 53.5%), hsl(217 75% 62%));
+  --background: #ffffff;
+  --foreground: #111827;
+  --card: #ffffff;
+  --card-foreground: #111827;
+  --primary: hsl(221.3 97.5% 53.5%);
   --primary-foreground: #fff;
-  --secondary: light-dark(#f3f4f6, #374151);
-  --secondary-foreground: light-dark(#111827, #f9fafb);
-  --muted: light-dark(#f9fafb, #0d1420);
-  --muted-foreground: light-dark(#6b7280, #9ca3af);
-  --faint: light-dark(#f3f4f6, #1f2937);
-  --faint-foreground: light-dark(#9ca3af, #6b7280);
-  --accent: light-dark(#f3f4f6, color-mix(in srgb, hsl(217 75% 62%) 12%, transparent));
-  --border: light-dark(#e5e7eb, #374151);
+  --secondary: #f3f4f6;
+  --secondary-foreground: #111827;
+  --muted: #f9fafb;
+  --muted-foreground: #6b7280;
+  --faint: #f3f4f6;
+  --faint-foreground: #9ca3af;
+  --accent: #f3f4f6;
+  --border: #e5e7eb;
   --ring: var(--primary);
-  --danger: light-dark(hsl(0 72.2% 50.6%), #f4807b);
-  --danger-foreground: light-dark(#fff, #18181b);
-  --success: light-dark(hsl(160 84.1% 39.4%), #6cc070);
-  --success-foreground: light-dark(#fff, #18181b);
-  --warning: light-dark(hsl(37.7 92.1% 50.2%), #f0a030);
-  --warning-foreground: light-dark(#fff, #18181b);
-  --info: light-dark(hsl(199 89% 48%), #5ba8d4);
-  --info-foreground: light-dark(#fff, #18181b);
-  --neutral: light-dark(hsl(220 9% 46%), #8b8fa0);
-  --neutral-foreground: light-dark(#fff, #18181b);
+  --danger: hsl(0 72.2% 50.6%);
+  --danger-foreground: #fff;
+  --success: hsl(160 84.1% 39.4%);
+  --success-foreground: #fff;
+  --warning: hsl(37.7 92.1% 50.2%);
+  --warning-foreground: #fff;
+  --info: hsl(199 89% 48%);
+  --info-foreground: #fff;
+  --neutral: hsl(220 9% 46%);
+  --neutral-foreground: #fff;
   --radius-medium: 0.5rem;
+}
+
+:root[data-theme="dark"],
+body[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #030712;
+  --foreground: #f9fafb;
+  --card: #111827;
+  --card-foreground: #f9fafb;
+  --primary: hsl(217 75% 62%);
+  --primary-foreground: #fff;
+  --secondary: #374151;
+  --secondary-foreground: #f9fafb;
+  --muted: #0d1420;
+  --muted-foreground: #9ca3af;
+  --faint: #1f2937;
+  --faint-foreground: #6b7280;
+  --accent: color-mix(in srgb, hsl(217 75% 62%) 12%, transparent);
+  --border: #374151;
+  --danger: #f4807b;
+  --danger-foreground: #18181b;
+  --success: #6cc070;
+  --success-foreground: #18181b;
+  --warning: #f0a030;
+  --warning-foreground: #18181b;
+  --info: #5ba8d4;
+  --info-foreground: #18181b;
+  --neutral: #8b8fa0;
+  --neutral-foreground: #18181b;
 }
 
 /* Neutralize oat's emboss border on secondary buttons in dark mode */
@@ -152,17 +181,19 @@ dialog > form > footer {
 /* ── Extra badge variants (oat only provides success/warning/danger) ── */
 .badge.info {
   color: var(--info);
-  background-color: light-dark(
-    color-mix(in srgb, var(--info) 10%, transparent),
-    color-mix(in srgb, var(--info) 30%, transparent)
-  );
+  background-color: color-mix(in srgb, var(--info) 10%, transparent);
 }
 .badge.neutral {
   color: var(--neutral);
-  background-color: light-dark(
-    color-mix(in srgb, var(--neutral) 10%, transparent),
-    color-mix(in srgb, var(--neutral) 30%, transparent)
-  );
+  background-color: color-mix(in srgb, var(--neutral) 10%, transparent);
+}
+
+[data-theme="dark"] .badge.info {
+  background-color: color-mix(in srgb, var(--info) 30%, transparent);
+}
+
+[data-theme="dark"] .badge.neutral {
+  background-color: color-mix(in srgb, var(--neutral) 30%, transparent);
 }
 
 /* ── Selector popover (shared by Node/Group/User/Multi selectors) ── */
