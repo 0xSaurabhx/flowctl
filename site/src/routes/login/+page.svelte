@@ -38,7 +38,7 @@
         goto(redirectUrl);
       } else {
         const namespace = await getDefaultNamespace();
-        goto(`/view/${namespace}/flows`);
+        goto(`/view/${encodeURIComponent(namespace)}/flows`);
       }
     } catch (err) {
       handleInlineError(err, 'Unable to Sign In');

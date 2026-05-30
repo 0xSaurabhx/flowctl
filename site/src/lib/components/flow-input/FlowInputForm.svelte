@@ -53,7 +53,7 @@
     const form = event.target as HTMLFormElement;
     const formData = new FormData(form);
 
-    let url = `/api/v1/${namespace}/trigger/${flowId}`;
+    let url = `/api/v1/${encodeURIComponent(namespace)}/trigger/${flowId}`;
     if (scheduleEnabled && scheduledAt) {
       const scheduledAtRFC3339 = toRFC3339(scheduledAt, scheduledTimezone);
       if (new Date(scheduledAtRFC3339) <= new Date()) {
@@ -96,7 +96,7 @@
           scheduledAt = '';
           onScheduled?.();
         } else {
-          goto(`/view/${namespace}/results/${flowId}/${data.exec_id}`);
+          goto(`/view/${encodeURIComponent(namespace)}/results/${flowId}/${data.exec_id}`);
         }
       }
     } catch (error) {

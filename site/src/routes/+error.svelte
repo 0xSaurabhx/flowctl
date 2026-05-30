@@ -65,7 +65,7 @@
   const handleGoHome = async () => {
     if ($isAuthenticated) {
       const namespace = await getDefaultNamespace();
-      goto(`/view/${namespace}/flows`);
+      goto(`/view/${encodeURIComponent(namespace)}/flows`);
     } else {
       goto('/');
     }

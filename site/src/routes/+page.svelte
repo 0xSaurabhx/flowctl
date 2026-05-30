@@ -16,7 +16,7 @@
     }
 
     getDefaultNamespace()
-      .then((namespace) => goto(`/view/${namespace}/flows`))
+      .then((namespace) => goto(`/view/${encodeURIComponent(namespace)}/flows`))
       .catch(() => goto('/login'));
   });
 </script>

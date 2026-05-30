@@ -251,7 +251,7 @@
             );
 
             // Redirect to flow detail page
-            await goto(`/view/${namespace}/flows/${result.id}`);
+            await goto(`/view/${encodeURIComponent(namespace)}/flows/${result.id}`);
         } catch (error: any) {
             handleInlineError(error, "Unable to Create Flow");
         } finally {
@@ -268,8 +268,8 @@
 
 <Header
     breadcrumbs={[
-        { label: namespace, url: `/view/${namespace}/flows` },
-        { label: "Flows", url: `/view/${namespace}/flows` },
+        { label: namespace, url: `/view/${encodeURIComponent(namespace)}/flows` },
+        { label: "Flows", url: `/view/${encodeURIComponent(namespace)}/flows` },
         { label: "Create" },
     ]}
 />
@@ -329,7 +329,7 @@
                     <div class="hstack gap-2 justify-end mt-6">
                         <button
                             type="button"
-                            onclick={() => goto(`/view/${namespace}/flows`)}
+                            onclick={() => goto(`/view/${encodeURIComponent(namespace)}/flows`)}
                             data-variant="secondary"
                         >
                             Cancel

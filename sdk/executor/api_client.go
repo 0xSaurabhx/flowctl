@@ -147,7 +147,7 @@ func (c *APIClient) TriggerFlow(ctx context.Context, namespace, flowID string, p
 		form.Set(k, fmt.Sprintf("%v", v))
 	}
 
-	path := fmt.Sprintf("/api/v1/%s/trigger/%s", namespace, flowID)
+	path := fmt.Sprintf("/api/v1/%s/trigger/%s", url.PathEscape(namespace), flowID)
 	body, err := c.do(ctx, http.MethodPost, path, strings.NewReader(form.Encode()), "application/x-www-form-urlencoded")
 	if err != nil {
 		return TriggerFlowResponse{}, fmt.Errorf("trigger flow: %w", err)
@@ -163,7 +163,7 @@ func (c *APIClient) TriggerFlow(ctx context.Context, namespace, flowID string, p
 
 // GetFlowStatus retrieves the execution status of a flow.
 func (c *APIClient) GetFlowStatus(ctx context.Context, namespace, execID string) (FlowStatusResponse, error) {
-	path := fmt.Sprintf("/api/v1/%s/flows/executions/%s", namespace, execID)
+	path := fmt.Sprintf("/api/v1/%s/flows/executions/%s", url.PathEscape(namespace), execID)
 	body, err := c.do(ctx, http.MethodGet, path, nil, "")
 	if err != nil {
 		return FlowStatusResponse{}, fmt.Errorf("get flow status: %w", err)

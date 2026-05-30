@@ -299,7 +299,7 @@ func coreCredentialArrayToCredentialRespArray(creds []models.Credential) []Crede
 
 // Namespace related types
 type NamespaceReq struct {
-	Name string `json:"name" validate:"required,min=1,max=150,alphanum_underscore"`
+	Name string `json:"name" validate:"required,min=1,max=150,namespace_name"`
 }
 
 type NamespaceResp struct {
@@ -681,16 +681,16 @@ type RemoteOptionsReq struct {
 }
 
 type FlowInputReq struct {
-	Name          string             `json:"name" validate:"required,alphanum_underscore,min=1,max=150"`
-	Type          string             `json:"type" validate:"required,oneof=string number password file datetime checkbox select"`
-	Label         string             `json:"label" validate:"omitempty,max=255"`
-	Description   string             `json:"description" validate:"max=255"`
-	Validation    string             `json:"validation"`
-	Required      bool               `json:"required"`
-	Default       string             `json:"default"`
-	Options       []string           `json:"options"`
-	MaxFileSize   int64              `json:"max_file_size"`
-	RemoteOptions *RemoteOptionsReq  `json:"remote_options,omitempty" validate:"omitempty"`
+	Name          string            `json:"name" validate:"required,alphanum_underscore,min=1,max=150"`
+	Type          string            `json:"type" validate:"required,oneof=string number password file datetime checkbox select"`
+	Label         string            `json:"label" validate:"omitempty,max=255"`
+	Description   string            `json:"description" validate:"max=255"`
+	Validation    string            `json:"validation"`
+	Required      bool              `json:"required"`
+	Default       string            `json:"default"`
+	Options       []string          `json:"options"`
+	MaxFileSize   int64             `json:"max_file_size"`
+	RemoteOptions *RemoteOptionsReq `json:"remote_options,omitempty" validate:"omitempty"`
 }
 
 type FlowActionReq struct {

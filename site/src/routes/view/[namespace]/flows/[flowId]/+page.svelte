@@ -40,7 +40,8 @@
     );
     let userSchedules = $state<any[]>(data.userSchedules || []);
 
-    let namespace = $derived(page.params.namespace);
+    let namespace = $derived(page.params.namespace!);
+    let encodedNamespace = $derived(encodeURIComponent(namespace));
     let flowId = $derived(page.params.flowId);
     let rerunFromExecId = $derived(data.rerunFromExecId);
     let showRerunBanner = $state(!!rerunFromExecId);
@@ -80,7 +81,7 @@
 
         try {
             const response = await fetch(
-                `/api/v1/${namespace}/flows/${flowId}/executions?page=${historyCurrentPage}&count_per_page=${historyItemsPerPage}`,
+                `/api/v1/${encodedNamespace}/flows/${flowId}/executions?page=${historyCurrentPage}&count_per_page=${historyItemsPerPage}`,
                 {
                     credentials: "include",
                 },
@@ -153,7 +154,7 @@
             header: "Exec ID",
             component: LinkCell,
             componentProps: {
-                href: (row: any) => `/view/${namespace}/results/${flowId}/${row.id}`,
+                href: (row: any) => `/view/${encodedNamespace}/results/${flowId}/${row.id}`,
                 mono: true,
                 truncate: 8
             }
@@ -202,10 +203,10 @@
 
 <Header
     breadcrumbs={[
-        { label: namespace!, url: `/view/${namespace}/flows` },
-        { label: "Flows", url: `/view/${namespace}/flows` },
+        { label: namespace, url: `/view/${encodedNamespace}/flows` },
+        { label: "Flows", url: `/view/${encodedNamespace}/flows` },
         ...(data.flowMeta?.meta?.prefix
-            ? [{ label: data.flowMeta.meta.prefix, url: `/view/${namespace}/flows?group=${encodeURIComponent(data.flowMeta.meta.prefix)}` }]
+            ? [{ label: data.flowMeta.meta.prefix, url: `/view/${encodedNamespace}/flows?group=${encodeURIComponent(data.flowMeta.meta.prefix)}` }]
             : []),
         { label: data.flowMeta?.meta?.name || "Loading..." },
     ]}
@@ -216,7 +217,7 @@
                       icon: IconPencil,
                       label: "Edit",
                       onClick: () =>
-                          goto(`/view/${namespace}/flows/${flowId}/edit`),
+                          goto(`/view/${encodedNamespace}/flows/${flowId}/edit`),
                       variant: "primary" as const,
                   },
               ]
@@ -226,7 +227,7 @@
                         icon: IconEye,
                         label: "View Config",
                         onClick: () =>
-                            goto(`/view/${namespace}/flows/${flowId}/edit`),
+                            goto(`/view/${encodedNamespace}/flows/${flowId}/edit`),
                         variant: "secondary" as const,
                     },
                 ]
@@ -260,7 +261,7 @@
                                     <h3 class="text-sm font-medium">Rerunning execution</h3>
                                     <p class="text-sm text-light mt-2">
                                         Inputs have been prepopulated from execution
-                                        <a href="/view/{namespace}/results/{flowId}/{rerunFromExecId}" class="font-mono">
+                                        <a href="/view/{encodedNamespace}/results/{flowId}/{rerunFromExecId}" class="font-mono">
                                             {rerunFromExecId.substring(0, 8)}
                                         </a>
                                     </p>

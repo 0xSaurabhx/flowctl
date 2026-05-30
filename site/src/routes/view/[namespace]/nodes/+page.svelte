@@ -19,6 +19,8 @@
 	import TagsCell from '$lib/components/shared/cells/TagsCell.svelte';
 
 	let { data }: { data: PageData } = $props();
+	const namespace = $derived(page.params.namespace!);
+	const encodedNamespace = $derived(encodeURIComponent(namespace));
 
 	// State
 	let nodes = $state<NodeResp[]>([]);
@@ -261,7 +263,7 @@
 </svelte:head>
 
 <Header breadcrumbs={[
-  { label: page.params.namespace!, url: `/view/${page.params.namespace}/flows` },
+  { label: namespace, url: `/view/${encodedNamespace}/flows` },
   { label: "Nodes" }
 ]}>
   {#snippet children()}
@@ -366,4 +368,3 @@
 		onClose={closeDeleteModal}
 	/>
 {/if}
-

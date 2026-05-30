@@ -161,7 +161,7 @@
         if (ns.name === namespace) return;
         clearPermissionCache();
         selectedNamespace.set(ns.name);
-        window.location.href = `/view/${ns.name}/flows`;
+        window.location.href = `/view/${encodeURIComponent(ns.name)}/flows`;
     };
 
     const toggleCollapse = () => {
@@ -251,37 +251,37 @@
     <nav>
         <ul>
             {#if permissions.flows.canRead}
-                <li><a href="/view/{namespace}/flows" aria-current={isActiveLink("flows") ? "page" : undefined} title={isCollapsed ? "Flows" : ""} class:icon-only={isCollapsed}>
+                <li><a href="/view/{encodeURIComponent(namespace)}/flows" aria-current={isActiveLink("flows") ? "page" : undefined} title={isCollapsed ? "Flows" : ""} class:icon-only={isCollapsed}>
                     <IconGridDots size={20} aria-hidden="true" /> {#if !isCollapsed}Flows{/if}
                 </a></li>
             {/if}
             {#if permissions.nodes.canRead}
-                <li><a href="/view/{namespace}/nodes" aria-current={isActiveLink("nodes") ? "page" : undefined} title={isCollapsed ? "Nodes" : ""} class:icon-only={isCollapsed}>
+                <li><a href="/view/{encodeURIComponent(namespace)}/nodes" aria-current={isActiveLink("nodes") ? "page" : undefined} title={isCollapsed ? "Nodes" : ""} class:icon-only={isCollapsed}>
                     <IconServer size={20} aria-hidden="true" /> {#if !isCollapsed}Nodes{/if}
                 </a></li>
             {/if}
             {#if permissions.credentials.canRead}
-                <li><a href="/view/{namespace}/credentials" aria-current={isActiveLink("credentials") ? "page" : undefined} title={isCollapsed ? "Credentials" : ""} class:icon-only={isCollapsed}>
+                <li><a href="/view/{encodeURIComponent(namespace)}/credentials" aria-current={isActiveLink("credentials") ? "page" : undefined} title={isCollapsed ? "Credentials" : ""} class:icon-only={isCollapsed}>
                     <IconKey size={20} aria-hidden="true" /> {#if !isCollapsed}Credentials{/if}
                 </a></li>
             {/if}
             {#if permissions.secrets.canRead}
-                <li><a href="/view/{namespace}/secrets" aria-current={isActiveLink("secrets") ? "page" : undefined} title={isCollapsed ? "Secrets" : ""} class:icon-only={isCollapsed}>
+                <li><a href="/view/{encodeURIComponent(namespace)}/secrets" aria-current={isActiveLink("secrets") ? "page" : undefined} title={isCollapsed ? "Secrets" : ""} class:icon-only={isCollapsed}>
                     <IconLock size={20} aria-hidden="true" /> {#if !isCollapsed}Secrets{/if}
                 </a></li>
             {/if}
             {#if permissions.members.canRead}
-                <li><a href="/view/{namespace}/members" aria-current={isActiveLink("members") ? "page" : undefined} title={isCollapsed ? "Members" : ""} class:icon-only={isCollapsed}>
+                <li><a href="/view/{encodeURIComponent(namespace)}/members" aria-current={isActiveLink("members") ? "page" : undefined} title={isCollapsed ? "Members" : ""} class:icon-only={isCollapsed}>
                     <IconUsers size={20} aria-hidden="true" /> {#if !isCollapsed}Members{/if}
                 </a></li>
             {/if}
             {#if permissions.approvals.canRead}
-                <li><a href="/view/{namespace}/approvals" aria-current={isActiveLink("approvals") ? "page" : undefined} title={isCollapsed ? "Approvals" : ""} class:icon-only={isCollapsed}>
+                <li><a href="/view/{encodeURIComponent(namespace)}/approvals" aria-current={isActiveLink("approvals") ? "page" : undefined} title={isCollapsed ? "Approvals" : ""} class:icon-only={isCollapsed}>
                     <IconCircleCheck size={20} aria-hidden="true" /> {#if !isCollapsed}Approvals{/if}
                 </a></li>
             {/if}
             {#if permissions.history.canRead}
-                <li><a href="/view/{namespace}/history" aria-current={isActiveLink("history") ? "page" : undefined} title={isCollapsed ? "History" : ""} class:icon-only={isCollapsed}>
+                <li><a href="/view/{encodeURIComponent(namespace)}/history" aria-current={isActiveLink("history") ? "page" : undefined} title={isCollapsed ? "History" : ""} class:icon-only={isCollapsed}>
                     <IconClock size={20} aria-hidden="true" /> {#if !isCollapsed}History{/if}
                 </a></li>
             {/if}

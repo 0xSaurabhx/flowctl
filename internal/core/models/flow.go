@@ -178,6 +178,16 @@ func AlphanumericSpace(fl validator.FieldLevel) bool {
 	return regex.MatchString(value)
 }
 
+func NamespaceName(fl validator.FieldLevel) bool {
+	value := fl.Field().String()
+	if value != strings.TrimSpace(value) {
+		return false
+	}
+
+	regex := regexp.MustCompile(`^[a-zA-Z0-9_ -]+$`)
+	return regex.MatchString(value)
+}
+
 func NoHTML(fl validator.FieldLevel) bool {
 	value := fl.Field().String()
 	return !strings.Contains(value, "<") && !strings.Contains(value, ">")

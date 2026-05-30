@@ -15,6 +15,8 @@
 	import MutedTextCell from '$lib/components/shared/cells/MutedTextCell.svelte';
 
 	let { data }: { data: PageData } = $props();
+	const namespace = $derived(page.params.namespace!);
+	const encodedNamespace = $derived(encodeURIComponent(namespace));
 
 	// State
 	let secrets = $state<NamespaceSecretResp[]>([]);
@@ -162,7 +164,7 @@
 </svelte:head>
 
 <Header breadcrumbs={[
-  { label: page.params.namespace!, url: `/view/${page.params.namespace}/flows` },
+  { label: namespace, url: `/view/${encodedNamespace}/flows` },
   { label: "Secrets" }
 ]}>
 

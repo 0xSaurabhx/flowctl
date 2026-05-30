@@ -19,6 +19,8 @@
 	import { IconUsers, IconUser, IconPlus } from '@tabler/icons-svelte';
 
 	let { data }: { data: PageData } = $props();
+	const namespace = $derived(page.params.namespace!);
+	const encodedNamespace = $derived(encodeURIComponent(namespace));
 
 	// State
 	let members = $state<NamespaceMemberResp[]>([]);
@@ -194,7 +196,7 @@
 </svelte:head>
 
 <Header breadcrumbs={[
-  { label: page.params.namespace!, url: `/view/${page.params.namespace}/flows` },
+  { label: namespace, url: `/view/${encodedNamespace}/flows` },
   { label: "Members" }
 ]}>
 

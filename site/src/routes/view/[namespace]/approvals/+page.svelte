@@ -20,6 +20,8 @@
 	import { IconCircleCheck, IconClock, IconCheck, IconX } from '@tabler/icons-svelte';
 
 	let { data }: { data: PageData } = $props();
+	const namespace = $derived(page.params.namespace!);
+	const encodedNamespace = $derived(encodeURIComponent(namespace));
 
 	// State
 	let approvals = $state<ApprovalResp[]>([]);
@@ -187,7 +189,7 @@
 </svelte:head>
 
 <Header breadcrumbs={[
-  { label: page.params.namespace!, url: `/view/${page.params.namespace}/flows` },
+  { label: namespace, url: `/view/${encodedNamespace}/flows` },
   { label: "Approvals" }
 ]}>
   {#snippet children()}

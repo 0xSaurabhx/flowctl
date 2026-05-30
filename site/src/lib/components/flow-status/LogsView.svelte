@@ -60,7 +60,7 @@
     const downloadLogs = () => {
         if (!logId || !namespace) return;
         const a = document.createElement("a");
-        a.href = `/api/v1/${namespace}/logs/${logId}/download`;
+        a.href = `/api/v1/${encodeURIComponent(namespace)}/logs/${logId}/download`;
         a.download = `${logId}.log`;
         document.body.appendChild(a);
         a.click();

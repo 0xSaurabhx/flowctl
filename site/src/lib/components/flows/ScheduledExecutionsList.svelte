@@ -88,7 +88,7 @@
               </td>
               <td>
                 {#if run.execId}
-                  <a href="/view/{namespace}/results/{flowId}/{run.execId}" style="font-family: var(--font-mono); font-size: var(--text-7)">
+                  <a href="/view/{encodeURIComponent(namespace)}/results/{flowId}/{run.execId}" style="font-family: var(--font-mono); font-size: var(--text-7)">
                     {run.execId.substring(0, 8)}
                   </a>
                 {:else}

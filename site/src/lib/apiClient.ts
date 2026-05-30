@@ -208,31 +208,31 @@ export const apiClient = {
     // Namespace members
     members: {
       list: (namespace: string) =>
-        baseFetch<NamespaceMembersResponse>(`/api/v1/${namespace}/members`),
+        baseFetch<NamespaceMembersResponse>(`/api/v1/${encodeURIComponent(namespace)}/members`),
       add: (namespace: string, member: NamespaceMemberReq) =>
-        baseFetch<void>(`/api/v1/${namespace}/members`, {
+        baseFetch<void>(`/api/v1/${encodeURIComponent(namespace)}/members`, {
           method: 'POST',
           body: JSON.stringify(member),
         }),
       update: (namespace: string, memberId: string, member: Partial<NamespaceMemberReq>) =>
-        baseFetch<void>(`/api/v1/${namespace}/members/${memberId}`, {
+        baseFetch<void>(`/api/v1/${encodeURIComponent(namespace)}/members/${memberId}`, {
           method: 'PUT',
           body: JSON.stringify(member),
         }),
       remove: (namespace: string, memberId: string) =>
-        baseFetch<void>(`/api/v1/${namespace}/members/${memberId}`, {
+        baseFetch<void>(`/api/v1/${encodeURIComponent(namespace)}/members/${memberId}`, {
           method: 'DELETE',
         }),
       groups: {
         list: (namespace: string, memberId: string) =>
-          baseFetch<FlowGroupsResponse>(`/api/v1/${namespace}/members/${memberId}/groups`),
+          baseFetch<FlowGroupsResponse>(`/api/v1/${encodeURIComponent(namespace)}/members/${memberId}/groups`),
         add: (namespace: string, memberId: string, data: { prefix: string }) =>
-          baseFetch<void>(`/api/v1/${namespace}/members/${memberId}/groups`, {
+          baseFetch<void>(`/api/v1/${encodeURIComponent(namespace)}/members/${memberId}/groups`, {
             method: 'POST',
             body: JSON.stringify(data),
           }),
         remove: (namespace: string, memberId: string, group: string) =>
-          baseFetch<void>(`/api/v1/${namespace}/members/${memberId}/groups/${group}`, {
+          baseFetch<void>(`/api/v1/${encodeURIComponent(namespace)}/members/${memberId}/groups/${group}`, {
             method: 'DELETE',
           }),
       },
@@ -241,14 +241,14 @@ export const apiClient = {
     // Namespace group access
     groups: {
       list: (namespace: string) =>
-        baseFetch<Group[]>(`/api/v1/${namespace}/groups`),
+        baseFetch<Group[]>(`/api/v1/${encodeURIComponent(namespace)}/groups`),
       add: (namespace: string, groupAccess: GroupAccessReq) =>
-        baseFetch<void>(`/api/v1/${namespace}/groups`, {
+        baseFetch<void>(`/api/v1/${encodeURIComponent(namespace)}/groups`, {
           method: 'POST',
           body: JSON.stringify(groupAccess),
         }),
       remove: (namespace: string, groupId: string) =>
-        baseFetch<void>(`/api/v1/${namespace}/groups/${groupId}`, {
+        baseFetch<void>(`/api/v1/${encodeURIComponent(namespace)}/groups/${groupId}`, {
           method: 'DELETE',
         }),
     },
@@ -257,34 +257,34 @@ export const apiClient = {
   // Flows
   flows: {
     list: (namespace: string, params: PaginateRequest = {}) =>
-      baseFetch<FlowsPaginateResponse>(`/api/v1/${namespace}/flows${buildQueryString(params)}`),
+      baseFetch<FlowsPaginateResponse>(`/api/v1/${encodeURIComponent(namespace)}/flows${buildQueryString(params)}`),
     create: (namespace: string, flowData: FlowCreateReq) =>
-      baseFetch<FlowCreateResp>(`/api/v1/${namespace}/flows`, {
+      baseFetch<FlowCreateResp>(`/api/v1/${encodeURIComponent(namespace)}/flows`, {
         method: 'POST',
         body: JSON.stringify(flowData),
       }),
     getConfig: (namespace: string, flowId: string) =>
-      baseFetch<FlowCreateReq>(`/api/v1/${namespace}/flows/${flowId}/config`),
+      baseFetch<FlowCreateReq>(`/api/v1/${encodeURIComponent(namespace)}/flows/${flowId}/config`),
     update: (namespace: string, flowId: string, flowData: FlowUpdateReq) =>
-      baseFetch<FlowCreateResp>(`/api/v1/${namespace}/flows/${flowId}`, {
+      baseFetch<FlowCreateResp>(`/api/v1/${encodeURIComponent(namespace)}/flows/${flowId}`, {
         method: 'PUT',
         body: JSON.stringify(flowData),
       }),
     delete: (namespace: string, flowId: string) =>
-      baseFetch<void>(`/api/v1/${namespace}/flows/${flowId}`, {
+      baseFetch<void>(`/api/v1/${encodeURIComponent(namespace)}/flows/${flowId}`, {
         method: 'DELETE',
       }),
     getInputs: (namespace: string, flowId: string) =>
-      baseFetch<FlowInputsResp>(`/api/v1/${namespace}/flows/${flowId}/inputs`),
+      baseFetch<FlowInputsResp>(`/api/v1/${encodeURIComponent(namespace)}/flows/${flowId}/inputs`),
     getMeta: (namespace: string, flowId: string) =>
-      baseFetch<FlowMetaResp>(`/api/v1/${namespace}/flows/${flowId}/meta`),
+      baseFetch<FlowMetaResp>(`/api/v1/${encodeURIComponent(namespace)}/flows/${flowId}/meta`),
     trigger: (namespace: string, flowId: string, inputs: Record<string, any>) => {
       const formData = new FormData();
       Object.entries(inputs).forEach(([key, value]) => {
         formData.append(key, String(value));
       });
       
-      return baseFetch<FlowTriggerResp>(`/api/v1/${namespace}/trigger/${flowId}`, {
+      return baseFetch<FlowTriggerResp>(`/api/v1/${encodeURIComponent(namespace)}/trigger/${flowId}`, {
         method: 'POST',
         body: formData,
         // No Content-Type: browser sets it automatically with the correct multipart boundary.
@@ -294,44 +294,44 @@ export const apiClient = {
     },
     groups: {
       me: (namespace: string) =>
-        baseFetch<FlowGroupsResponse>(`/api/v1/${namespace}/flows/groups/me`),
+        baseFetch<FlowGroupsResponse>(`/api/v1/${encodeURIComponent(namespace)}/flows/groups/me`),
       get: (namespace: string, group: string) =>
-        baseFetch<FlowListResponse>(`/api/v1/${namespace}/flows/groups/${group}`),
+        baseFetch<FlowListResponse>(`/api/v1/${encodeURIComponent(namespace)}/flows/groups/${group}`),
       list: (namespace: string) =>
-        baseFetch<FlowGroupsResponse>(`/api/v1/${namespace}/flows/groups`),
+        baseFetch<FlowGroupsResponse>(`/api/v1/${encodeURIComponent(namespace)}/flows/groups`),
       create: (namespace: string, data: { name: string; description: string }) =>
-        baseFetch<FlowGroupDetail>(`/api/v1/${namespace}/flows/groups`, {
+        baseFetch<FlowGroupDetail>(`/api/v1/${encodeURIComponent(namespace)}/flows/groups`, {
           method: 'POST',
           body: JSON.stringify(data),
         }),
       update: (namespace: string, groupId: string, data: { name: string; description: string }) =>
-        baseFetch<FlowGroupDetail>(`/api/v1/${namespace}/flows/groups/${groupId}`, {
+        baseFetch<FlowGroupDetail>(`/api/v1/${encodeURIComponent(namespace)}/flows/groups/${groupId}`, {
           method: 'PUT',
           body: JSON.stringify(data),
         }),
       delete: (namespace: string, groupId: string) =>
-        baseFetch<void>(`/api/v1/${namespace}/flows/groups/${groupId}`, {
+        baseFetch<void>(`/api/v1/${encodeURIComponent(namespace)}/flows/groups/${groupId}`, {
           method: 'DELETE',
         }),
     },
     schedules: {
       list: (namespace: string, flowId: string, params: PaginateRequest = {}) =>
         baseFetch<SchedulesPaginateResponse>(
-          `/api/v1/${namespace}/flows/${flowId}/schedules${buildQueryString(params)}`
+          `/api/v1/${encodeURIComponent(namespace)}/flows/${flowId}/schedules${buildQueryString(params)}`
         ),
       create: (namespace: string, flowId: string, schedule: ScheduleCreateReq) =>
         baseFetch<{ schedule_id: string }>(
-          `/api/v1/${namespace}/flows/${flowId}/schedules`,
+          `/api/v1/${encodeURIComponent(namespace)}/flows/${flowId}/schedules`,
           { method: 'POST', body: JSON.stringify(schedule) }
         ),
       update: (namespace: string, flowId: string, scheduleId: string, schedule: ScheduleUpdateReq) =>
         baseFetch<{ schedule_id: string }>(
-          `/api/v1/${namespace}/flows/${flowId}/schedules/${scheduleId}`,
+          `/api/v1/${encodeURIComponent(namespace)}/flows/${flowId}/schedules/${scheduleId}`,
           { method: 'PUT', body: JSON.stringify(schedule) }
         ),
       delete: (namespace: string, flowId: string, scheduleId: string) =>
         baseFetch<void>(
-          `/api/v1/${namespace}/flows/${flowId}/schedules/${scheduleId}`,
+          `/api/v1/${encodeURIComponent(namespace)}/flows/${flowId}/schedules/${scheduleId}`,
           { method: 'DELETE' }
         ),
     },
@@ -340,23 +340,23 @@ export const apiClient = {
   // Nodes
   nodes: {
     list: (namespace: string, params: NodePaginateRequest = {}) =>
-      baseFetch<NodesPaginateResponse>(`/api/v1/${namespace}/nodes${buildQueryString(params)}`),
+      baseFetch<NodesPaginateResponse>(`/api/v1/${encodeURIComponent(namespace)}/nodes${buildQueryString(params)}`),
     getStats: (namespace: string) =>
-      baseFetch<NodeStatsResp>(`/api/v1/${namespace}/nodes/stats`),
+      baseFetch<NodeStatsResp>(`/api/v1/${encodeURIComponent(namespace)}/nodes/stats`),
     getById: (namespace: string, id: string) =>
-      baseFetch<NodeResp>(`/api/v1/${namespace}/nodes/${id}`),
+      baseFetch<NodeResp>(`/api/v1/${encodeURIComponent(namespace)}/nodes/${id}`),
     create: (namespace: string, node: NodeReq) =>
-      baseFetch<NodeResp>(`/api/v1/${namespace}/nodes`, {
+      baseFetch<NodeResp>(`/api/v1/${encodeURIComponent(namespace)}/nodes`, {
         method: 'POST',
         body: JSON.stringify(node),
       }),
     update: (namespace: string, id: string, node: Partial<NodeReq>) =>
-      baseFetch<NodeResp>(`/api/v1/${namespace}/nodes/${id}`, {
+      baseFetch<NodeResp>(`/api/v1/${encodeURIComponent(namespace)}/nodes/${id}`, {
         method: 'PUT',
         body: JSON.stringify(node),
       }),
     delete: (namespace: string, id: string) =>
-      baseFetch<void>(`/api/v1/${namespace}/nodes/${id}`, {
+      baseFetch<void>(`/api/v1/${encodeURIComponent(namespace)}/nodes/${id}`, {
         method: 'DELETE',
       }),
   },
@@ -364,21 +364,21 @@ export const apiClient = {
   // Credentials
   credentials: {
     list: (namespace: string, params: PaginateRequest = {}) =>
-      baseFetch<CredentialsPaginateResponse>(`/api/v1/${namespace}/credentials${buildQueryString(params)}`),
+      baseFetch<CredentialsPaginateResponse>(`/api/v1/${encodeURIComponent(namespace)}/credentials${buildQueryString(params)}`),
     getById: (namespace: string, id: string) =>
-      baseFetch<CredentialResp>(`/api/v1/${namespace}/credentials/${id}`),
+      baseFetch<CredentialResp>(`/api/v1/${encodeURIComponent(namespace)}/credentials/${id}`),
     create: (namespace: string, credential: CredentialReq) =>
-      baseFetch<CredentialResp>(`/api/v1/${namespace}/credentials`, {
+      baseFetch<CredentialResp>(`/api/v1/${encodeURIComponent(namespace)}/credentials`, {
         method: 'POST',
         body: JSON.stringify(credential),
       }),
     update: (namespace: string, id: string, credential: Partial<CredentialReq>) =>
-      baseFetch<CredentialResp>(`/api/v1/${namespace}/credentials/${id}`, {
+      baseFetch<CredentialResp>(`/api/v1/${encodeURIComponent(namespace)}/credentials/${id}`, {
         method: 'PUT',
         body: JSON.stringify(credential),
       }),
     delete: (namespace: string, id: string) =>
-      baseFetch<void>(`/api/v1/${namespace}/credentials/${id}`, {
+      baseFetch<void>(`/api/v1/${encodeURIComponent(namespace)}/credentials/${id}`, {
         method: 'DELETE',
       }),
   },
@@ -386,21 +386,21 @@ export const apiClient = {
   // Flow secrets
   flowSecrets: {
     list: (namespace: string, flowId: string) =>
-      baseFetch<FlowSecretResp[]>(`/api/v1/${namespace}/flows/${flowId}/secrets`),
+      baseFetch<FlowSecretResp[]>(`/api/v1/${encodeURIComponent(namespace)}/flows/${flowId}/secrets`),
     getById: (namespace: string, flowId: string, secretId: string) =>
-      baseFetch<FlowSecretResp>(`/api/v1/${namespace}/flows/${flowId}/secrets/${secretId}`),
+      baseFetch<FlowSecretResp>(`/api/v1/${encodeURIComponent(namespace)}/flows/${flowId}/secrets/${secretId}`),
     create: (namespace: string, flowId: string, secret: FlowSecretReq) =>
-      baseFetch<FlowSecretResp>(`/api/v1/${namespace}/flows/${flowId}/secrets`, {
+      baseFetch<FlowSecretResp>(`/api/v1/${encodeURIComponent(namespace)}/flows/${flowId}/secrets`, {
         method: 'POST',
         body: JSON.stringify(secret),
       }),
     update: (namespace: string, flowId: string, secretId: string, secret: FlowSecretUpdateReq) =>
-      baseFetch<FlowSecretResp>(`/api/v1/${namespace}/flows/${flowId}/secrets/${secretId}`, {
+      baseFetch<FlowSecretResp>(`/api/v1/${encodeURIComponent(namespace)}/flows/${flowId}/secrets/${secretId}`, {
         method: 'PUT',
         body: JSON.stringify(secret),
       }),
     delete: (namespace: string, flowId: string, secretId: string) =>
-      baseFetch<void>(`/api/v1/${namespace}/flows/${flowId}/secrets/${secretId}`, {
+      baseFetch<void>(`/api/v1/${encodeURIComponent(namespace)}/flows/${flowId}/secrets/${secretId}`, {
         method: 'DELETE',
       }),
   },
@@ -408,21 +408,21 @@ export const apiClient = {
   // Namespace secrets
   namespaceSecrets: {
     list: (namespace: string) =>
-      baseFetch<NamespaceSecretResp[]>(`/api/v1/${namespace}/secrets`),
+      baseFetch<NamespaceSecretResp[]>(`/api/v1/${encodeURIComponent(namespace)}/secrets`),
     getById: (namespace: string, secretId: string) =>
-      baseFetch<NamespaceSecretResp>(`/api/v1/${namespace}/secrets/${secretId}`),
+      baseFetch<NamespaceSecretResp>(`/api/v1/${encodeURIComponent(namespace)}/secrets/${secretId}`),
     create: (namespace: string, secret: NamespaceSecretReq) =>
-      baseFetch<NamespaceSecretResp>(`/api/v1/${namespace}/secrets`, {
+      baseFetch<NamespaceSecretResp>(`/api/v1/${encodeURIComponent(namespace)}/secrets`, {
         method: 'POST',
         body: JSON.stringify(secret),
       }),
     update: (namespace: string, secretId: string, secret: NamespaceSecretUpdateReq) =>
-      baseFetch<NamespaceSecretResp>(`/api/v1/${namespace}/secrets/${secretId}`, {
+      baseFetch<NamespaceSecretResp>(`/api/v1/${encodeURIComponent(namespace)}/secrets/${secretId}`, {
         method: 'PUT',
         body: JSON.stringify(secret),
       }),
     delete: (namespace: string, secretId: string) =>
-      baseFetch<void>(`/api/v1/${namespace}/secrets/${secretId}`, {
+      baseFetch<void>(`/api/v1/${encodeURIComponent(namespace)}/secrets/${secretId}`, {
         method: 'DELETE',
       }),
   },
@@ -430,11 +430,11 @@ export const apiClient = {
   // Approvals
   approvals: {
     list: (namespace: string, params: ApprovalPaginateRequest = {}) =>
-      baseFetch<ApprovalsPaginateResponse>(`/api/v1/${namespace}/approvals${buildQueryString(params)}`),
+      baseFetch<ApprovalsPaginateResponse>(`/api/v1/${encodeURIComponent(namespace)}/approvals${buildQueryString(params)}`),
     get: (namespace: string, approvalId: string) =>
-      baseFetch<ApprovalDetailsResp>(`/api/v1/${namespace}/approvals/${approvalId}`),
+      baseFetch<ApprovalDetailsResp>(`/api/v1/${encodeURIComponent(namespace)}/approvals/${approvalId}`),
     action: (namespace: string, approvalId: string, action: ApprovalActionReq) =>
-      baseFetch<ApprovalActionResp>(`/api/v1/${namespace}/approvals/${approvalId}`, {
+      baseFetch<ApprovalActionResp>(`/api/v1/${encodeURIComponent(namespace)}/approvals/${approvalId}`, {
         method: 'POST',
         body: JSON.stringify(action),
       }),
@@ -443,17 +443,17 @@ export const apiClient = {
   // Executions/History
   executions: {
     list: (namespace: string, params: PaginateRequest = {}) =>
-      baseFetch<ExecutionsPaginateResponse>(`/api/v1/${namespace}/flows/executions${buildQueryString(params)}`),
+      baseFetch<ExecutionsPaginateResponse>(`/api/v1/${encodeURIComponent(namespace)}/flows/executions${buildQueryString(params)}`),
     getById: (namespace: string, execId: string) =>
-      baseFetch<ExecutionSummary>(`/api/v1/${namespace}/flows/executions/${execId}`),
+      baseFetch<ExecutionSummary>(`/api/v1/${encodeURIComponent(namespace)}/flows/executions/${execId}`),
     listForFlow: (namespace: string, flowId: string, params: PaginateRequest = {}) =>
-      baseFetch<ExecutionsPaginateResponse>(`/api/v1/${namespace}/flows/${flowId}/executions${buildQueryString(params)}`),
+      baseFetch<ExecutionsPaginateResponse>(`/api/v1/${encodeURIComponent(namespace)}/flows/${flowId}/executions${buildQueryString(params)}`),
     cancel: (namespace: string, execId: string) =>
-      baseFetch<{message: string; execID: string}>(`/api/v1/${namespace}/flows/executions/${execId}/cancel`, {
+      baseFetch<{message: string; execID: string}>(`/api/v1/${encodeURIComponent(namespace)}/flows/executions/${execId}/cancel`, {
         method: 'POST',
       }),
     retry: (namespace: string, execId: string) =>
-      baseFetch<void>(`/api/v1/${namespace}/flows/executions/${execId}/retry`, {
+      baseFetch<void>(`/api/v1/${encodeURIComponent(namespace)}/flows/executions/${execId}/retry`, {
         method: 'POST',
       }),
   },

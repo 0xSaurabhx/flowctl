@@ -32,6 +32,8 @@
     }
 
     let { data } = $props();
+    const namespace = $derived(page.params.namespace!);
+    const encodedNamespace = $derived(encodeURIComponent(namespace));
     let searchValue = $state("");
     let flows = $state<FlowListItem[]>([]);
     let groups = $state<FlowGroupResp[]>([]);
@@ -113,7 +115,7 @@
     });
 
     const goToEditFlow = (flowSlug: string) => {
-        goto(`/view/${page.params.namespace}/flows/${flowSlug}/edit`);
+        goto(`/view/${encodedNamespace}/flows/${flowSlug}/edit`);
     };
 
     const handleDeleteFlow = (flow: FlowTableRow) => {
@@ -205,21 +207,21 @@
     };
 
     const handleAdd = () => {
-        goto(`/view/${page.params.namespace}/flows/create`);
+        goto(`/view/${encodedNamespace}/flows/create`);
     };
 
     const handleDuplicateFlow = (row: FlowTableRow) => {
-        goto(`/view/${page.params.namespace}/flows/create?duplicate_from=${row.slug}`);
+        goto(`/view/${encodedNamespace}/flows/create?duplicate_from=${row.slug}`);
     };
 
     checkPermissions();
 
     const navigateToGroup = (prefix: string) => {
-        goto(`/view/${page.params.namespace}/flows?group=${encodeURIComponent(prefix)}`);
+        goto(`/view/${encodedNamespace}/flows?group=${encodeURIComponent(prefix)}`);
     };
 
     const navigateToRoot = () => {
-        goto(`/view/${page.params.namespace}/flows`);
+        goto(`/view/${encodedNamespace}/flows`);
     };
 
     const loadGroupFlows = async (group: string) => {
@@ -336,8 +338,8 @@
             componentProps: {
                 getIcon: (row: FlowTableRow) => row._kind === 'group' ? IconFolder : IconBolt,
                 href: (row: FlowTableRow) => row._kind === 'group'
-                    ? `/view/${page.params.namespace}/flows?group=${encodeURIComponent(row.prefix)}`
-                    : `/view/${page.params.namespace}/flows/${row.slug}`,
+                    ? `/view/${encodedNamespace}/flows?group=${encodeURIComponent(row.prefix)}`
+                    : `/view/${encodedNamespace}/flows/${row.slug}`,
                 subtitle: (row: FlowTableRow) => row._kind === 'group'
                     ? `${row.flow_count} flow${row.flow_count !== 1 ? 's' : ''}`
                     : row.prefix ? row.prefix : undefined,
@@ -393,7 +395,7 @@
     const breadcrumbs = $derived.by(() => {
         const crumbs = [
             { label: page.params.namespace! },
-            { label: "Flows", url: `/view/${page.params.namespace}/flows` },
+            { label: "Flows", url: `/view/${encodedNamespace}/flows` },
         ];
         if (data.group) {
             crumbs.push({ label: data.group });
@@ -508,4 +510,3 @@
         onClose={cancelEditGroup}
     />
 {/if}
-

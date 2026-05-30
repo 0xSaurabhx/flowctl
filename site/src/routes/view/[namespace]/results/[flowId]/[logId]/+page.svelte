@@ -217,7 +217,7 @@
     };
 
     const connectSSE = () => {
-        const sseUrl = `/api/v1/${namespace}/logs/${logId}`;
+        const sseUrl = `/api/v1/${encodeURIComponent(namespace)}/logs/${logId}`;
         eventSource = new EventSource(sseUrl);
 
         eventSource.onmessage = (event) => {
@@ -391,7 +391,7 @@
     };
 
     const goBack = () => {
-        goto(`/view/${namespace}/flows`);
+        goto(`/view/${encodeURIComponent(namespace)}/flows`);
     };
 
     const getActionStatus = (
@@ -474,7 +474,7 @@
     };
 
     const handleRerun = () => {
-        goto(`/view/${namespace}/flows/${flowId}?rerun_from=${logId}`);
+        goto(`/view/${encodeURIComponent(namespace)}/flows/${flowId}?rerun_from=${logId}`);
     };
 
     const handleRetry = async () => {
@@ -629,11 +629,11 @@
     <div class="results-main">
         <Header
             breadcrumbs={[
-                { label: "Flows", url: `/view/${namespace}/flows` },
+                { label: "Flows", url: `/view/${encodeURIComponent(namespace)}/flows` },
                 {
                     label: flowName || "Loading...",
                     url: flowName
-                        ? `/view/${namespace}/flows/${flowId}`
+                        ? `/view/${encodeURIComponent(namespace)}/flows/${flowId}`
                         : undefined,
                 },
                 { label: "Execution Status" },

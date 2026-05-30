@@ -122,7 +122,7 @@
                             </div>
                             <div>
                                 <span class="info-label text-sm font-medium">Execution ID</span>
-                                <a href="/view/{namespace}/results/{approval.flow_id}/{approval.exec_id}">
+                                <a href="/view/{encodeURIComponent(namespace)}/results/{approval.flow_id}/{approval.exec_id}">
                                     <span class="font-mono text-sm">{approval.exec_id}</span>
                                 </a>
                             </div>

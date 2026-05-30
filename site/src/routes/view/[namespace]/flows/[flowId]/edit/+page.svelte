@@ -321,7 +321,7 @@
             );
 
             // Redirect to the flow detail page
-            await goto(`/view/${namespace}/flows/${flowId}`);
+            await goto(`/view/${encodeURIComponent(namespace)}/flows/${flowId}`);
         } catch (error: any) {
             handleInlineError(error, "Error updating flow");
         } finally {
@@ -336,14 +336,14 @@
 
 <Header
     breadcrumbs={[
-        { label: namespace, url: `/view/${namespace}/flows` },
-        { label: "Flows", url: `/view/${namespace}/flows` },
+        { label: namespace, url: `/view/${encodeURIComponent(namespace)}/flows` },
+        { label: "Flows", url: `/view/${encodeURIComponent(namespace)}/flows` },
         ...(flow.metadata.prefix
-            ? [{ label: flow.metadata.prefix, url: `/view/${namespace}/flows?group=${encodeURIComponent(flow.metadata.prefix)}` }]
+            ? [{ label: flow.metadata.prefix, url: `/view/${encodeURIComponent(namespace)}/flows?group=${encodeURIComponent(flow.metadata.prefix)}` }]
             : []),
         {
             label: flow.metadata.name || "Loading...",
-            url: `/view/${namespace}/flows/${flowId}`,
+            url: `/view/${encodeURIComponent(namespace)}/flows/${flowId}`,
         },
         { label: readonly ? "View Config" : "Edit" },
     ]}
@@ -432,7 +432,7 @@
                                     type="button"
                                     onclick={() =>
                                         goto(
-                                            `/view/${namespace}/flows/${flowId}`,
+                                            `/view/${encodeURIComponent(namespace)}/flows/${flowId}`,
                                         )}
                                     data-variant="secondary"
                                 >
