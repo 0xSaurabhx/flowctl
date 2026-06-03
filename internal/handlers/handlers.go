@@ -63,6 +63,7 @@ func NewHandler(logger *slog.Logger, db *sql.DB, co *core.Core, cfg config.Confi
 		EnableAutoCreate: false,
 		Cookie: simplesessions.CookieOptions{
 			IsHTTPOnly: true,
+			SameSite: http.SameSiteLaxMode,
 			MaxAge:     SessionTimeout,
 		},
 	})
@@ -79,10 +80,12 @@ func NewHandler(logger *slog.Logger, db *sql.DB, co *core.Core, cfg config.Confi
 	sessMgr.UseStore(sessionStore)
 
 	go func() {
-		if err := sessionStore.Prune(); err != nil {
-			log.Printf("error pruning login sessions: %v", err)
+		for {
+			if err := sessionStore.Prune(); err != nil {
+				log.Printf("error pruning login sessions: %v", err)
+			}
+			time.Sleep(SessionTimeout / 2)
 		}
-		time.Sleep(SessionTimeout / 2)
 	}()
 
 	h := &Handler{co: co, validate: validate, logger: logger, sessMgr: sessMgr, config: cfg, authconfig: make(map[string]OIDCAuthConfig), executorSigningKey: executorSigningKey}

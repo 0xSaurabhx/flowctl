@@ -34,11 +34,15 @@ func (h *Handler) Authenticate(next echo.HandlerFunc) echo.HandlerFunc {
 		if err != nil {
 			return wrapError(ErrAuthenticationFailed, "could not get user details", err, nil)
 		}
+		if user == nil {
+			return wrapError(ErrAuthenticationFailed, "no user in session", nil, nil)
+		}
 
-		method, err := sess.String(sess.Get("method"))
+		rawMethod, err := sess.Get("method")
 		if err != nil {
 			return wrapError(ErrAuthenticationFailed, "could not get login method", err, nil)
 		}
+		method, _ := rawMethod.(string)
 
 		// if using oidc, validate the token to check if they have not expired
 		if method == "oidc" {
