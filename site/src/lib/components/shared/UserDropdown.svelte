@@ -3,6 +3,9 @@
   import { apiClient } from '$lib/apiClient';
   import { handleInlineError } from '$lib/utils/errorHandling';
   import { clearPermissionCache } from '$lib/utils/permissions';
+  import ApiTokensModal from './ApiTokensModal.svelte';
+
+  let showApiTokens = $state(false);
 
   const getUserInitials = (username: string): string => {
     return username.charAt(0).toUpperCase();
@@ -18,6 +21,10 @@
       window.location.href = '/login';
     }
   };
+
+  const openCredentials = () => {
+    showApiTokens = true;
+  };
 </script>
 
 <ot-dropdown style="display: block" class="mt-2">
@@ -31,9 +38,14 @@
     </div>
   </button>
   <div popover id="user-menu">
+    <button role="menuitem" onclick={openCredentials}>Credentials</button>
     <button role="menuitem" onclick={logout}>Logout</button>
   </div>
 </ot-dropdown>
+
+{#if showApiTokens}
+  <ApiTokensModal onClose={() => (showApiTokens = false)} />
+{/if}
 
 <style>
   figure[data-variant="avatar"] {

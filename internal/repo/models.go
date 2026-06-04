@@ -315,6 +315,17 @@ func (ns NullUserRoleType) Value() (driver.Value, error) {
 	return string(ns.UserRoleType), nil
 }
 
+type ApiToken struct {
+	ID         int32        `db:"id" json:"id"`
+	Uuid       uuid.UUID    `db:"uuid" json:"uuid"`
+	UserID     int32        `db:"user_id" json:"user_id"`
+	Label      string       `db:"label" json:"label"`
+	TokenHash  string       `db:"token_hash" json:"token_hash"`
+	LastUsedAt sql.NullTime `db:"last_used_at" json:"last_used_at"`
+	CreatedAt  time.Time    `db:"created_at" json:"created_at"`
+	UpdatedAt  time.Time    `db:"updated_at" json:"updated_at"`
+}
+
 type Approval struct {
 	ID          int32          `db:"id" json:"id"`
 	Uuid        uuid.UUID      `db:"uuid" json:"uuid"`

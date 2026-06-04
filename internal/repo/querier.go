@@ -24,6 +24,7 @@ type Querier interface {
 	AssignUserNamespaceRole(ctx context.Context, arg AssignUserNamespaceRoleParams) (NamespaceMember, error)
 	AssignUserPrefixAccess(ctx context.Context, arg AssignUserPrefixAccessParams) error
 	CancelTasksByExecID(ctx context.Context, execID string) error
+	CreateAPIToken(ctx context.Context, arg CreateAPITokenParams) (ApiToken, error)
 	CreateCredential(ctx context.Context, arg CreateCredentialParams) (Credential, error)
 	CreateCronSchedule(ctx context.Context, arg CreateCronScheduleParams) (CronSchedule, error)
 	CreateFlow(ctx context.Context, arg CreateFlowParams) (Flow, error)
@@ -37,6 +38,7 @@ type Querier interface {
 	CreateSchedulerTask(ctx context.Context, arg CreateSchedulerTaskParams) (SchedulerTask, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	CreateUserSchedule(ctx context.Context, arg CreateUserScheduleParams) (CronSchedule, error)
+	DeleteAPIToken(ctx context.Context, arg DeleteAPITokenParams) error
 	DeleteAllFlows(ctx context.Context) error
 	DeleteCredential(ctx context.Context, arg DeleteCredentialParams) error
 	DeleteExecutorKV(ctx context.Context, arg DeleteExecutorKVParams) error
@@ -60,6 +62,7 @@ type Querier interface {
 	DeleteUserScheduleByUUID(ctx context.Context, arg DeleteUserScheduleByUUIDParams) (int64, error)
 	DisableUserSchedulesForFlow(ctx context.Context, flowID int32) error
 	ExecutionExistsForFlow(ctx context.Context, arg ExecutionExistsForFlowParams) (bool, error)
+	GetAPITokenByHash(ctx context.Context, tokenHash string) (GetAPITokenByHashRow, error)
 	GetAllCronSchedules(ctx context.Context) ([]GetAllCronSchedulesRow, error)
 	GetAllExecutionsPaginated(ctx context.Context, arg GetAllExecutionsPaginatedParams) ([]GetAllExecutionsPaginatedRow, error)
 	GetAllGroups(ctx context.Context) ([]Group, error)
@@ -141,6 +144,7 @@ type Querier interface {
 	GetUserScheduleByUUID(ctx context.Context, arg GetUserScheduleByUUIDParams) (GetUserScheduleByUUIDRow, error)
 	GetUsersByRole(ctx context.Context, role UserRoleType) ([]User, error)
 	IncrementActionRetry(ctx context.Context, arg IncrementActionRetryParams) (IncrementActionRetryRow, error)
+	ListAPITokensByUser(ctx context.Context, userUuid uuid.UUID) ([]ApiToken, error)
 	ListExecutorKVByBucket(ctx context.Context, bucket string) ([]ExecutorKvStore, error)
 	ListFlowPrefixes(ctx context.Context, argUuid uuid.UUID) ([]FlowPrefix, error)
 	ListFlowSecrets(ctx context.Context, arg ListFlowSecretsParams) ([]ListFlowSecretsRow, error)
@@ -165,6 +169,7 @@ type Querier interface {
 	SearchGroup(ctx context.Context, arg SearchGroupParams) ([]SearchGroupRow, error)
 	SearchNodes(ctx context.Context, arg SearchNodesParams) ([]SearchNodesRow, error)
 	SearchUsersWithGroups(ctx context.Context, arg SearchUsersWithGroupsParams) ([]SearchUsersWithGroupsRow, error)
+	TouchAPITokenLastUsed(ctx context.Context, id int32) error
 	UpdateApprovalStatusByUUID(ctx context.Context, arg UpdateApprovalStatusByUUIDParams) (UpdateApprovalStatusByUUIDRow, error)
 	UpdateCredential(ctx context.Context, arg UpdateCredentialParams) (Credential, error)
 	UpdateExecutionActionID(ctx context.Context, arg UpdateExecutionActionIDParams) (ExecutionLog, error)

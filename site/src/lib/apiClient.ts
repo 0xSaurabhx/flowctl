@@ -54,7 +54,9 @@ import type {
   UserSchedule,
   ScheduleCreateReq,
   ScheduleUpdateReq,
-  SchedulesPaginateResponse
+  SchedulesPaginateResponse,
+  ApiToken,
+  ApiTokenCreated
 } from './types.js';
 
 export class ApiError extends Error {
@@ -160,6 +162,20 @@ export const apiClient = {
       }),
     delete: (id: string) =>
       baseFetch<void>(`/api/v1/users/${id}`, {
+        method: 'DELETE',
+      }),
+  },
+
+  // User API tokens
+  apiTokens: {
+    list: () => baseFetch<ApiToken[]>('/api/v1/users/me/api-tokens'),
+    create: (label: string) =>
+      baseFetch<ApiTokenCreated>('/api/v1/users/me/api-tokens', {
+        method: 'POST',
+        body: JSON.stringify({ label }),
+      }),
+    revoke: (uuid: string) =>
+      baseFetch<void>(`/api/v1/users/me/api-tokens/${uuid}`, {
         method: 'DELETE',
       }),
   },
