@@ -1,0 +1,2025 @@
+openapi: 3.1.0
+info:
+  title: flowctl HTTP API
+  version: "1"
+  description: |
+    HTTP API for [flowctl](https://github.com/cvhariharan/flowctl), a single-binary
+    self-service workflow platform.
+
+    ## Authentication
+
+    Two mechanisms are supported. **Browser clients** authenticate via session
+    cookies (`POST /login` or the OIDC flow) and must include the `X-CSRF-Token`
+    header on every state-changing request. **Programmatic clients** authenticate
+    via user-scoped API tokens minted in the web UI and sent in the
+    `Authorization: Bearer <token>` header (token prefix `fctl_pat_`). Bearer
+    requests are exempt from CSRF.
+
+    API-token requests **cannot** create or revoke API tokens themselves, those
+    endpoints require a session.
+
+    ## Conventions
+
+    - All resource IDs are UUIDs.
+    - Timestamps are RFC 3339 (`2025-06-04T10:00:00Z`).
+    - Errors use a uniform JSON envelope (see `Error` schema).
+    - Pagination endpoints return `page_count` and `total_count` next to the page slice.
+
+servers:
+  - url: https://flowctl.example.com
+    description: Production server (replace with your deployment URL)
+  - url: http://localhost:8080
+    description: Local development
+
+security:
+  - bearerAuth: []
+  - cookieAuth: []
+
+tags:
+  - name: Auth
+    description: Login, logout, and SSO. Browser-only — not callable with API tokens.
+  - name: API Tokens
+    description: Manage personal access tokens. Session auth only.
+  - name: Users
+    description: User CRUD and profile.
+  - name: Groups
+    description: User groups.
+  - name: Namespaces
+    description: Top-level workspace containers.
+  - name: Namespace Members
+    description: Add/remove users and groups in a namespace and grant prefix access.
+  - name: Flows
+    description: Workflow definitions, triggers, executions and logs.
+  - name: Flow Groups
+    description: Prefix-based grouping of flows.
+  - name: Flow Secrets
+    description: Per-flow secrets.
+  - name: Namespace Secrets
+    description: Namespace-scoped secrets.
+  - name: Schedules
+    description: Cron schedules attached to flows.
+  - name: Nodes
+    description: Remote target hosts.
+  - name: Credentials
+    description: SSH / password credentials referenced by nodes.
+  - name: Approvals
+    description: Approval requests raised by flows with the approval gate.
+  - name: Permissions
+    description: Casbin permission inspection.
+  - name: Meta
+    description: Service metadata, executors, messengers.
+
+paths:
+  # ---------------- Auth ----------------
+  /ping:
+    get:
+      tags: [Meta]
+      summary: Liveness probe
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /login:
+    post:
+      tags: [Auth]
+      summary: Password login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthReq"
+      responses:
+        "200":
+          description: Session cookie set; `x-redirect` response header indicates the destination.
+          headers:
+            x-redirect:
+              schema: { type: string }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /logout:
+    post:
+      tags: [Auth]
+      summary: Destroy the current session
+      responses:
+        "200":
+          description: Logged out
+
+  /sso-providers:
+    get:
+      tags: [Auth]
+      summary: List configured OIDC providers
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SSOProvider"
+
+  /login/oidc/{provider}:
+    get:
+      tags: [Auth]
+      summary: Begin an OIDC login flow (browser-only redirect)
+      security: []
+      parameters:
+        - { name: provider, in: path, required: true, schema: { type: string } }
+        - { name: redirect_url, in: query, required: false, schema: { type: string } }
+      responses:
+        "302":
+          description: Redirect to provider
+
+  /auth/callback:
+    get:
+      tags: [Auth]
+      summary: OIDC callback (browser-only)
+      security: []
+      responses:
+        "302":
+          description: Redirect to app
+
+  # ---------------- API Tokens ----------------
+  /api/v1/users/me/api-tokens:
+    get:
+      tags: [API Tokens]
+      summary: List the calling user's API tokens
+      description: Session-only. PAT-authenticated requests get `403`.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/APIToken" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [API Tokens]
+      summary: Create a new API token
+      description: |
+        Returns the raw token **once**. Store it now — only the hash is kept
+        server-side, so it cannot be retrieved later. Session-only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [label]
+              properties:
+                label:
+                  type: string
+                  maxLength: 150
+                  example: ci-pipeline
+      responses:
+        "201":
+          description: Token created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/APITokenCreated" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /api/v1/users/me/api-tokens/{tokenID}:
+    delete:
+      tags: [API Tokens]
+      summary: Revoke an API token
+      description: Session-only. Idempotent.
+      parameters:
+        - { name: tokenID, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "204": { description: Revoked }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  # ---------------- Users ----------------
+  /api/v1/users:
+    get:
+      tags: [Users]
+      summary: Paginated user list (namespace admins or superusers)
+      parameters:
+        - $ref: "#/components/parameters/Filter"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/CountPerPage"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UsersPaginateResponse" }
+    post:
+      tags: [Users]
+      summary: Create a user (superuser only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UserReq" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserWithGroups" }
+
+  /api/v1/users/profile:
+    get:
+      tags: [Users]
+      summary: Get the calling user's profile
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserProfile" }
+
+  /api/v1/users/{userID}:
+    parameters:
+      - { name: userID, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [Users]
+      summary: Get a user by UUID (superuser only)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserWithGroups" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    put:
+      tags: [Users]
+      summary: Update a user (superuser only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UserReq" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserWithGroups" }
+    delete:
+      tags: [Users]
+      summary: Delete a user (superuser only)
+      responses:
+        "200": { description: Deleted }
+
+  # ---------------- Groups ----------------
+  /api/v1/groups:
+    get:
+      tags: [Groups]
+      summary: Paginated group list (namespace admins or superusers)
+      parameters:
+        - $ref: "#/components/parameters/Filter"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/CountPerPage"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GroupsPaginateResponse" }
+    post:
+      tags: [Groups]
+      summary: Create a group (superuser only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GroupReq" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GroupWithUsers" }
+
+  /api/v1/groups/{groupID}:
+    parameters:
+      - { name: groupID, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [Groups]
+      summary: Get a group (superuser only)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GroupWithUsers" }
+    put:
+      tags: [Groups]
+      summary: Update a group (superuser only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GroupReq" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GroupWithUsers" }
+    delete:
+      tags: [Groups]
+      summary: Delete a group (superuser only)
+      responses:
+        "200": { description: Deleted }
+
+  # ---------------- Namespaces ----------------
+  /api/v1/namespaces:
+    get:
+      tags: [Namespaces]
+      summary: List namespaces the calling user can see
+      parameters:
+        - $ref: "#/components/parameters/Filter"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/CountPerPage"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NamespacesPaginateResponse" }
+    post:
+      tags: [Namespaces]
+      summary: Create a namespace (superuser only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NamespaceReq" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Namespace" }
+
+  /api/v1/namespaces/{namespaceID}:
+    parameters:
+      - { name: namespaceID, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [Namespaces]
+      summary: Get a namespace (superuser only)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Namespace" }
+    put:
+      tags: [Namespaces]
+      summary: Update a namespace (superuser only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NamespaceReq" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Namespace" }
+    delete:
+      tags: [Namespaces]
+      summary: Delete a namespace (superuser only)
+      responses:
+        "200": { description: Deleted }
+
+  # ---------------- Namespace Members ----------------
+  /api/v1/{namespace}/members:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+    get:
+      tags: [Namespace Members]
+      summary: List namespace members
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NamespaceMembersResponse" }
+    post:
+      tags: [Namespace Members]
+      summary: Add a user or group as a namespace member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NamespaceMemberReq" }
+      responses:
+        "200": { description: Added }
+
+  /api/v1/{namespace}/members/{membershipID}:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: membershipID, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      tags: [Namespace Members]
+      summary: Change a member's role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role]
+              properties:
+                role: { $ref: "#/components/schemas/NamespaceRole" }
+      responses:
+        "200": { description: Updated }
+    delete:
+      tags: [Namespace Members]
+      summary: Remove a member from the namespace
+      responses:
+        "200": { description: Removed }
+
+  /api/v1/{namespace}/members/{membershipID}/groups:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: membershipID, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [Namespace Members]
+      summary: List flow-group prefixes a member has access to
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FlowGroupsResponse" }
+    post:
+      tags: [Namespace Members]
+      summary: Grant access to a flow-group prefix
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prefix]
+              properties:
+                prefix: { type: string, maxLength: 100 }
+      responses:
+        "200": { description: Granted }
+
+  /api/v1/{namespace}/members/{membershipID}/groups/{group}:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: membershipID, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: group, in: path, required: true, schema: { type: string } }
+    delete:
+      tags: [Namespace Members]
+      summary: Revoke access to a flow-group prefix
+      responses:
+        "200": { description: Revoked }
+
+  # ---------------- Flows ----------------
+  /api/v1/{namespace}/flows:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+    get:
+      tags: [Flows]
+      summary: Paginated flow list
+      parameters:
+        - $ref: "#/components/parameters/Filter"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/CountPerPage"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FlowsPaginateResponse" }
+    post:
+      tags: [Flows]
+      summary: Create a flow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FlowCreateReq" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FlowCreateResp" }
+
+  /api/v1/{namespace}/flows/{flowID}:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: flowID, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Flows]
+      summary: Get a flow's metadata
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FlowMeta" }
+    put:
+      tags: [Flows]
+      summary: Update a flow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FlowUpdateReq" }
+      responses:
+        "200": { description: Updated }
+    delete:
+      tags: [Flows]
+      summary: Delete a flow
+      responses:
+        "200": { description: Deleted }
+
+  /api/v1/{namespace}/flows/{flowID}/meta:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: flowID, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Flows]
+      summary: Get flow metadata + actions + scheduled executions
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FlowMetaResp" }
+
+  /api/v1/{namespace}/flows/{flowID}/inputs:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: flowID, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Flows]
+      summary: Get a flow's declared inputs (form schema)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FlowInputsResp" }
+
+  /api/v1/{namespace}/flows/{flowID}/config:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: flowID, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Flows]
+      summary: Get a flow's full configuration (requires ViewConfig permission)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /api/v1/{namespace}/trigger/{flow}:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: flow, in: path, required: true, schema: { type: string } }
+      - name: scheduled_at
+        in: query
+        required: false
+        schema: { type: string, format: date-time }
+        description: RFC3339; if set, schedule the run for that time instead of running immediately.
+    post:
+      tags: [Flows]
+      summary: Trigger a flow run
+      description: |
+        Accepts the flow's declared inputs as either JSON or `multipart/form-data`
+        (required when the flow declares any `file`-typed inputs). Field names
+        match the input `name`s from `GET /flows/{flowID}/inputs`.
+
+        Send the `X-Options-Request-ID` header when re-using cached remote-option
+        responses to avoid re-fetching them.
+      parameters:
+        - name: X-Options-Request-ID
+          in: header
+          required: false
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Queued
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FlowTriggerResp" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  # ---------------- Executions / logs ----------------
+  /api/v1/{namespace}/flows/executions:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+    get:
+      tags: [Flows]
+      summary: Paginated executions across all flows in a namespace
+      parameters:
+        - $ref: "#/components/parameters/Filter"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/CountPerPage"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ExecutionsPaginateResponse" }
+
+  /api/v1/{namespace}/flows/executions/{execID}:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: execID, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [Flows]
+      summary: Get an execution summary
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ExecutionSummary" }
+
+  /api/v1/{namespace}/flows/executions/{execID}/cancel:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: execID, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      tags: [Flows]
+      summary: Cancel a running or scheduled execution
+      responses:
+        "200":
+          description: Cancelled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FlowCancellationResp" }
+
+  /api/v1/{namespace}/flows/executions/{execID}/retry:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: execID, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      tags: [Flows]
+      summary: Retry an execution (re-queue with the same inputs)
+      responses:
+        "200":
+          description: Queued
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FlowTriggerResp" }
+
+  /api/v1/{namespace}/flows/{flowID}/executions:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: flowID, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Flows]
+      summary: Paginated executions for a specific flow
+      parameters:
+        - $ref: "#/components/parameters/Filter"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/CountPerPage"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ExecutionsPaginateResponse" }
+
+  /api/v1/{namespace}/logs/{logID}:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: logID, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [Flows]
+      summary: Stream live execution logs (Server-Sent Events / chunked stream)
+      responses:
+        "200":
+          description: A long-lived response that streams log lines as they arrive.
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
+  /api/v1/{namespace}/logs/{logID}/download:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: logID, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [Flows]
+      summary: Download a completed execution's full log
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema: { type: string }
+
+  # ---------------- Flow groups ----------------
+  /api/v1/{namespace}/flows/groups:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+    get:
+      tags: [Flow Groups]
+      summary: List all flow groups in a namespace
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FlowGroupsResponse" }
+    post:
+      tags: [Flow Groups]
+      summary: Create a flow group (prefix)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FlowGroupReq" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FlowGroupDetailResp" }
+
+  /api/v1/{namespace}/flows/groups/me:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+    get:
+      tags: [Flow Groups]
+      summary: List flow groups the calling user has access to
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FlowGroupsResponse" }
+
+  /api/v1/{namespace}/flows/groups/{group}:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: group, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Flow Groups]
+      summary: List flows inside a flow group
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FlowListResponse" }
+
+  /api/v1/{namespace}/flows/groups/{groupID}:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: groupID, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      tags: [Flow Groups]
+      summary: Update a flow group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FlowGroupReq" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FlowGroupDetailResp" }
+    delete:
+      tags: [Flow Groups]
+      summary: Delete a flow group
+      responses:
+        "200": { description: Deleted }
+
+  # ---------------- Flow secrets ----------------
+  /api/v1/{namespace}/flows/{flowID}/secrets:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: flowID, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Flow Secrets]
+      summary: List secrets for a flow
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/FlowSecretResp" }
+    post:
+      tags: [Flow Secrets]
+      summary: Create a flow secret
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FlowSecretReq" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FlowSecretResp" }
+
+  /api/v1/{namespace}/flows/{flowID}/secrets/{secretID}:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: flowID, in: path, required: true, schema: { type: string } }
+      - { name: secretID, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [Flow Secrets]
+      summary: Get a flow secret (value not returned)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FlowSecretResp" }
+    put:
+      tags: [Flow Secrets]
+      summary: Update a flow secret
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FlowSecretUpdateReq" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FlowSecretResp" }
+    delete:
+      tags: [Flow Secrets]
+      summary: Delete a flow secret
+      responses:
+        "200": { description: Deleted }
+
+  # ---------------- Namespace secrets ----------------
+  /api/v1/{namespace}/secrets:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+    get:
+      tags: [Namespace Secrets]
+      summary: List secrets in a namespace
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/NamespaceSecretResp" }
+    post:
+      tags: [Namespace Secrets]
+      summary: Create a namespace secret
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NamespaceSecretReq" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NamespaceSecretResp" }
+
+  /api/v1/{namespace}/secrets/{secretID}:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: secretID, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [Namespace Secrets]
+      summary: Get a namespace secret (value not returned)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NamespaceSecretResp" }
+    put:
+      tags: [Namespace Secrets]
+      summary: Update a namespace secret
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NamespaceSecretUpdateReq" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NamespaceSecretResp" }
+    delete:
+      tags: [Namespace Secrets]
+      summary: Delete a namespace secret
+      responses:
+        "200": { description: Deleted }
+
+  # ---------------- Schedules ----------------
+  /api/v1/{namespace}/flows/{flowID}/schedules:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: flowID, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Schedules]
+      summary: List user-created schedules for a flow
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/CountPerPage"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SchedulesPaginateResponse" }
+    post:
+      tags: [Schedules]
+      summary: Create a schedule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ScheduleCreateReq" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ScheduleResp" }
+
+  /api/v1/{namespace}/flows/{flowID}/schedules/{schedule_id}:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: flowID, in: path, required: true, schema: { type: string } }
+      - { name: schedule_id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [Schedules]
+      summary: Get a schedule
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ScheduleResp" }
+    put:
+      tags: [Schedules]
+      summary: Update a schedule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ScheduleUpdateReq" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ScheduleResp" }
+    delete:
+      tags: [Schedules]
+      summary: Delete a schedule
+      responses:
+        "200": { description: Deleted }
+
+  # ---------------- Nodes ----------------
+  /api/v1/{namespace}/nodes:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+    get:
+      tags: [Nodes]
+      summary: Paginated node list (optionally filtered by tags)
+      parameters:
+        - $ref: "#/components/parameters/Filter"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/CountPerPage"
+        - name: tags
+          in: query
+          required: false
+          style: form
+          explode: true
+          schema: { type: array, items: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NodesPaginateResponse" }
+    post:
+      tags: [Nodes]
+      summary: Create a node
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NodeReq" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NodeResp" }
+
+  /api/v1/{namespace}/nodes/stats:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+    get:
+      tags: [Nodes]
+      summary: Aggregate node stats for the namespace
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NodeStatsResp" }
+
+  /api/v1/{namespace}/nodes/{nodeID}:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: nodeID, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [Nodes]
+      summary: Get a node
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NodeResp" }
+    put:
+      tags: [Nodes]
+      summary: Update a node
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NodeReq" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NodeResp" }
+    delete:
+      tags: [Nodes]
+      summary: Delete a node
+      responses:
+        "200": { description: Deleted }
+
+  # ---------------- Credentials ----------------
+  /api/v1/{namespace}/credentials:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+    get:
+      tags: [Credentials]
+      summary: Paginated credentials list
+      parameters:
+        - $ref: "#/components/parameters/Filter"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/CountPerPage"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CredentialsPaginateResponse" }
+    post:
+      tags: [Credentials]
+      summary: Create a credential
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CredentialReq" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CredentialResp" }
+
+  /api/v1/{namespace}/credentials/{credID}:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: credID, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [Credentials]
+      summary: Get a credential (key data not returned)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CredentialResp" }
+    put:
+      tags: [Credentials]
+      summary: Update a credential
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CredentialReq" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CredentialResp" }
+    delete:
+      tags: [Credentials]
+      summary: Delete a credential
+      responses:
+        "200": { description: Deleted }
+
+  # ---------------- Approvals ----------------
+  /api/v1/{namespace}/approvals:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+    get:
+      tags: [Approvals]
+      summary: Paginated approval requests
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ["", pending, approved, rejected]
+        - $ref: "#/components/parameters/Filter"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/CountPerPage"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ApprovalsPaginateResponse" }
+
+  /api/v1/{namespace}/approvals/{approvalID}:
+    parameters:
+      - $ref: "#/components/parameters/NamespacePath"
+      - { name: approvalID, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [Approvals]
+      summary: Get an approval with the inputs that triggered it
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ApprovalDetailsResp" }
+    post:
+      tags: [Approvals]
+      summary: Approve or reject an approval
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action:
+                  type: string
+                  enum: [approve, reject]
+      responses:
+        "200":
+          description: Decision recorded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ApprovalActionResp" }
+
+  # ---------------- Permissions & meta ----------------
+  /api/v1/permissions:
+    get:
+      tags: [Permissions]
+      summary: Inspect the calling user's effective Casbin permissions
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /api/v1/permissions/check:
+    post:
+      tags: [Permissions]
+      summary: Check a specific permission for the calling user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: |
+                Implementation accepts a free-form object with the resource and
+                action to check. Refer to `internal/handlers/auth.go` for the
+                exact shape — typically `{ "resource": "...", "action": "...", "domain": "..." }`.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /api/v1/executors:
+    get:
+      tags: [Meta]
+      summary: List registered executors (built-ins and loaded plugins)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ExecutorsListResponse" }
+
+  /api/v1/executors/{executor}/config:
+    parameters:
+      - { name: executor, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Meta]
+      summary: Get the JSON schema for an executor's config
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /api/v1/messengers:
+    get:
+      tags: [Meta]
+      summary: List configured notification channels and their JSON schemas
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+# ============================================================
+# Components
+# ============================================================
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: "fctl_pat_<random>"
+      description: |
+        User-scoped API token. Mint via `POST /api/v1/users/me/api-tokens` while
+        logged in via the browser. Send as `Authorization: Bearer fctl_pat_...`.
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: flowctl_session
+      description: |
+        Session cookie set by `POST /login` or the OIDC flow. Browser clients
+        must also send `X-CSRF-Token` on state-changing requests.
+
+  parameters:
+    NamespacePath:
+      name: namespace
+      in: path
+      required: true
+      schema: { type: string }
+      description: Namespace name (slug, not UUID).
+    Filter:
+      name: filter
+      in: query
+      required: false
+      schema: { type: string }
+      description: Substring filter applied server-side.
+    Page:
+      name: page
+      in: query
+      required: false
+      schema: { type: integer, minimum: 0, default: 1 }
+      description: 1-based page number; `0` means the first page.
+    CountPerPage:
+      name: count_per_page
+      in: query
+      required: false
+      schema: { type: integer, minimum: 0, default: 10 }
+
+  responses:
+    BadRequest:
+      description: Validation or input error
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Unauthorized:
+      description: Missing or invalid credentials
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Forbidden:
+      description: Authenticated but not authorized
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+  schemas:
+    Error:
+      type: object
+      required: [error, code]
+      properties:
+        error:
+          type: string
+          description: Human-readable message.
+        code:
+          type: string
+          description: Stable machine code.
+          enum:
+            - VALIDATION_FAILED
+            - REQUIRED_FIELD_MISSING
+            - INVALID_INPUT
+            - INVALID_PAGINATION
+            - AUTHENTICATION_FAILED
+            - INVALID_CREDENTIALS
+            - UNAUTHORIZED
+            - FORBIDDEN
+            - RESOURCE_NOT_FOUND
+            - OPERATION_FAILED
+            - INTERNAL_ERROR
+        details:
+          description: Optional, code-specific payload.
+
+    # Auth
+    AuthReq:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string }
+        password: { type: string, format: password }
+    SSOProvider:
+      type: object
+      properties:
+        id: { type: string }
+        label: { type: string }
+
+    # API tokens
+    APIToken:
+      type: object
+      required: [uuid, label, created_at]
+      properties:
+        uuid: { type: string, format: uuid }
+        label: { type: string }
+        last_used_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+    APITokenCreated:
+      allOf:
+        - $ref: "#/components/schemas/APIToken"
+        - type: object
+          required: [token]
+          properties:
+            token:
+              type: string
+              description: Raw `fctl_pat_*` token. Shown only on creation.
+
+    # Users / groups
+    UserProfile:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        username: { type: string }
+        name: { type: string }
+        role: { type: string }
+        groups:
+          type: array
+          items: { type: string, format: uuid }
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        username: { type: string }
+        name: { type: string }
+        login_type: { type: string, enum: [standard, oidc, token] }
+        role: { type: string, enum: [user, superuser] }
+    UserReq:
+      type: object
+      required: [name, username]
+      properties:
+        name: { type: string, minLength: 2, maxLength: 50 }
+        username: { type: string, format: email }
+        groups:
+          type: array
+          items: { type: string, format: uuid }
+    UserWithGroups:
+      allOf:
+        - $ref: "#/components/schemas/User"
+        - type: object
+          properties:
+            groups:
+              type: array
+              items: { $ref: "#/components/schemas/Group" }
+    UsersPaginateResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items: { $ref: "#/components/schemas/UserWithGroups" }
+        page_count: { type: integer, format: int64 }
+        total_count: { type: integer, format: int64 }
+    Group:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        description: { type: string }
+        users:
+          type: array
+          items: { $ref: "#/components/schemas/User" }
+    GroupReq:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 50 }
+        description: { type: string, maxLength: 255 }
+    GroupWithUsers:
+      allOf:
+        - $ref: "#/components/schemas/Group"
+        - type: object
+          properties:
+            users:
+              type: array
+              items: { $ref: "#/components/schemas/User" }
+    GroupsPaginateResponse:
+      type: object
+      properties:
+        groups:
+          type: array
+          items: { $ref: "#/components/schemas/GroupWithUsers" }
+        page_count: { type: integer, format: int64 }
+        total_count: { type: integer, format: int64 }
+
+    # Namespaces
+    NamespaceReq:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 150 }
+    Namespace:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+    NamespacesPaginateResponse:
+      type: object
+      properties:
+        namespaces:
+          type: array
+          items: { $ref: "#/components/schemas/Namespace" }
+        page_count: { type: integer, format: int64 }
+        total_count: { type: integer, format: int64 }
+    NamespaceRole:
+      type: string
+      enum: [user, operator, reviewer, admin]
+    NamespaceMemberReq:
+      type: object
+      required: [subject_id, subject_type, role]
+      properties:
+        subject_id: { type: string, format: uuid }
+        subject_type: { type: string, enum: [user, group] }
+        role: { $ref: "#/components/schemas/NamespaceRole" }
+    NamespaceMemberResp:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        subject_id: { type: string, format: uuid }
+        subject_name: { type: string }
+        subject_type: { type: string, enum: [user, group] }
+        role: { $ref: "#/components/schemas/NamespaceRole" }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    NamespaceMembersResponse:
+      type: object
+      properties:
+        members:
+          type: array
+          items: { $ref: "#/components/schemas/NamespaceMemberResp" }
+
+    # Flows
+    Schedule:
+      type: object
+      properties:
+        cron: { type: string }
+        timezone: { type: string }
+    Notify:
+      type: object
+      required: [channel, config, events]
+      properties:
+        channel: { type: string, enum: [email, webhook] }
+        config:
+          type: object
+          additionalProperties: true
+        events:
+          type: array
+          items:
+            type: string
+            enum: [on_success, on_failure, on_waiting, on_cancelled]
+    FlowMeta:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string, minLength: 1, maxLength: 150 }
+        description: { type: string, maxLength: 255 }
+        prefix: { type: string, maxLength: 100 }
+        schedules:
+          type: array
+          items: { $ref: "#/components/schemas/Schedule" }
+        namespace: { type: string }
+        allow_overlap: { type: boolean }
+        user_schedulable: { type: boolean }
+        max_retries: { type: integer, minimum: 0, maximum: 10 }
+    FlowAction:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        executor: { type: string }
+        approval: { type: boolean }
+        on:
+          type: array
+          items: { type: string }
+    FlowInput:
+      type: object
+      properties:
+        name: { type: string }
+        label: { type: string }
+        description: { type: string }
+        required: { type: boolean }
+        type:
+          type: string
+          enum: [string, number, password, file, datetime, checkbox, select]
+        options:
+          type: array
+          items: { type: string }
+        default: { type: string }
+        max_file_size:
+          type: integer
+          format: int64
+    FlowInputsResp:
+      type: object
+      properties:
+        inputs:
+          type: array
+          items: { $ref: "#/components/schemas/FlowInput" }
+        options_request_id: { type: string }
+    FlowMetaResp:
+      type: object
+      properties:
+        meta: { $ref: "#/components/schemas/FlowMeta" }
+        actions:
+          type: array
+          items: { $ref: "#/components/schemas/FlowAction" }
+        scheduled_executions:
+          type: array
+          items:
+            type: object
+            properties:
+              exec_id: { type: string, format: uuid }
+              scheduled_at: { type: string, format: date-time }
+    FlowListItem:
+      type: object
+      properties:
+        id: { type: string }
+        slug: { type: string }
+        name: { type: string }
+        description: { type: string }
+        prefix: { type: string }
+        schedules:
+          type: array
+          items: { $ref: "#/components/schemas/Schedule" }
+        step_count: { type: integer }
+    FlowListResponse:
+      type: object
+      properties:
+        flows:
+          type: array
+          items: { $ref: "#/components/schemas/FlowListItem" }
+    FlowsPaginateResponse:
+      type: object
+      properties:
+        flows:
+          type: array
+          items: { $ref: "#/components/schemas/FlowListItem" }
+        page_count: { type: integer, format: int64 }
+        total_count: { type: integer, format: int64 }
+    FlowInputReq:
+      type: object
+      required: [name, type]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 150 }
+        type:
+          type: string
+          enum: [string, number, password, file, datetime, checkbox, select]
+        label: { type: string, maxLength: 255 }
+        description: { type: string, maxLength: 255 }
+        validation: { type: string }
+        required: { type: boolean }
+        default: { type: string }
+        options:
+          type: array
+          items: { type: string }
+        max_file_size: { type: integer, format: int64 }
+        remote_options:
+          type: object
+          required: [url]
+          properties:
+            url: { type: string, format: uri }
+            method: { type: string, enum: [GET, POST] }
+            headers:
+              type: object
+              additionalProperties: { type: string }
+    FlowActionReq:
+      type: object
+      required: [name, with]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 150 }
+        executor: { type: string }
+        with:
+          type: object
+          additionalProperties: true
+        approval: { type: boolean }
+        variables:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        condition: { type: string }
+        on:
+          type: array
+          items: { type: string }
+    FlowCreateReq:
+      type: object
+      required: [metadata, inputs, actions]
+      properties:
+        metadata: { $ref: "#/components/schemas/FlowMeta" }
+        inputs:
+          type: array
+          items: { $ref: "#/components/schemas/FlowInputReq" }
+        actions:
+          type: array
+          items: { $ref: "#/components/schemas/FlowActionReq" }
+        notify:
+          type: array
+          items: { $ref: "#/components/schemas/Notify" }
+    FlowCreateResp:
+      type: object
+      properties:
+        id: { type: string }
+    FlowUpdateReq:
+      type: object
+      required: [inputs, actions]
+      properties:
+        prefix: { type: string, maxLength: 100 }
+        schedules:
+          type: array
+          items: { $ref: "#/components/schemas/Schedule" }
+        notify:
+          type: array
+          items: { $ref: "#/components/schemas/Notify" }
+        allow_overlap: { type: boolean }
+        user_schedulable: { type: boolean }
+        max_retries: { type: integer, minimum: 0, maximum: 10 }
+        description: { type: string, maxLength: 255 }
+        inputs:
+          type: array
+          items: { $ref: "#/components/schemas/FlowInputReq" }
+        actions:
+          type: array
+          items: { $ref: "#/components/schemas/FlowActionReq" }
+    FlowTriggerResp:
+      type: object
+      properties:
+        exec_id: { type: string, format: uuid }
+        scheduled_at: { type: string, format: date-time, nullable: true }
+    FlowCancellationResp:
+      type: object
+      properties:
+        message: { type: string }
+        execID: { type: string, format: uuid }
+
+    # Flow groups
+    FlowGroupReq:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 100 }
+        description: { type: string, maxLength: 500 }
+    FlowGroupResp:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        prefix: { type: string }
+        description: { type: string }
+        flow_count: { type: integer, format: int64 }
+    FlowGroupsResponse:
+      type: object
+      properties:
+        groups:
+          type: array
+          items: { $ref: "#/components/schemas/FlowGroupResp" }
+    FlowGroupDetailResp:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        description: { type: string }
+
+    # Executions
+    ExecutionStatus:
+      type: string
+      enum: [pending, pending_approval, running, completed, errored, cancelled]
+    ExecutionSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        flow_name: { type: string }
+        flow_id: { type: string }
+        status: { $ref: "#/components/schemas/ExecutionStatus" }
+        trigger_type: { type: string, enum: [manual, scheduled] }
+        input: { description: Original trigger inputs. }
+        triggered_by: { type: string }
+        current_action_id: { type: string }
+        created_at: { type: string, format: date-time }
+        started_at: { type: string, format: date-time }
+        completed_at: { type: string, format: date-time }
+        scheduled_at: { type: string, format: date-time, nullable: true }
+        action_retries:
+          type: object
+          additionalProperties: { type: integer }
+    ExecutionsPaginateResponse:
+      type: object
+      properties:
+        executions:
+          type: array
+          items: { $ref: "#/components/schemas/ExecutionSummary" }
+        page_count: { type: integer, format: int64 }
+        total_count: { type: integer, format: int64 }
+
+    # Secrets
+    FlowSecretReq:
+      type: object
+      required: [key, value]
+      properties:
+        key: { type: string, minLength: 1, maxLength: 150 }
+        value: { type: string }
+        description: { type: string, maxLength: 255 }
+    FlowSecretUpdateReq:
+      type: object
+      required: [value]
+      properties:
+        value: { type: string }
+        description: { type: string, maxLength: 255 }
+    FlowSecretResp:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        key: { type: string }
+        description: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    NamespaceSecretReq:
+      type: object
+      required: [key, value]
+      properties:
+        key: { type: string, minLength: 1, maxLength: 150 }
+        value: { type: string }
+        description: { type: string, maxLength: 255 }
+    NamespaceSecretUpdateReq:
+      type: object
+      required: [value]
+      properties:
+        value: { type: string }
+        description: { type: string, maxLength: 255 }
+    NamespaceSecretResp:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        key: { type: string }
+        description: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    # Schedules
+    ScheduleCreateReq:
+      type: object
+      required: [cron, timezone, inputs]
+      properties:
+        cron: { type: string, description: Standard cron expression. }
+        timezone: { type: string, description: IANA timezone name. }
+        inputs:
+          type: object
+          additionalProperties: true
+    ScheduleUpdateReq:
+      type: object
+      required: [cron, timezone, inputs]
+      properties:
+        cron: { type: string }
+        timezone: { type: string }
+        inputs:
+          type: object
+          additionalProperties: true
+        is_active: { type: boolean }
+    ScheduleResp:
+      type: object
+      properties:
+        uuid: { type: string, format: uuid }
+        flow_slug: { type: string }
+        flow_name: { type: string }
+        cron: { type: string }
+        timezone: { type: string }
+        inputs:
+          type: object
+          additionalProperties: true
+        created_by: { type: string }
+        is_active: { type: boolean }
+        is_user_created: { type: boolean }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    SchedulesPaginateResponse:
+      type: object
+      properties:
+        schedules:
+          type: array
+          items: { $ref: "#/components/schemas/ScheduleResp" }
+        page_count: { type: integer, format: int64 }
+        total_count: { type: integer, format: int64 }
+
+    # Nodes
+    NodeAuth:
+      type: object
+      required: [method, credential_id]
+      properties:
+        method: { type: string, enum: [private_key, password] }
+        credential_id: { type: string, format: uuid }
+    NodeReq:
+      type: object
+      required: [name, hostname, port, username, connection_type, auth]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 50 }
+        hostname: { type: string }
+        port: { type: integer, minimum: 1, maximum: 65535 }
+        username: { type: string, minLength: 2, maxLength: 50 }
+        connection_type: { type: string, enum: [ssh, qssh] }
+        tags:
+          type: array
+          items: { type: string }
+        auth: { $ref: "#/components/schemas/NodeAuth" }
+    NodeResp:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        hostname: { type: string }
+        port: { type: integer }
+        username: { type: string }
+        os_family: { type: string }
+        connection_type: { type: string, enum: [ssh, qssh] }
+        tags:
+          type: array
+          items: { type: string }
+        auth: { $ref: "#/components/schemas/NodeAuth" }
+    NodesPaginateResponse:
+      type: object
+      properties:
+        nodes:
+          type: array
+          items: { $ref: "#/components/schemas/NodeResp" }
+        page_count: { type: integer, format: int64 }
+        total_count: { type: integer, format: int64 }
+    NodeStatsResp:
+      type: object
+      properties:
+        total_hosts: { type: integer, format: int64 }
+        ssh_hosts: { type: integer, format: int64 }
+        qssh_hosts: { type: integer, format: int64 }
+
+    # Credentials
+    CredentialReq:
+      type: object
+      required: [name, key_type, key_data]
+      properties:
+        name: { type: string, minLength: 2, maxLength: 255 }
+        key_type: { type: string, enum: [private_key, password] }
+        key_data:
+          type: string
+          description: Plaintext on the wire; stored encrypted at rest.
+    CredentialResp:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        key_type: { type: string, enum: [private_key, password] }
+        last_accessed: { type: string, format: date-time }
+    CredentialsPaginateResponse:
+      type: object
+      properties:
+        credentials:
+          type: array
+          items: { $ref: "#/components/schemas/CredentialResp" }
+        page_count: { type: integer, format: int64 }
+        total_count: { type: integer, format: int64 }
+
+    # Approvals
+    ApprovalResp:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        action_id: { type: string }
+        flow_name: { type: string }
+        status: { type: string, enum: [pending, approved, rejected] }
+        exec_id: { type: string, format: uuid }
+        requested_by: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    ApprovalDetailsResp:
+      allOf:
+        - $ref: "#/components/schemas/ApprovalResp"
+        - type: object
+          properties:
+            flow_id: { type: string }
+            approved_by: { type: string }
+            inputs:
+              description: Original trigger inputs (JSON).
+    ApprovalActionResp:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [approved, rejected] }
+        messages: { type: string }
+    ApprovalsPaginateResponse:
+      type: object
+      properties:
+        approvals:
+          type: array
+          items: { $ref: "#/components/schemas/ApprovalResp" }
+        page_count: { type: integer, format: int64 }
+        total_count: { type: integer, format: int64 }
+
+    # Meta
+    ExecutorInfo:
+      type: object
+      properties:
+        name: { type: string }
+        capabilities:
+          type: array
+          items: { type: string }
+    ExecutorsListResponse:
+      type: object
+      properties:
+        executors:
+          type: array
+          items: { $ref: "#/components/schemas/ExecutorInfo" }
