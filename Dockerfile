@@ -9,7 +9,7 @@ WORKDIR /build
 COPY . .
 RUN make
 
-FROM debian:bookworm-slim
+FROM debian:stable
 WORKDIR /app
 COPY --from=builder /build/flowctl /app/flowctl
 RUN apt update && apt install -y tzdata
