@@ -14,7 +14,19 @@ import (
 
 func (h *Handler) Authenticate(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		// Check for executor API key first
+		// Check for user API token (PAT). The PAT prefix `fctl_pat_` overlaps the
+		// executor prefix `fctl_`, so PATs must be routed first.
+		patUser, ok, err := h.authenticateAPIToken(c)
+		if err != nil {
+			return wrapError(ErrAuthenticationFailed, "invalid api token", err, nil)
+		}
+		if ok {
+			c.Set("user", patUser)
+			c.Set("auth_method", "pat")
+			return next(c)
+		}
+
+		// Check for executor API key
 		executorName, err := h.authenticateExecutor(c)
 		if err != nil {
 			return wrapError(ErrAuthenticationFailed, "invalid executor token", err, nil)
@@ -22,6 +34,7 @@ func (h *Handler) Authenticate(next echo.HandlerFunc) echo.HandlerFunc {
 		if executorName != "" {
 			c.Set("executor_name", executorName)
 			c.Set("is_executor", true)
+			c.Set("auth_method", "executor")
 			return next(c)
 		}
 
@@ -75,7 +88,36 @@ func (h *Handler) Authenticate(next echo.HandlerFunc) echo.HandlerFunc {
 			return wrapError(ErrAuthenticationFailed, "could not get user details", err, nil)
 		}
 		c.Set("user", userInfo)
+		c.Set("auth_method", "session")
 
+		return next(c)
+	}
+}
+
+// authenticateAPIToken checks for a user-scoped PAT in the Authorization header.
+// Returns (userInfo, true, nil) on success, (_, false, nil) when no PAT is
+// present, and (_, _, err) when a PAT is present but invalid.
+func (h *Handler) authenticateAPIToken(c echo.Context) (models.UserInfo, bool, error) {
+	authHeader := c.Request().Header.Get("Authorization")
+	if !strings.HasPrefix(authHeader, "Bearer "+core.APITokenPrefix) {
+		return models.UserInfo{}, false, nil
+	}
+	token := strings.TrimPrefix(authHeader, "Bearer ")
+	ui, err := h.co.AuthenticateAPIToken(c.Request().Context(), token)
+	if err != nil {
+		return models.UserInfo{}, false, err
+	}
+	return ui, true, nil
+}
+
+// RequireSessionAuth blocks requests that were authenticated via a PAT or
+// executor token. Used to protect endpoints that mint or revoke PATs.
+func (h *Handler) RequireSessionAuth(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		method, _ := c.Get("auth_method").(string)
+		if method != "session" {
+			return wrapError(ErrForbidden, "this endpoint requires session authentication", nil, nil)
+		}
 		return next(c)
 	}
 }

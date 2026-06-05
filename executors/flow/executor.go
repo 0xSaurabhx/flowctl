@@ -4,9 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
+	apiclient "github.com/cvhariharan/flowctl/pkg/client"
 	"github.com/cvhariharan/flowctl/sdk/executor"
+	"github.com/google/uuid"
 	"github.com/invopop/jsonschema"
 	"gopkg.in/yaml.v3"
 )
@@ -69,21 +74,25 @@ func (j *FlowExecutor) Execute(ctx context.Context, execCtx executor.ExecutionCo
 		}
 	}
 
-	client := executor.NewAPIClient(execCtx.APIBaseURL, execCtx.APIKey, execCtx.UserUUID)
+	client, err := newFlowAPIClient(execCtx.APIBaseURL, execCtx.APIKey, execCtx.UserUUID)
+	if err != nil {
+		return nil, err
+	}
 
-	triggerResp, err := client.TriggerFlow(ctx, execCtx.NamespaceName, config.FlowID, params)
+	triggerResp, err := triggerFlow(ctx, client, execCtx.NamespaceName, config.FlowID, params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to trigger flow %q: %w", config.FlowID, err)
 	}
 
-	fmt.Fprintf(execCtx.Stdout, "queued flow %s with exec_id %s\n", config.FlowID, triggerResp.ExecID)
+	execID := triggerResp.ExecID.String()
+	fmt.Fprintf(execCtx.Stdout, "queued flow %s with exec_id %s\n", config.FlowID, execID)
 
 	outputs := map[string]string{
-		"exec_id": triggerResp.ExecID,
+		"exec_id": execID,
 	}
 
 	if config.Wait {
-		status, err := j.waitForCompletion(ctx, client, execCtx.NamespaceName, triggerResp.ExecID)
+		status, err := j.waitForCompletion(ctx, client, execCtx.NamespaceName, execID)
 		if err != nil {
 			return nil, err
 		}
@@ -102,23 +111,70 @@ func (j *FlowExecutor) Execute(ctx context.Context, execCtx executor.ExecutionCo
 	return outputs, nil
 }
 
-func (j *FlowExecutor) waitForCompletion(ctx context.Context, client *executor.APIClient, namespace, execID string) (string, error) {
+func newFlowAPIClient(baseURL, apiKey, userUUID string) (*apiclient.ClientWithResponses, error) {
+	client, err := apiclient.NewClientWithResponses(strings.TrimRight(baseURL, "/"), apiclient.WithHTTPClient(&http.Client{
+		Timeout: 30 * time.Second,
+	}), apiclient.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
+		req.Header.Set("Authorization", "Bearer "+apiKey)
+		if userUUID != "" {
+			req.Header.Set("X-User-UUID", userUUID)
+		}
+		return nil
+	}))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create API client: %w", err)
+	}
+	return client, nil
+}
+
+func triggerFlow(ctx context.Context, client *apiclient.ClientWithResponses, namespace, flowID string, params map[string]any) (apiclient.FlowTriggerResp, error) {
+	form := url.Values{}
+	for k, v := range params {
+		form.Set(k, fmt.Sprintf("%v", v))
+	}
+
+	resp, err := client.TriggerFlowWithBodyWithResponse(ctx, apiclient.NamespacePath(namespace), flowID, nil, "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
+	if err != nil {
+		return apiclient.FlowTriggerResp{}, fmt.Errorf("trigger request failed: %w", err)
+	}
+	if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
+		return apiclient.FlowTriggerResp{}, fmt.Errorf("trigger request failed (status %d): %s", resp.StatusCode(), string(resp.Body))
+	}
+	if resp.JSON200.ExecID == nil {
+		return apiclient.FlowTriggerResp{}, fmt.Errorf("trigger response missing exec_id")
+	}
+	return *resp.JSON200, nil
+}
+
+func (j *FlowExecutor) waitForCompletion(ctx context.Context, client *apiclient.ClientWithResponses, namespace, execID string) (string, error) {
 	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
+
+	execUUID, err := uuid.Parse(execID)
+	if err != nil {
+		return "", fmt.Errorf("invalid execution ID %s: %w", execID, err)
+	}
 
 	for {
 		select {
 		case <-ctx.Done():
 			return "", fmt.Errorf("context cancelled while waiting for execution %s: %w", execID, ctx.Err())
 		case <-ticker.C:
-			status, err := client.GetFlowStatus(ctx, namespace, execID)
+			resp, err := client.GetExecutionWithResponse(ctx, apiclient.NamespacePath(namespace), execUUID)
 			if err != nil {
 				return "", fmt.Errorf("failed to get execution status for %s: %w", execID, err)
 			}
+			if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
+				return "", fmt.Errorf("failed to get execution status for %s (status %d): %s", execID, resp.StatusCode(), string(resp.Body))
+			}
+			if resp.JSON200.Status == nil {
+				return "", fmt.Errorf("execution status response missing status for %s", execID)
+			}
 
-			switch status.Status {
+			status := string(*resp.JSON200.Status)
+			switch status {
 			case statusCompleted, statusErrored, statusCancelled:
-				return status.Status, nil
+				return status, nil
 			}
 		}
 	}

@@ -1032,3 +1032,12 @@ type KVEntry struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }
+
+type APITokenCreateReq struct {
+	Label string `json:"label" validate:"required,max=150"`
+}
+
+type APITokenCreateResp struct {
+	models.APIToken
+	Token string `json:"token"`
+}

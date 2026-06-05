@@ -598,3 +598,14 @@ export interface TableProps<T = any> {
   emptyMessage?: string;
   emptyIcon?: string;
 }
+
+export interface ApiToken {
+  uuid: string;
+  label: string;
+  last_used_at?: string;
+  created_at: string;
+}
+
+export interface ApiTokenCreated extends ApiToken {
+  token: string;
+}

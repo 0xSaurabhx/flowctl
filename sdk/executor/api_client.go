@@ -11,11 +11,17 @@ import (
 	"time"
 )
 
+// TriggerFlowResponse is the legacy trigger response shape.
+//
+// Deprecated: use github.com/cvhariharan/flowctl/pkg/client.FlowTriggerResp.
 type TriggerFlowResponse struct {
 	ExecID      string  `json:"exec_id"`
 	ScheduledAt *string `json:"scheduled_at,omitempty"`
 }
 
+// FlowStatusResponse is the legacy execution status response shape.
+//
+// Deprecated: use github.com/cvhariharan/flowctl/pkg/client.ExecutionSummary.
 type FlowStatusResponse struct {
 	ID              string          `json:"id"`
 	FlowName        string          `json:"flow_name"`
@@ -31,7 +37,11 @@ type FlowStatusResponse struct {
 	ScheduledAt     string          `json:"scheduled_at,omitempty"`
 }
 
-// APIClient is an HTTP client for interacting with the server
+// APIClient is a legacy HTTP client for interacting with the server.
+//
+// Deprecated: use the generated client in github.com/cvhariharan/flowctl/pkg/client
+// for new executor integrations. This type remains for external executors that
+// import sdk/executor.
 type APIClient struct {
 	baseURL    string
 	apiKey     string
@@ -39,6 +49,9 @@ type APIClient struct {
 	httpClient *http.Client
 }
 
+// NewAPIClient creates a legacy API client.
+//
+// Deprecated: use pkg/client.NewClient or pkg/client.NewClientWithResponses.
 func NewAPIClient(baseURL, apiKey, userUUID string) *APIClient {
 	return &APIClient{
 		baseURL:  strings.TrimRight(baseURL, "/"),
@@ -86,12 +99,17 @@ func (c *APIClient) do(ctx context.Context, method, path string, body io.Reader,
 	return respBody, nil
 }
 
+// KVEntry is the legacy executor KV entry shape.
+//
+// Deprecated: use github.com/cvhariharan/flowctl/pkg/client.KVEntry.
 type KVEntry struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }
 
 // KVSet stores a key-value pair in the given bucket.
+//
+// Deprecated: use pkg/client.SetExecutorKVWithResponse.
 func (c *APIClient) KVSet(ctx context.Context, bucket, key, value string) error {
 	payload, err := json.Marshal(KVEntry{Key: key, Value: value})
 	if err != nil {
@@ -103,6 +121,8 @@ func (c *APIClient) KVSet(ctx context.Context, bucket, key, value string) error 
 }
 
 // KVGet retrieves the value for a key in the given bucket.
+//
+// Deprecated: use pkg/client.GetExecutorKVWithResponse.
 func (c *APIClient) KVGet(ctx context.Context, bucket, key string) (string, error) {
 	path := fmt.Sprintf("/api/v1/executor/kv/%s/%s", bucket, key)
 	body, err := c.do(ctx, http.MethodGet, path, nil, "")
@@ -117,6 +137,8 @@ func (c *APIClient) KVGet(ctx context.Context, bucket, key string) (string, erro
 }
 
 // KVList returns all entries in the given bucket.
+//
+// Deprecated: use pkg/client.ListExecutorKVWithResponse.
 func (c *APIClient) KVList(ctx context.Context, bucket string) ([]KVEntry, error) {
 	path := fmt.Sprintf("/api/v1/executor/kv/%s", bucket)
 	body, err := c.do(ctx, http.MethodGet, path, nil, "")
@@ -131,6 +153,8 @@ func (c *APIClient) KVList(ctx context.Context, bucket string) ([]KVEntry, error
 }
 
 // KVDelete removes a key from the given bucket.
+//
+// Deprecated: use pkg/client.DeleteExecutorKVWithResponse.
 func (c *APIClient) KVDelete(ctx context.Context, bucket, key string) error {
 	path := fmt.Sprintf("/api/v1/executor/kv/%s/%s", bucket, key)
 	_, err := c.do(ctx, http.MethodDelete, path, nil, "")
@@ -140,7 +164,9 @@ func (c *APIClient) KVDelete(ctx context.Context, bucket, key string) error {
 	return nil
 }
 
-// TriggerFlow triggers a flow execution via the HTTP API. Params are sent as form-encoded data
+// TriggerFlow triggers a flow execution via the HTTP API. Params are sent as form-encoded data.
+//
+// Deprecated: use pkg/client.TriggerFlowWithBodyWithResponse.
 func (c *APIClient) TriggerFlow(ctx context.Context, namespace, flowID string, params map[string]any) (TriggerFlowResponse, error) {
 	form := url.Values{}
 	for k, v := range params {
@@ -162,6 +188,8 @@ func (c *APIClient) TriggerFlow(ctx context.Context, namespace, flowID string, p
 }
 
 // GetFlowStatus retrieves the execution status of a flow.
+//
+// Deprecated: use pkg/client.GetExecutionWithResponse.
 func (c *APIClient) GetFlowStatus(ctx context.Context, namespace, execID string) (FlowStatusResponse, error) {
 	path := fmt.Sprintf("/api/v1/%s/flows/executions/%s", url.PathEscape(namespace), execID)
 	body, err := c.do(ctx, http.MethodGet, path, nil, "")
