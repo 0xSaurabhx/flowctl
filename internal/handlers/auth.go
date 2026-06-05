@@ -92,12 +92,20 @@ func (h *Handler) initOIDC() error {
 	for _, oauthConfig := range h.config.OIDC {
 		provider, err := oidc.NewProvider(context.Background(), oauthConfig.Issuer)
 		if err != nil {
-			return fmt.Errorf("could not initialize new OIDC provider client: %w", err)
+			h.logger.Warn("skipping oidc provider initialization",
+				"provider", oauthConfig.Name,
+				"issuer", oauthConfig.Issuer,
+				"error", err)
+			continue
 		}
 
 		redirectURL, err := url.JoinPath(h.config.App.RootURL, RedirectPath)
 		if err != nil {
-			return fmt.Errorf("failed to create redirect URL: %w", err)
+			h.logger.Warn("skipping oidc provider due to invalid redirect url",
+				"provider", oauthConfig.Name,
+				"issuer", oauthConfig.Issuer,
+				"error", err)
+			continue
 		}
 
 		if oauthConfig.RedirectURL != "" {
@@ -133,6 +141,14 @@ func (h *Handler) initOIDC() error {
 	}
 
 	return nil
+}
+
+func (h *Handler) getOIDCAuthConfig(provider string) (OIDCAuthConfig, bool) {
+	authConfig, ok := h.authconfig[provider]
+	if !ok || authConfig.oauth2Config == nil || authConfig.verifier == nil {
+		return OIDCAuthConfig{}, false
+	}
+	return authConfig, true
 }
 
 func (h *Handler) HandleLoginPage(c echo.Context) error {
@@ -195,6 +211,10 @@ func (h *Handler) HandleOIDCLogin(c echo.Context) error {
 	if provider == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("oidc provider cannot be empty"))
 	}
+	authConfig, ok := h.getOIDCAuthConfig(provider)
+	if !ok {
+		return wrapError(ErrResourceNotFound, "oidc provider is not available", fmt.Errorf("oidc provider is not available: %s", provider), nil)
+	}
 
 	sess, err := h.sessMgr.Acquire(nil, c, c)
 
@@ -230,7 +250,7 @@ func (h *Handler) HandleOIDCLogin(c echo.Context) error {
 		sess.Set("redirect_url", redirectURL)
 	}
 
-	authURL := h.authconfig[provider].oauth2Config.AuthCodeURL(encodedState)
+	authURL := authConfig.oauth2Config.AuthCodeURL(encodedState)
 	return c.Redirect(http.StatusTemporaryRedirect, authURL)
 }
 
@@ -267,8 +287,12 @@ func (h *Handler) HandleAuthCallback(c echo.Context) error {
 	if sessionState.Nonce != callbackState.Nonce || sessionState.Provider != callbackState.Provider {
 		return wrapError(ErrInvalidInput, "invalid state parameter", nil, nil)
 	}
+	authConfig, ok := h.getOIDCAuthConfig(sessionState.Provider)
+	if !ok {
+		return wrapError(ErrResourceNotFound, "oidc provider is not available", fmt.Errorf("oidc provider is not available: %s", sessionState.Provider), nil)
+	}
 
-	token, err := h.authconfig[sessionState.Provider].oauth2Config.Exchange(context.Background(), c.QueryParam("code"))
+	token, err := authConfig.oauth2Config.Exchange(context.Background(), c.QueryParam("code"))
 	if err != nil {
 		return wrapError(ErrOperationFailed, "failed to exchange token", err, nil)
 	}
@@ -278,7 +302,7 @@ func (h *Handler) HandleAuthCallback(c echo.Context) error {
 		return wrapError(ErrOperationFailed, "no id_token in token response", nil, nil)
 	}
 
-	idToken, err := h.authconfig[sessionState.Provider].verifier.Verify(context.Background(), rawIDToken)
+	idToken, err := authConfig.verifier.Verify(context.Background(), rawIDToken)
 	if err != nil {
 		return wrapError(ErrOperationFailed, "failed to verify ID token", err, nil)
 	}
@@ -475,6 +499,10 @@ func (h *Handler) HandleGetSSOProviders(c echo.Context) error {
 	var providers []SSOProvider
 
 	for _, v := range h.config.OIDC {
+		if _, ok := h.getOIDCAuthConfig(v.Name); !ok {
+			continue
+		}
+
 		label := v.Label
 		if label == "" {
 			label = fmt.Sprintf("Sign in with %s", v.Name)

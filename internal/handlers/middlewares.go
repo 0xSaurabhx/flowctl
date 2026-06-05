@@ -68,7 +68,15 @@ func (h *Handler) Authenticate(next echo.HandlerFunc) echo.HandlerFunc {
 				return wrapError(ErrAuthenticationFailed, "invalid token data", err, nil)
 			}
 
-			_, err = h.authconfig[tokenData.Provider].verifier.Verify(context.Background(), tokenData.RawIDToken)
+			authConfig, ok := h.getOIDCAuthConfig(tokenData.Provider)
+			if !ok {
+				sess.Delete("method")
+				sess.Delete("id_token")
+				sess.Delete("user")
+				return wrapError(ErrAuthenticationFailed, "oidc provider is not available", fmt.Errorf("oidc provider is not available: %s", tokenData.Provider), nil)
+			}
+
+			_, err = authConfig.verifier.Verify(context.Background(), tokenData.RawIDToken)
 			if err != nil {
 				sess.Delete("method")
 				sess.Delete("id_token")
