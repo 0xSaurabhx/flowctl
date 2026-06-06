@@ -42,6 +42,35 @@ type FlowExecutionHandler struct {
 	apiBaseURL       string
 }
 
+type flowRunContext struct {
+	execID       string
+	workflowMeta Metadata
+	variableMeta flowVariableMetadata
+	input        map[string]any
+	streamLogger streamlogger.Logger
+	artifactDir  string
+	secrets      map[string]string
+	outputs      map[string]any
+	namespaceID  string
+	userUUID     string
+}
+
+type flowVariableMetadata struct {
+	ID          string
+	Name        string
+	Description string
+	Namespace   string
+}
+
+func newFlowVariableMetadata(meta Metadata) flowVariableMetadata {
+	return flowVariableMetadata{
+		ID:          meta.ID,
+		Name:        meta.Name,
+		Description: meta.Description,
+		Namespace:   meta.Namespace,
+	}
+}
+
 // FlowHandlerConfig holds configuration for FlowExecutionHandler
 type FlowHandlerConfig struct {
 	Store                repo.Store
@@ -192,19 +221,30 @@ func (h *FlowExecutionHandler) executeFlow(ctx context.Context, execID string, p
 	flowSecrets := h.getFlowSecrets(ctx, payload.Workflow.Meta.ID, payload.NamespaceID, execID)
 
 	// Initialize outputs map to accumulate results from all previous actions
-	outputs := make(map[string]any)
+	runCtx := flowRunContext{
+		execID:       execID,
+		workflowMeta: payload.Workflow.Meta,
+		variableMeta: newFlowVariableMetadata(payload.Workflow.Meta),
+		input:        payload.Input,
+		streamLogger: streamLogger,
+		artifactDir:  artifactDir,
+		secrets:      flowSecrets,
+		outputs:      make(map[string]any),
+		namespaceID:  payload.NamespaceID,
+		userUUID:     payload.UserUUID,
+	}
 
 	for i := payload.StartingActionIdx; i < len(payload.Workflow.Actions); i++ {
 		action := payload.Workflow.Actions[i]
 
-		res, err := h.executeSingleAction(ctx, action, payload.Workflow.Meta.SrcDir, payload.Input, streamLogger, artifactDir, flowSecrets, outputs, execID, payload.NamespaceID, payload.UserUUID, payload.Workflow.Meta.Namespace, payload.Workflow.Meta.ID, payload.Workflow.Meta.Name)
+		res, err := h.executeSingleAction(ctx, action, runCtx)
 		if err != nil {
 			return err
 		}
 
 		h.logger.Debug("Action results", "results", res)
-		processActionResults(res, outputs)
-		h.logger.Debug("outputs", "results", outputs)
+		processActionResults(res, runCtx.outputs)
+		h.logger.Debug("outputs", "results", runCtx.outputs)
 	}
 
 	// Only remove the artifact store when all actions have been executed
@@ -305,28 +345,28 @@ func (h *FlowExecutionHandler) copyFlowFilesToArtifacts(flowDir string, artifact
 }
 
 // executeSingleAction executes a single action within a flow, handling approval and error checkpointing
-func (h *FlowExecutionHandler) executeSingleAction(ctx context.Context, action Action, srcDir string, input map[string]any, streamLogger streamlogger.Logger, artifactDir string, secrets map[string]string, outputs map[string]any, execID string, namespaceID string, userUUID string, namespaceName string, flowID string, flowName string) (map[string]string, error) {
+func (h *FlowExecutionHandler) executeSingleAction(ctx context.Context, action Action, runCtx flowRunContext) (map[string]string, error) {
 	// Check for context cancellation
 	if ctx.Err() != nil {
-		if err := streamLogger.Checkpoint("", "", "execution cancelled", streamlogger.CancelledMessageType); err != nil {
+		if err := runCtx.streamLogger.Checkpoint("", "", "execution cancelled", streamlogger.CancelledMessageType); err != nil {
 			h.logger.Error("failed to send cancellation message", "error", err)
 		}
 		return nil, ErrExecutionCancelled
 	}
 
 	// Check for approval requests
-	if err := h.checkApproval(ctx, execID, action, namespaceID); err != nil {
+	if err := h.checkApproval(ctx, runCtx.execID, action, runCtx.namespaceID); err != nil {
 		return nil, err
 	}
 
 	// Increment retry count for this action
-	namespaceUUID, err := uuid.Parse(namespaceID)
+	namespaceUUID, err := uuid.Parse(runCtx.namespaceID)
 	if err != nil {
 		return nil, fmt.Errorf("invalid namespace UUID: %w", err)
 	}
 
 	row, err := h.store.IncrementActionRetry(ctx, repo.IncrementActionRetryParams{
-		ExecID:  execID,
+		ExecID:  runCtx.execID,
 		Column2: action.ID,
 		Uuid:    namespaceUUID,
 	})
@@ -334,25 +374,25 @@ func (h *FlowExecutionHandler) executeSingleAction(ctx context.Context, action A
 		return nil, fmt.Errorf("failed to increment retry count for action %s: %w", action.ID, err)
 	}
 
-	streamLogger.SetRetry(row.RetryCount)
+	runCtx.streamLogger.SetRetry(row.RetryCount)
 	h.logger.Debug("action retry count", "action", action.ID, "retry", row.RetryCount)
 
 	// Run the action
-	res, err := h.runAction(ctx, execID, action, input, streamLogger, artifactDir, secrets, outputs, userUUID, namespaceName, flowID, flowName)
+	res, err := h.runAction(ctx, action, runCtx)
 	if err != nil {
 		// Check if the error is due to context cancellation
 		if errors.Is(err, context.Canceled) {
-			if streamErr := streamLogger.Checkpoint(action.ID, "", "execution cancelled", streamlogger.CancelledMessageType); streamErr != nil {
-				h.logger.Error("failed to send cancelled message", "execID", execID, "actionID", action.ID, "error", streamErr)
+			if streamErr := runCtx.streamLogger.Checkpoint(action.ID, "", "execution cancelled", streamlogger.CancelledMessageType); streamErr != nil {
+				h.logger.Error("failed to send cancelled message", "execID", runCtx.execID, "actionID", action.ID, "error", streamErr)
 			}
 			return nil, ErrExecutionCancelled
 		}
-		streamLogger.Checkpoint(action.ID, "", err.Error(), streamlogger.ErrMessageType)
+		runCtx.streamLogger.Checkpoint(action.ID, "", err.Error(), streamlogger.ErrMessageType)
 		return nil, err
 	}
 
 	// Checkpoint successful result
-	if err := streamLogger.Checkpoint(action.ID, "", res, streamlogger.ResultMessageType); err != nil {
+	if err := runCtx.streamLogger.Checkpoint(action.ID, "", res, streamlogger.ResultMessageType); err != nil {
 		return nil, err
 	}
 
@@ -379,7 +419,7 @@ func processActionResults(results map[string]string, outputs map[string]any) {
 }
 
 // executeOnNode executes an action on a single node and returns the results
-func (h *FlowExecutionHandler) executeOnNode(ctx context.Context, execID string, node Node, action Action, streamLogger streamlogger.Logger, inputVars map[string]any, withConfig []byte, artifactDir string, userUUID string, namespaceName string, flowID string, flowName string, allNodes []Node) ExecResults {
+func (h *FlowExecutionHandler) executeOnNode(ctx context.Context, node Node, action Action, inputVars map[string]any, withConfig []byte, allNodes []Node, runCtx flowRunContext) ExecResults {
 	// Create a separate executor instance for each node
 	var exec executor.Executor
 	nodeExecutorID := fmt.Sprintf("%s-%s", action.ID, node.Name)
@@ -394,7 +434,7 @@ func (h *FlowExecutionHandler) executeOnNode(ctx context.Context, execID string,
 		node = Node{}
 	}
 
-	nodeLogger := streamlogger.NewNodeContextLogger(streamLogger, action.ID, node.Name)
+	nodeLogger := streamlogger.NewNodeContextLogger(runCtx.streamLogger, action.ID, node.Name)
 
 	if node.Name != "" {
 		if err := node.CheckConnectivity(); err != nil {
@@ -426,7 +466,7 @@ func (h *FlowExecutionHandler) executeOnNode(ctx context.Context, execID string,
 			err:    fmt.Errorf("failed to get executor for %s: %w", action.ID, err),
 		}
 	}
-	exec, err = ef(nodeExecutorID, execNode, execID)
+	exec, err = ef(nodeExecutorID, execNode, runCtx.execID)
 	if err != nil {
 		return ExecResults{
 			result: nil,
@@ -446,7 +486,7 @@ func (h *FlowExecutionHandler) executeOnNode(ctx context.Context, execID string,
 	defer artifactDriver.Close()
 
 	// Push existing artifacts to this node's executor before execution
-	if err := h.pushArtifactsWithDriver(ctx, artifactDriver, artifactDir, execID); err != nil {
+	if err := h.pushArtifactsWithDriver(ctx, artifactDriver, runCtx.artifactDir, runCtx.execID); err != nil {
 		return ExecResults{
 			result: nil,
 			err:    fmt.Errorf("failed to push artifacts to node %s: %w", node.Name, err),
@@ -454,7 +494,7 @@ func (h *FlowExecutionHandler) executeOnNode(ctx context.Context, execID string,
 	}
 
 	// Transform file paths for remote execution
-	execInputVars := h.transformPaths(inputVars, artifactDir, exec)
+	execInputVars := h.transformPaths(inputVars, runCtx.artifactDir, exec)
 
 	var apiKey string
 	if key, ok := h.executorKeys[action.Executor]; ok {
@@ -484,13 +524,13 @@ func (h *FlowExecutionHandler) executeOnNode(ctx context.Context, execID string,
 		WithConfig:    withConfig,
 		Stdout:        nodeLogger,
 		Stderr:        nodeLogger,
-		UserUUID:      userUUID,
-		NamespaceName: namespaceName,
+		UserUUID:      runCtx.userUUID,
+		NamespaceName: runCtx.workflowMeta.Namespace,
 		APIKey:        apiKey,
 		APIBaseURL:    h.apiBaseURL,
-		ExecID:        execID,
-		FlowID:        flowID,
-		FlowName:      flowName,
+		ExecID:        runCtx.execID,
+		FlowID:        runCtx.workflowMeta.ID,
+		FlowName:      runCtx.workflowMeta.Name,
 		ActionID:      action.ID,
 		ActionName:    action.Name,
 		Nodes:         execNodes,
@@ -498,7 +538,7 @@ func (h *FlowExecutionHandler) executeOnNode(ctx context.Context, execID string,
 
 	// Pull all artifacts from this node after execution
 	if err == nil {
-		if pullErr := h.pullArtifactsWithDriver(ctx, artifactDriver, artifactDir, execID, node.Name); pullErr != nil {
+		if pullErr := h.pullArtifactsWithDriver(ctx, artifactDriver, runCtx.artifactDir, runCtx.execID, node.Name); pullErr != nil {
 			err = fmt.Errorf("execution succeeded but failed to pull artifacts: %w", pullErr)
 		}
 	}
@@ -528,12 +568,12 @@ func prefixResultKeys(results map[string]string, nodeName string) map[string]str
 }
 
 // interpolateVariables processes action variables and replaces templated values with evaluated expressions
-func (h *FlowExecutionHandler) interpolateVariables(action Action, input map[string]any, secrets map[string]string, outputs map[string]any) (map[string]any, error) {
+func (h *FlowExecutionHandler) interpolateVariables(action Action, runCtx flowRunContext) (map[string]any, error) {
 	// pattern to extract interpolated variables
 	pattern := `{{\s*([^}]+)\s*}}`
 	re := regexp.MustCompile(pattern)
 
-	h.logger.Debug("scheduler variables", "input", input)
+	h.logger.Debug("scheduler variables", "input", runCtx.input)
 
 	inputVars := make(map[string]any)
 	for _, variable := range action.Variables {
@@ -542,9 +582,10 @@ func (h *FlowExecutionHandler) interpolateVariables(action Action, input map[str
 			// Interpolated variable, needs evaluation
 			inputExpr := matches[0][1]
 			env := map[string]any{
-				"inputs":  input,
-				"secrets": secrets,
-				"outputs": outputs,
+				"inputs":  runCtx.input,
+				"secrets": runCtx.secrets,
+				"outputs": runCtx.outputs,
+				"meta":    runCtx.variableMeta,
 			}
 
 			program, err := expr.Compile(inputExpr, expr.Env(env))
@@ -571,14 +612,14 @@ func (h *FlowExecutionHandler) interpolateVariables(action Action, input map[str
 }
 
 // runAction executes a single action
-func (h *FlowExecutionHandler) runAction(ctx context.Context, execID string, action Action, input map[string]any, streamLogger streamlogger.Logger, artifactDir string, secrets map[string]string, outputs map[string]any, userUUID string, namespaceName string, flowID string, flowName string) (map[string]string, error) {
-	streamLogger.SetActionID(action.ID)
+func (h *FlowExecutionHandler) runAction(ctx context.Context, action Action, runCtx flowRunContext) (map[string]string, error) {
+	runCtx.streamLogger.SetActionID(action.ID)
 
 	jobCtx, cancel := context.WithTimeout(ctx, h.executionTimeout)
 	defer cancel()
 
 	// Interpolate variables
-	inputVars, err := h.interpolateVariables(action, input, secrets, outputs)
+	inputVars, err := h.interpolateVariables(action, runCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -606,7 +647,7 @@ func (h *FlowExecutionHandler) runAction(ctx context.Context, execID string, act
 		wg.Add(1)
 		go func(node Node) {
 			defer wg.Done()
-			result := h.executeOnNode(jobCtx, execID, node, action, streamLogger, inputVars, withConfig, artifactDir, userUUID, namespaceName, flowID, flowName, action.On)
+			result := h.executeOnNode(jobCtx, node, action, inputVars, withConfig, action.On, runCtx)
 			resChan <- result
 		}(node)
 	}
