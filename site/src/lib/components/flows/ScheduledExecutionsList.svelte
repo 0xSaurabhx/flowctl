@@ -27,8 +27,8 @@
   let upcomingRuns = $derived.by(() => {
     const runs: UpcomingRun[] = [];
 
-    // Add cron-based runs
-    for (const cron of cronSchedules) {
+    // Add cron-based runs (only active schedules)
+    for (const cron of cronSchedules.filter(c => c.is_active)) {
       const nextRun = getNextCronRun(cron.cron, cron.timezone);
       if (nextRun) {
         runs.push({
