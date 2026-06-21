@@ -39,11 +39,6 @@ jobs:
           hugo-version: ${{ env.HUGO_VERSION }}
           extended: true
 
-      - name: Setup Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: '24'
-
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
@@ -63,9 +58,10 @@ jobs:
       - name: Build docs site
         working-directory: ./docs/docs
         run: |
-          npm install
-          npx playwright install
-          npm run build -- --outDir ../public/docs
+          make build
+          rm -rf ../public/docs
+          mkdir -p ../public/docs
+          cp -a site/. ../public/docs/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

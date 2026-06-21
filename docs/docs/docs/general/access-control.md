@@ -3,8 +3,6 @@ title: Access Control
 description: Understanding roles, permissions, and namespaces in flowctl
 ---
 
-import { Aside } from "@astrojs/starlight/components";
-
 ## Overview
 
 Flowctl implements a comprehensive Role-Based Access Control (RBAC) system that manages user permissions through roles and namespaces. Access control is enforced using [Casbin](https://casbin.org/).
@@ -23,10 +21,9 @@ Flowctl has two levels of user roles:
    - **Reviewer**: Can view flows, executions, and approve flow actions
    - **Admin**: Full control over namespace resources
 
-<Aside type="note">
-  The global "superuser" role automatically grants admin access to all
-  namespaces. New user by default join the default namespace with **User** role.
-</Aside>
+!!! note
+      The global "superuser" role automatically grants admin access to all
+      namespaces. New user by default join the default namespace with **User** role.
 
 ## Namespaces
 
@@ -104,10 +101,9 @@ The **Admin** role has full control over all resources within a namespace.
 - ✓ Add and remove namespace members
 - ✓ Update member roles
 
-<Aside type="caution">
-  Admin users can manage all resources within their namespace, including
-  sensitive credentials and secrets. Grant this role carefully.
-</Aside>
+!!! warning
+      Admin users can manage all resources within their namespace, including
+      sensitive credentials and secrets. Grant this role carefully.
 
 ## Permission Matrix
 
@@ -182,10 +178,9 @@ The initial admin user configured in `config.toml` can authenticate using userna
   admin_password = "secure_password"
 ```
 
-<Aside type="caution">
-  Only the admin user can use username/password authentication. All other users
-  must use OIDC.
-</Aside>
+!!! warning
+      Only the admin user can use username/password authentication. All other users
+      must use OIDC.
 
 ### OIDC Authentication
 
@@ -227,8 +222,7 @@ auto_create_users.allowed_domains = ["example.com"]
 | `groups` | array | List of existing group names to add the new user to. |
 | `allowed_domains` | array | If set, only email addresses from these domains can create accounts. Leave empty to allow any domain. |
 
-<Aside type="caution">
-  If `allowed_domains` is empty, any user who can authenticate with your OIDC
-  provider will have an account created automatically. Set it to restrict
-  sign-ups to your organisation's domain.
-</Aside>
+!!! warning
+      If `allowed_domains` is empty, any user who can authenticate with your OIDC
+      provider will have an account created automatically. Set it to restrict
+      sign-ups to your organisation's domain.

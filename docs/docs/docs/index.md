@@ -4,15 +4,10 @@ title: Getting Started
 
 Flowctl uses PostgreSQL as its database. This is the only external dependency. Everything else is included in the binary.
 
-import { Steps } from "@astrojs/starlight/components";
-import { Aside } from "@astrojs/starlight/components";
-
 ## Quick Start
 
 For a quick setup, you can use the provided [docker-compose.yml](https://raw.githubusercontent.com/cvhariharan/flowctl/refs/heads/master/docker-compose.yaml) file.
 Alternatively, you can set up flowctl manually with the following steps.
-
-<Steps>
 
 1. **Download the binary**
 
@@ -47,8 +42,6 @@ Alternatively, you can set up flowctl manually with the following steps.
 5. **Login**
 
    Use the admin credentials you configured in `config.toml`.
-
-</Steps>
 
 ## Configuration
 
@@ -115,10 +108,9 @@ The `config.toml` file controls all aspects of flowctl's behavior. Here's a comp
 
 - **`keeper_url`** (required): The keystore manages encryption keys for sensitive data. Uses a URI scheme to specify the storage backend. This uses the [gocloud](https://gocloud.dev/howto/secrets/) package which supports multiple KMS backends. The default config uses a local encryption key.
 
-<Aside type="caution">
-  Ensure that this key is backed-up and saved. Losing this key will make the
-  secrets and credentials inaccessible.
-</Aside>
+!!! warning
+      Ensure that this key is backed-up and saved. Losing this key will make the
+      secrets and credentials inaccessible.
 
 ### Scheduler Settings
 
@@ -177,11 +169,10 @@ Configure SMTP settings to enable email notifications for flow events. Email not
 - **`max_conns`** (required): Maximum number of concurrent SMTP connections (default: `10`).
 - **`ssl`** (required): SSL/TLS mode - `none`, `tls` (implicit TLS), or `starttls` (explicit TLS).
 
-<Aside type="note">
-  SMTP configuration is required for email notifications to work. See the [Flows
-  documentation](/docs/general/flows#notifications) for how to configure
-  notifications in your flows.
-</Aside>
+!!! note
+      SMTP configuration is required for email notifications to work. See the [Flows
+      documentation](/docs/general/flows#notifications) for how to configure
+      notifications in your flows.
 
 ### Webhook Notifications
 
@@ -220,10 +211,9 @@ Configure webhook settings to enable webhook notifications for flow events. Webh
   auto_create_users.allowed_domains = ["example.com"]
 ```
 
-<Aside>
-  Currently only the default admin user can use a username and password to log
-  into flowctl. All other users are expected to use OIDC.
-</Aside>
+!!! note
+      Currently only the default admin user can use a username and password to log
+      into flowctl. All other users are expected to use OIDC.
 
 Configure OpenID Connect for single sign-on. Multiple OIDC providers can be configured by adding additional `[[oidc]]` sections:
 

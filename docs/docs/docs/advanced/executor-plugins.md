@@ -3,8 +3,6 @@ title: Writing Executor Plugins
 description: Build custom executor plugins for flowctl using the Go SDK
 ---
 
-import { Aside } from "@astrojs/starlight/components";
-
 ## Overview
 
 Executor plugins let you extend flowctl with custom execution logic. A plugin is a standalone Go binary that flowctl loads at startup and communicates with over gRPC using [go-plugin](https://github.com/hashicorp/go-plugin).
@@ -14,7 +12,6 @@ Plugins implement the same `ExecutorPlugin` interface as built-in executors, so 
 ## How Plugins Work
 
 Flowctl spawns each plugin binary as a child process on startup. Communication happens over a local gRPC connection. The plugin process lives for the lifetime of the flowctl server. If a plugin crashes, flowctl logs the error; it does not restart the plugin automatically.
-
 
 ## Implementing a Plugin
 
@@ -105,10 +102,9 @@ plugin_dir = "/opt/flowctl/plugins"
 
 Restart flowctl. It loads all binaries in the directory on startup. Check the server logs to confirm the plugin loaded successfully.
 
-<Aside type="note">
-  Plugin names must be unique across all loaded plugins and must not conflict
-  with built-in executor names: `docker`, `script`, `flow`.
-</Aside>
+!!! note
+      Plugin names must be unique across all loaded plugins and must not conflict
+      with built-in executor names: `docker`, `script`, `flow`.
 
 ## ExecutionContext Reference
 

@@ -3,8 +3,6 @@ title: QSSH Setup
 description: Set up QSSH server on remote nodes for improved SSH reliability
 ---
 
-import { Aside } from "@astrojs/starlight/components";
-
 ## Overview
 
 QSSH enables SSH connections over QUIC transport, providing better performance and reliability over unstable network connections compared to traditional TCP-based SSH.
@@ -82,7 +80,6 @@ When adding a node in flowctl:
 2. Set **Port** to `4433` (or your configured QSSH port)
 3. Configure other fields as usual (hostname, username, credential)
 
-<Aside type="tip">
-  QSSH is particularly useful for nodes with unreliable network connections or
-  high latency.
-</Aside>
+!!! tip
+      QSSH is particularly useful for nodes with unreliable network connections or
+      high latency.

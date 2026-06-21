@@ -3,9 +3,6 @@ title: Flows
 description: Learn how to create and configure workflows in flowctl
 ---
 
-import { Tabs, TabItem } from "@astrojs/starlight/components";
-import { Aside } from "@astrojs/starlight/components";
-
 ## What are Flows?
 
 Flows are the core automation units in flowctl. A flow is a sequence of actions that execute in order, with support for inputs, variables, approvals. Flows are defined using YAML/[HUML](https://huml.io) files and can run locally or on remote nodes.
@@ -84,10 +81,9 @@ schedules:
     timezone: Asia/Kolkata
 ```
 
-<Aside>
-  Only flows where all inputs have default values can be scheduled. Flows with
-  file inputs cannot be scheduled.
-</Aside>
+!!! note
+      Only flows where all inputs have default values can be scheduled. Flows with
+      file inputs cannot be scheduled.
 
 ### User Schedules
 
@@ -102,16 +98,15 @@ metadata:
   user_schedulable: true
 ```
 
-![User Schedules](../../../assets/images/schedules.png)
+![User Schedules](../assets/images/schedules.png)
 
 Once enabled, go to a flow's **Schedule** tab and click **Add** to create a schedule.
 
-![Schedule Inputs](../../../assets/images/schedule-inputs.png)
+![Schedule Inputs](../assets/images/schedule-inputs.png)
 
-<Aside>
-  Like flow-defined schedules, user schedules require all inputs to have default
-  values. File inputs aren't supported.
-</Aside>
+!!! note
+      Like flow-defined schedules, user schedules require all inputs to have default
+      values. File inputs aren't supported.
 
 ### Scheduling a Flow for Later
 
@@ -125,95 +120,81 @@ Inputs define parameters that users provide when triggering a flow. Flowctl supp
 
 ### Input Types
 
-<Tabs>
-<TabItem label="String">
+=== "String"
 
-```yaml
-inputs:
-  - name: namespace
-    type: string
-    label: Namespace
-    description: Target namespace
-    required: true
-    default: "default"
-    validation: len(namespace) > 3
-```
+    ```yaml
+    inputs:
+      - name: namespace
+        type: string
+        label: Namespace
+        description: Target namespace
+        required: true
+        default: "default"
+        validation: len(namespace) > 3
+    ```
 
-</TabItem>
+=== "Number"
 
-<TabItem label="Number">
+    ```yaml
+    inputs:
+      - name: count
+        type: number
+        label: Retry Count
+        description: Number of retries
+        required: true
+        validation: count > 0 && count < 10
+    ```
 
-```yaml
-inputs:
-  - name: count
-    type: number
-    label: Retry Count
-    description: Number of retries
-    required: true
-    validation: count > 0 && count < 10
-```
+=== "Select"
 
-</TabItem>
+    ```yaml
+    inputs:
+      - name: environment
+        type: select
+        label: Environment
+        description: Deployment environment
+        options:
+          - development
+          - staging
+          - production
+        required: true
+    ```
 
-<TabItem label="Select">
+    Select inputs also support fetching options from a remote endpoint. See [Remote Options](#remote-options).
 
-```yaml
-inputs:
-  - name: environment
-    type: select
-    label: Environment
-    description: Deployment environment
-    options:
-      - development
-      - staging
-      - production
-    required: true
-```
+=== "Checkbox"
 
-Select inputs also support fetching options from a remote endpoint. See [Remote Options](#remote-options).
+    ```yaml
+    inputs:
+      - name: enable_debug
+        type: checkbox
+        label: Enable Debug Mode
+        description: Enable verbose logging
+        default: false
+    ```
 
-</TabItem>
+=== "Password"
 
-<TabItem label="Checkbox">
+    ```yaml
+    inputs:
+      - name: api_token
+        type: password
+        label: API Token
+        description: Authentication token
+        required: true
+    ```
 
-```yaml
-inputs:
-  - name: enable_debug
-    type: checkbox
-    label: Enable Debug Mode
-    description: Enable verbose logging
-    default: false
-```
+=== "File"
 
-</TabItem>
-
-<TabItem label="Password">
-
-```yaml
-inputs:
-  - name: api_token
-    type: password
-    label: API Token
-    description: Authentication token
-    required: true
-```
-
-</TabItem>
-
-<TabItem label="File">
-
-```yaml
-inputs:
-  - name: config_file
-    type: file
-    label: Configuration File
-    description: Upload a configuration file
-    required: true
-    max_file_size: 10485760 # Optional: 10MB limit (default: 100MB)
-```
-
-</TabItem>
-</Tabs>
+    ```yaml
+    inputs:
+      - name: config_file
+        type: file
+        label: Configuration File
+        description: Upload a configuration file
+        required: true
+        max_file_size: 10485760 # Optional: 10MB limit (default: 100MB)
+    ```
 
 ### File Inputs
 
@@ -304,7 +285,7 @@ The remote endpoint must return a JSON response with this structure:
 | --------- | ----------------- | -------- | ---------------------------------------------------------------- |
 | `url`     | string            | Yes      | HTTP or HTTPS URL to fetch options from                          |
 | `method`  | string            | No       | HTTP method (`GET` or `POST`). Defaults to `GET`                 |
-| `headers` | map[string]string | No       | HTTP headers to include in the request                           |
+| `headers` | `map[string]string` | No       | HTTP headers to include in the request                           |
 
 #### Header Interpolation
 
@@ -326,7 +307,7 @@ remote_options:
 
 Actions are the executable steps in a flow. Each action runs sequentially unless it fails.
 
-![Action Editor](../../../assets/images/actions.png)
+![Action Editor](../assets/images/actions.png)
 
 ### Action Structure
 
@@ -409,9 +390,8 @@ variables:
   - is_prod: "{{ inputs.env == 'production' }}"
 ```
 
-<Aside type="tip">
-  You can use [expr](https://expr-lang.org/) expressions to define variables.
-</Aside>
+!!! tip
+      You can use [expr](https://expr-lang.org/) expressions to define variables.
 
 ### Flow Secrets
 
@@ -427,7 +407,7 @@ Secrets are managed per-flow through the flowctl UI:
 
 Secrets can be only added after the flow is created.
 
-![Flow Secrets](../../../assets/images/flow-secrets.png)
+![Flow Secrets](../assets/images/flow-secrets.png)
 
 Each secret has:
 
@@ -435,10 +415,9 @@ Each secret has:
 - **Value**: The sensitive data (encrypted and never displayed after creation)
 - **Description**: Optional note about what the secret is for
 
-<Aside type="caution">
-  Secret values cannot be viewed after creation. When editing a secret, you must
-  provide a new value.
-</Aside>
+!!! warning
+      Secret values cannot be viewed after creation. When editing a secret, you must
+      provide a new value.
 
 #### Using Secrets in Flows
 
@@ -492,12 +471,11 @@ Preserve files generated during action execution:
       echo "Report content" > $FC_ARTIFACTS/report.txt
 ```
 
-<Aside type="note">
-  Only top level files in the `$FC_ARTIFACTS` directory will be transferred
-  between jobs. Any directories added here will be ignored. Files produced on
-  the local node (default, when no nodes are selected), will be available under
-  the `local` directory under `$FC_ARTIFACTS`
-</Aside>
+!!! note
+      Only top level files in the `$FC_ARTIFACTS` directory will be transferred
+      between jobs. Any directories added here will be ignored. Files produced on
+      the local node (default, when no nodes are selected), will be available under
+      the `local` directory under `$FC_ARTIFACTS`
 Any files copied to the `$FC_ARTIFACTS` directory will be available as artifacts
 in subsequent actions under the same directory.
 
@@ -602,7 +580,7 @@ notify:
       - on_failure
 ```
 
-![Notification setup from UI](../../../assets/images/notifications.png)
+![Notification setup from UI](../assets/images/notifications.png)
 
 ### Notification Channels
 
@@ -680,11 +658,10 @@ notify:
       - on_failure
 ```
 
-<Aside type="note">
-  Webhook notifications require the webhook messenger to be enabled and an
-  Ed25519 signing key to be configured in the server's `config.toml`. See the
-  [webhook configuration](/docs/#webhook-notifications) for setup details.
-</Aside>
+!!! note
+      Webhook notifications require the webhook messenger to be enabled and an
+      Ed25519 signing key to be configured in the server's `config.toml`. See the
+      [webhook configuration](/docs/#webhook-notifications) for setup details.
 
 ### Multiple Notification Configurations
 
@@ -721,10 +698,9 @@ notify:
 
 To create a copy of an existing flow, open the flow list, click the **...** menu on any flow, and select **Duplicate**. The create form opens pre-filled with the original flow's metadata, inputs, actions, and notifications.
 
-<Aside type="caution">
-  Secrets are not copied. Re-add any secrets under the **Secrets** tab after the
-  duplicated flow is created.
-</Aside>
+!!! warning
+      Secrets are not copied. Re-add any secrets under the **Secrets** tab after the
+      duplicated flow is created.
 
 ## Next Steps
 

@@ -3,8 +3,6 @@ title: Flow Groups
 description: Organize flows into groups
 ---
 
-import { Aside } from "@astrojs/starlight/components";
-
 Flow groups let you organize related flows under a shared prefix.
 
 ## Creating a Group
@@ -23,7 +21,7 @@ All flows with the same `prefix` value are grouped together. If the group doesn'
 
 You can also assign a group from the flow editor UI using the **Group** field:
 
-![Add flow to group](../../../assets/images/add-flow-group.png)
+![Add flow to group](../assets/images/add-flow-group.png)
 
 To leave a flow ungrouped, set `prefix` to an empty string or omit it:
 
@@ -40,22 +38,21 @@ metadata:
 
 Groups appear at the top of the flows list as folder icons, showing the number of flows in each group. Click a group to see its flows.
 
-![Flow Groups](../../../assets/images/flow-group.png)
+![Flow Groups](../assets/images/flow-group.png)
 
 ### Editing a Group
 
 Click the **Edit** action on a group to update its description.
 
-![Edit Group](../../../assets/images/flow-group-edit.png)
+![Edit Group](../assets/images/flow-group-edit.png)
 
 ### Deleting a Group
 
 Click the **Delete** action on a group. This permanently deletes the group **and all flows inside it**.
 
-<Aside type="caution">
-  Deleting a group deletes every flow in that group. This action cannot be
-  undone.
-</Aside>
+!!! warning
+      Deleting a group deletes every flow in that group. This action cannot be
+      undone.
 
 ## Access Control
 
@@ -70,14 +67,13 @@ Namespace admins can grant group access to individual users:
 3. Select a group from the dropdown
 4. The user can now see and execute flows in that group
 
-![Edit Member - Group Access](../../../assets/images/edit-member.png)
+![Edit Member - Group Access](../assets/images/edit-member.png)
 
 Multiple groups can be granted to the same user. To revoke access, click the remove button next to the group name.
 
-<Aside>
-  Group access control only applies to the **User** role. **Reviewer** and
-  **Admin** roles have access to all groups automatically.
-</Aside>
+!!! note
+      Group access control only applies to the **User** role. **Reviewer** and
+      **Admin** roles have access to all groups automatically.
 
 ### Permissions
 
