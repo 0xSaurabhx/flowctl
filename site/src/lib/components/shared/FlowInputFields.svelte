@@ -14,11 +14,35 @@
 		useFormData?: boolean;
 	} = $props();
 
+	function defaultValue(input: FlowInput) {
+		if (input.default === undefined) return undefined;
+		if (input.type === 'checkbox') return input.default.toLowerCase() === 'true';
+		return input.default;
+	}
+
+	function isChecked(value: any) {
+		if (typeof value === 'boolean') return value;
+		if (typeof value === 'string') return value.toLowerCase() === 'true';
+		return Boolean(value);
+	}
+
 	$effect(() => {
+		let nextValues = values;
+		let changed = false;
+
 		for (const input of inputs) {
-			if (input.default !== undefined && values[input.name] === undefined) {
-				values[input.name] = input.default;
+			const value = defaultValue(input);
+			if (value !== undefined && values[input.name] === undefined) {
+				if (!changed) {
+					nextValues = { ...values };
+					changed = true;
+				}
+				nextValues[input.name] = value;
 			}
+		}
+
+		if (changed) {
+			values = nextValues;
 		}
 	});
 </script>
@@ -64,7 +88,7 @@
 							id={input.name}
 							name={input.name}
 							value="true"
-							checked={values[input.name] ?? input.default === 'true'}
+							checked={isChecked(values[input.name] ?? defaultValue(input))}
 						/>
 					{:else}
 						<input

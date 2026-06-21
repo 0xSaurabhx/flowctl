@@ -32,14 +32,45 @@
 
   const timezones = getTimezones();
 
-  const mergedInputs = $derived(
-    inputs.map(input => {
-      if (executionInput && executionInput[input.name] !== undefined) {
-        return { ...input, default: String(executionInput[input.name]) };
+  const hasInputValue = (name: string) =>
+    executionInput !== null && Object.prototype.hasOwnProperty.call(executionInput, name);
+
+  const formatInputValue = (input: FlowInput, value: any) => {
+    if (value === null || value === undefined) return '';
+
+    if (input.type === 'checkbox') {
+      if (typeof value === 'boolean') return value;
+      if (typeof value === 'string') return value.toLowerCase() === 'true';
+      return Boolean(value);
+    }
+
+    if (input.type === 'datetime') {
+      return String(value).replace(/(:\d{2}(?:\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/, '');
+    }
+
+    return String(value);
+  };
+
+  const buildInitialValues = () => {
+    const values: Record<string, any> = {};
+
+    for (const input of inputs) {
+      if (input.default !== undefined) {
+        values[input.name] = formatInputValue(input, input.default);
       }
-      return input;
-    })
-  );
+      if (hasInputValue(input.name)) {
+        values[input.name] = formatInputValue(input, executionInput?.[input.name]);
+      }
+    }
+
+    return values;
+  };
+
+  let initialValues = $state<Record<string, any>>({});
+
+  $effect(() => {
+    initialValues = buildInitialValues();
+  });
 
   const toRFC3339 = (localDateTime: string, timezone: string): string => {
     return DateTime.fromISO(localDateTime, { zone: timezone }).toISO() ?? localDateTime;
@@ -121,7 +152,7 @@
       </div>
     {/if}
 
-    <FlowInputFields inputs={mergedInputs} {errors} useFormData={true} />
+    <FlowInputFields inputs={inputs} bind:values={initialValues} {errors} useFormData={true} />
 
     <!-- Schedule option -->
     <div class="schedule-section">
