@@ -6,6 +6,8 @@
   import { getTimezones } from '$lib/utils/timezone';
   import { DateTime } from 'luxon';
   import { IconClock, IconPlayerPlay } from '@tabler/icons-svelte';
+  import { get } from 'svelte/store';
+  import { appInfo } from '$lib/stores/auth';
   import FlowInputFields from '$lib/components/shared/FlowInputFields.svelte';
 
   let {
@@ -28,7 +30,7 @@
   let errors = $state<Record<string, string>>({});
   let scheduleEnabled = $state(false);
   let scheduledAt = $state('');
-  let scheduledTimezone = $state(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  let scheduledTimezone = $state(get(appInfo)?.default_timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone);
 
   const timezones = getTimezones();
 

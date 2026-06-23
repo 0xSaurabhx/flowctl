@@ -2,7 +2,7 @@
 	import '../app.css';
 	import '@knadh/oat/oat.min.js';
 	import favicon from '$lib/assets/favicon.svg';
-	import { currentUser, isAuthenticated, isLoading } from '$lib/stores/auth';
+	import { currentUser, isAuthenticated, isLoading, appInfo } from '$lib/stores/auth';
 	import { resolvedTheme, applyTheme } from '$lib/stores/theme';
 	import { beforeNavigate } from '$app/navigation';
 	import GlobalLoadingIndicator from '$lib/components/shared/GlobalLoadingIndicator.svelte';
@@ -40,6 +40,12 @@
 					isLoading.set(false);
 				}
 			});
+
+		data.infoPromise.then((info) => {
+			if (!cancelled) {
+				appInfo.set(info);
+			}
+		});
 
 		return () => {
 			cancelled = true;

@@ -39,6 +39,9 @@ type Handler struct {
 	logger             *slog.Logger
 	config             config.Config
 	executorSigningKey []byte
+	version            string
+	commit             string
+	buildDate          string
 }
 
 func getCookie(name string, r interface{}) (*http.Cookie, error) {
@@ -52,7 +55,7 @@ func setCookie(cookie *http.Cookie, w interface{}) error {
 	return nil
 }
 
-func NewHandler(logger *slog.Logger, db *sql.DB, co *core.Core, cfg config.Config, executorSigningKey []byte) (*Handler, error) {
+func NewHandler(logger *slog.Logger, db *sql.DB, co *core.Core, cfg config.Config, executorSigningKey []byte, version, commit, buildDate string) (*Handler, error) {
 	validate := validator.New()
 	validate.RegisterValidation("alphanum_underscore", models.AlphanumericUnderscore)
 	validate.RegisterValidation("alphanum_whitespace", models.AlphanumericSpace)
@@ -88,7 +91,7 @@ func NewHandler(logger *slog.Logger, db *sql.DB, co *core.Core, cfg config.Confi
 		}
 	}()
 
-	h := &Handler{co: co, validate: validate, logger: logger, sessMgr: sessMgr, config: cfg, authconfig: make(map[string]OIDCAuthConfig), executorSigningKey: executorSigningKey}
+	h := &Handler{co: co, validate: validate, logger: logger, sessMgr: sessMgr, config: cfg, authconfig: make(map[string]OIDCAuthConfig), executorSigningKey: executorSigningKey, version: version, commit: commit, buildDate: buildDate}
 	if err := h.initOIDC(); err != nil {
 		return nil, fmt.Errorf("error initializing oidc config: %w", err)
 	}
@@ -97,6 +100,15 @@ func NewHandler(logger *slog.Logger, db *sql.DB, co *core.Core, cfg config.Confi
 
 func (h *Handler) HandlePing(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
+}
+
+func (h *Handler) HandleGetInfo(c echo.Context) error {
+	return c.JSON(http.StatusOK, AppInfoResponse{
+		Version:         h.version,
+		Commit:          h.commit,
+		BuildDate:       h.buildDate,
+		DefaultTimezone: h.config.Scheduler.DefaultTimezone,
+	})
 }
 
 func formatValidationErrors(err error) string {

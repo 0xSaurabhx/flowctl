@@ -56,7 +56,8 @@ import type {
   ScheduleUpdateReq,
   SchedulesPaginateResponse,
   ApiToken,
-  ApiTokenCreated
+  ApiTokenCreated,
+  AppInfoResponse
 } from './types.js';
 
 export class ApiError extends Error {
@@ -118,13 +119,13 @@ async function baseFetch<T>(url: string, options: RequestInit = {}): Promise<T> 
 
 function buildQueryString(params: Record<string, any>): string {
   const searchParams = new URLSearchParams();
-  
+
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') {
       searchParams.append(key, String(value));
     }
   });
-  
+
   const queryString = searchParams.toString();
   return queryString ? `?${queryString}` : '';
 }
@@ -142,6 +143,10 @@ export const apiClient = {
         method: 'POST',
       }),
     getSSOProviders: () => baseFetch<SSOProvider[]>('/sso-providers'),
+  },
+
+  info: {
+    get: () => baseFetch<AppInfoResponse>('/info'),
   },
 
   // Users
@@ -299,7 +304,7 @@ export const apiClient = {
       Object.entries(inputs).forEach(([key, value]) => {
         formData.append(key, String(value));
       });
-      
+
       return baseFetch<FlowTriggerResp>(`/api/v1/${encodeURIComponent(namespace)}/trigger/${flowId}`, {
         method: 'POST',
         body: formData,

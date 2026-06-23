@@ -550,6 +550,13 @@ type UserProfileResponse struct {
 	Groups   []string `json:"groups"`
 }
 
+type AppInfoResponse struct {
+	Version         string `json:"version"`
+	Commit          string `json:"commit"`
+	BuildDate       string `json:"build_date"`
+	DefaultTimezone string `json:"default_timezone"`
+}
+
 func coreUserInfoToUserProfile(u models.UserInfo) UserProfileResponse {
 	return UserProfileResponse{
 		ID:       u.ID,

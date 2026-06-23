@@ -3,6 +3,8 @@
   import { autofocus } from '$lib/utils/autofocus';
   import { getTimezones } from '$lib/utils/timezone';
   import { isValidCronExpression } from '$lib/utils';
+  import { get } from 'svelte/store';
+  import { appInfo } from '$lib/stores/auth';
   import FlowInputFields from '$lib/components/shared/FlowInputFields.svelte';
   import type { FlowInput, UserSchedule, ScheduleCreateReq, ScheduleUpdateReq } from '$lib/types';
 
@@ -43,7 +45,7 @@
     });
     return {
       cron: '',
-      timezone: 'UTC',
+      timezone: get(appInfo)?.default_timezone ?? 'UTC',
       is_active: true,
       inputs: initialInputs
     };

@@ -1,6 +1,8 @@
 <script lang="ts">
     import { createSlug, isValidCronExpression } from "$lib/utils";
     import { getTimezones } from "$lib/utils/timezone";
+    import { get } from "svelte/store";
+    import { appInfo } from "$lib/stores/auth";
     import type { Schedule } from "$lib/types";
     import FlowGroupSelector from "./FlowGroupSelector.svelte";
 
@@ -53,7 +55,7 @@
         if (!metadata.schedules) {
             metadata.schedules = [];
         }
-        metadata.schedules.push({ cron: "", timezone: "UTC" });
+        metadata.schedules.push({ cron: "", timezone: get(appInfo)?.default_timezone ?? "UTC" });
     }
 
     function removeSchedule(index: number) {

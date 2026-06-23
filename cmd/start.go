@@ -279,7 +279,7 @@ func initializeSharedComponents() *SharedComponents {
 }
 
 func startServer(db *sqlx.DB, co *core.Core, metricsManager *metrics.Manager, logger *slog.Logger, executorSigningKey []byte) {
-	h, err := handlers.NewHandler(logger, db.DB, co, appConfig, executorSigningKey)
+	h, err := handlers.NewHandler(logger, db.DB, co, appConfig, executorSigningKey, version, commit, date)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -305,6 +305,7 @@ func startServer(db *sqlx.DB, co *core.Core, metricsManager *metrics.Manager, lo
 	}
 
 	e.GET("/ping", h.HandlePing)
+	e.GET("/info", h.HandleGetInfo)
 	e.POST("/login", h.HandleLoginPage)
 	e.POST("/logout", h.HandleLogout)
 	e.GET("/sso-providers", h.HandleGetSSOProviders)

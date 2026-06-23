@@ -19,6 +19,13 @@ export interface UserProfileResponse {
   groups?: string[];
 }
 
+export interface AppInfoResponse {
+  version: string;
+  commit: string;
+  build_date: string;
+  default_timezone: string;
+}
+
 export interface AuthReq {
   username: string;
   password: string;

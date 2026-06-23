@@ -102,6 +102,7 @@ type SchedulerConfig struct {
 	Backend              string        `koanf:"backend"`
 	CronSyncInterval     time.Duration `koanf:"cron_sync_interval" validate:"min=1s"`
 	FlowExecutionTimeout time.Duration `koanf:"flow_execution_timeout" validate:"min=1s"`
+	DefaultTimezone      string        `koanf:"default_timezone" validate:"required,timezone"`
 }
 
 type Logger struct {
@@ -244,6 +245,7 @@ func GetDefaultConfig() Config {
 			WorkerCount:          runtime.NumCPU(),
 			CronSyncInterval:     5 * time.Minute,
 			FlowExecutionTimeout: time.Hour,
+			DefaultTimezone:      "UTC",
 		},
 		Logger: Logger{
 			Backend:       "file",

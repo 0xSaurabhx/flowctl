@@ -102,6 +102,8 @@ cron_sync_interval = "5m0s"
 workers = 20
 # (required) Timeout for flow execution. A running flow will be terminated after this duration. Default - 1 hour
 flow_execution_timeout = "1h"
+# (required) Default IANA timezone used as the UI pre-fill whenever a schedule timezone isn't set
+default_timezone = "UTC"
 
 [db]
 # (required) Database name

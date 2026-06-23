@@ -29,7 +29,7 @@
     import UserDropdown from "./UserDropdown.svelte";
     import ThemeToggle from "./ThemeToggle.svelte";
     import Logo from "./Logo.svelte";
-    import { APP_VERSION, APP_COMMIT } from "$lib/constants";
+    import { appInfo } from "$lib/stores/auth";
 
     let { namespace }: { namespace: string } = $props();
 
@@ -196,7 +196,9 @@
                 <Logo height="1.5rem" iconOnly={true} />
             {:else}
                 <Logo height="2rem" />
-                <span class="text-lighter" style="font-size: var(--text-8)">{APP_VERSION}-{APP_COMMIT}</span>
+                {#if $appInfo}
+                    <span class="text-lighter" style="font-size: var(--text-8)">{$appInfo.version}-{$appInfo.commit}</span>
+                {/if}
             {/if}
         </a>
 
