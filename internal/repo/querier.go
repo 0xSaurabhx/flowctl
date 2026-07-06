@@ -8,6 +8,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/sqlc-dev/pqtype"
@@ -86,9 +87,11 @@ type Querier interface {
 	GetExecutionByExecID(ctx context.Context, arg GetExecutionByExecIDParams) (GetExecutionByExecIDRow, error)
 	GetExecutionByExecIDWithNamespace(ctx context.Context, arg GetExecutionByExecIDWithNamespaceParams) (GetExecutionByExecIDWithNamespaceRow, error)
 	GetExecutionByID(ctx context.Context, arg GetExecutionByIDParams) (GetExecutionByIDRow, error)
+	GetExecutionStatusByExecID(ctx context.Context, execID string) (ExecutionStatus, error)
 	GetExecutionsByFlow(ctx context.Context, arg GetExecutionsByFlowParams) ([]GetExecutionsByFlowRow, error)
 	GetExecutionsByFlowPaginated(ctx context.Context, arg GetExecutionsByFlowPaginatedParams) ([]GetExecutionsByFlowPaginatedRow, error)
 	GetExecutorKV(ctx context.Context, arg GetExecutorKVParams) (ExecutorKvStore, error)
+	GetFinishedExecutionsOlderThan(ctx context.Context, updatedAt time.Time) ([]GetFinishedExecutionsOlderThanRow, error)
 	GetFlowBySlug(ctx context.Context, arg GetFlowBySlugParams) (Flow, error)
 	GetFlowCountByPrefix(ctx context.Context, prefixID sql.NullInt32) (int64, error)
 	GetFlowFromExecID(ctx context.Context, arg GetFlowFromExecIDParams) (Flow, error)

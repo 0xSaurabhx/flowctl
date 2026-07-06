@@ -172,7 +172,7 @@ func AlphanumericUnderscore(fl validator.FieldLevel) bool {
 }
 
 func AlphanumericSpace(fl validator.FieldLevel) bool {
-	regex := regexp.MustCompile(`^[a-zA-Z0-9 ]+$`)
+	regex := regexp.MustCompile(`^[a-zA-Z0-9 _\.\-:/()]+$`)
 	value := fl.Field().String()
 
 	return regex.MatchString(value)

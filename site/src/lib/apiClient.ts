@@ -57,7 +57,8 @@ import type {
   SchedulesPaginateResponse,
   ApiToken,
   ApiTokenCreated,
-  AppInfoResponse
+  AppInfoResponse,
+  ArtifactMetadata
 } from './types.js';
 
 export class ApiError extends Error {
@@ -477,6 +478,8 @@ export const apiClient = {
       baseFetch<void>(`/api/v1/${encodeURIComponent(namespace)}/flows/executions/${execId}/retry`, {
         method: 'POST',
       }),
+    getArtifacts: (namespace: string, execId: string) =>
+      baseFetch<ArtifactMetadata[]>(`/api/v1/${encodeURIComponent(namespace)}/flows/executions/${execId}/artifacts`),
   },
 
   // Executors

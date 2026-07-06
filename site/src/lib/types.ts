@@ -616,3 +616,11 @@ export interface ApiToken {
 export interface ApiTokenCreated extends ApiToken {
   token: string;
 }
+
+export interface ArtifactMetadata {
+  path: string;
+  name: string;
+  size: number;
+  modified_at: string;
+}
+

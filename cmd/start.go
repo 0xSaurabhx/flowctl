@@ -23,6 +23,7 @@ import (
 	"github.com/cvhariharan/flowctl/internal/repo"
 	"github.com/cvhariharan/flowctl/internal/scheduler"
 	"github.com/cvhariharan/flowctl/internal/scheduler/storage"
+	artifactsStorage "github.com/cvhariharan/flowctl/internal/storage"
 	"github.com/cvhariharan/flowctl/internal/streamlogger"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
@@ -219,6 +220,35 @@ func initializeSharedComponents() *SharedComponents {
 	}
 	executorKeys := registerPlugins(appConfig.App.PluginDir, executorSigningKey)
 
+	var storeInstance artifactsStorage.Storage
+	if appConfig.Artifacts.Retain {
+		var err error
+		if appConfig.Artifacts.StorageType == "s3" {
+			storeInstance, err = artifactsStorage.NewS3Storage(
+				appConfig.Artifacts.S3.Bucket,
+				appConfig.Artifacts.S3.Region,
+				appConfig.Artifacts.S3.Endpoint,
+				appConfig.Artifacts.S3.AccessKey,
+				appConfig.Artifacts.S3.SecretKey,
+				appConfig.Artifacts.S3.UseSSL,
+			)
+		} else {
+			storeInstance, err = artifactsStorage.NewLocalStorage(appConfig.Artifacts.Directory)
+		}
+		if err != nil {
+			log.Fatalf("failed to initialize artifacts storage: %v", err)
+		}
+
+		artifactMgr := scheduler.NewArtifactManager(
+			s,
+			storeInstance,
+			appConfig.Artifacts.RetentionTime,
+			appConfig.Artifacts.ScanInterval,
+			logger.WithGroup("artifact_manager"),
+		)
+		go artifactMgr.Run(context.Background())
+	}
+
 	// Create flow execution handler with core's secrets provider
 	flowHandler := scheduler.NewFlowExecutionHandler(scheduler.FlowHandlerConfig{
 		Store:                s,
@@ -229,6 +259,7 @@ func initializeSharedComponents() *SharedComponents {
 		FlowExecutionTimeout: appConfig.Scheduler.FlowExecutionTimeout,
 		ExecutorKeys:         executorKeys,
 		APIBaseURL:           appConfig.App.RootURL,
+		Storage:              storeInstance,
 	})
 
 	// Set handler and queue config on scheduler
@@ -380,6 +411,8 @@ func startServer(db *sqlx.DB, co *core.Core, metricsManager *metrics.Manager, lo
 	namespaceGroup.GET("/flows/executions/:execID", h.HandleGetExecutionSummary, h.AuthorizeNamespaceAction(models.ResourceExecution, models.RBACActionView))
 	namespaceGroup.POST("/flows/executions/:execID/cancel", h.HandleCancelExecution, h.AuthorizeNamespaceAction(models.ResourceExecution, models.RBACActionUpdate))
 	namespaceGroup.POST("/flows/executions/:execID/retry", h.HandleRetryExecution, h.AuthorizeNamespaceAction(models.ResourceExecution, models.RBACActionUpdate))
+	namespaceGroup.GET("/flows/executions/:execID/artifacts", h.HandleListArtifacts, h.AuthorizeNamespaceAction(models.ResourceExecution, models.RBACActionView))
+	namespaceGroup.GET("/flows/executions/:execID/artifacts/download", h.HandleDownloadArtifact, h.AuthorizeNamespaceAction(models.ResourceExecution, models.RBACActionView))
 	namespaceGroup.GET("/flows/:flowID/executions", h.HandleExecutionsPagination, h.AuthorizeNamespaceAction(models.ResourceExecution, models.RBACActionView))
 	namespaceGroup.GET("/flows/executions", h.HandleAllExecutionsPagination, h.AuthorizeNamespaceAction(models.ResourceNamespace, models.RBACActionView))
 
