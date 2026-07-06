@@ -170,6 +170,11 @@ export const apiClient = {
       baseFetch<void>(`/api/v1/users/${id}`, {
         method: 'DELETE',
       }),
+    changePassword: (oldPassword: string, newPassword: string) =>
+      baseFetch<{ message: string }>('/api/v1/users/change-password', {
+        method: 'POST',
+        body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }),
+      }),
   },
 
   // User API tokens

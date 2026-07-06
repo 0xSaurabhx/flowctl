@@ -362,6 +362,7 @@ func startServer(db *sqlx.DB, co *core.Core, metricsManager *metrics.Manager, lo
 
 	api.GET("/users", h.HandleUserPagination, h.AuthorizeNamespaceAdmins())
 	api.GET("/users/profile", h.HandleGetUserProfile)
+	api.POST("/users/change-password", h.HandleChangePassword)
 	api.GET("/users/me/api-tokens", h.HandleListAPITokens, h.RequireSessionAuth)
 	api.POST("/users/me/api-tokens", h.HandleCreateAPIToken, h.RequireSessionAuth)
 	api.DELETE("/users/me/api-tokens/:tokenID", h.HandleRevokeAPIToken, h.RequireSessionAuth)

@@ -14,7 +14,9 @@ actions:
       executor: script
       with:
         script: echo "Artifact retention is working perfectly!" > "$FC_ARTIFACTS/retention_test.txt"
-      approval: false
+      approval: true
+      approvers:
+        - test
       variables: []
       "on":
         - shiroorvps
