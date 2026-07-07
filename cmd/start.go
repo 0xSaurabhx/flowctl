@@ -223,18 +223,7 @@ func initializeSharedComponents() *SharedComponents {
 	var storeInstance artifactsStorage.Storage
 	if appConfig.Artifacts.Retain {
 		var err error
-		if appConfig.Artifacts.StorageType == "s3" {
-			storeInstance, err = artifactsStorage.NewS3Storage(
-				appConfig.Artifacts.S3.Bucket,
-				appConfig.Artifacts.S3.Region,
-				appConfig.Artifacts.S3.Endpoint,
-				appConfig.Artifacts.S3.AccessKey,
-				appConfig.Artifacts.S3.SecretKey,
-				appConfig.Artifacts.S3.UseSSL,
-			)
-		} else {
-			storeInstance, err = artifactsStorage.NewLocalStorage(appConfig.Artifacts.Directory)
-		}
+		storeInstance, err = artifactsStorage.NewLocalStorage(appConfig.Artifacts.Directory)
 		if err != nil {
 			log.Fatalf("failed to initialize artifacts storage: %v", err)
 		}

@@ -96,18 +96,7 @@ func NewHandler(logger *slog.Logger, db *sql.DB, co *core.Core, cfg config.Confi
 	var storeInstance storage.Storage
 	if cfg.Artifacts.Retain {
 		var err error
-		if cfg.Artifacts.StorageType == "s3" {
-			storeInstance, err = storage.NewS3Storage(
-				cfg.Artifacts.S3.Bucket,
-				cfg.Artifacts.S3.Region,
-				cfg.Artifacts.S3.Endpoint,
-				cfg.Artifacts.S3.AccessKey,
-				cfg.Artifacts.S3.SecretKey,
-				cfg.Artifacts.S3.UseSSL,
-			)
-		} else {
-			storeInstance, err = storage.NewLocalStorage(cfg.Artifacts.Directory)
-		}
+		storeInstance, err = storage.NewLocalStorage(cfg.Artifacts.Directory)
 		if err != nil {
 			return nil, fmt.Errorf("failed to initialize artifacts storage: %w", err)
 		}

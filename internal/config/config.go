@@ -41,14 +41,8 @@ func (c *Config) Validate() error {
 	}
 
 	if c.Artifacts.Retain {
-		if c.Artifacts.StorageType == "s3" {
-			if c.Artifacts.S3.Bucket == "" {
-				return fmt.Errorf("artifacts.s3.bucket is required when retain is true and storage_type is s3")
-			}
-		} else if c.Artifacts.StorageType == "local" || c.Artifacts.StorageType == "" {
-			if c.Artifacts.Directory == "" {
-				return fmt.Errorf("artifacts.directory is required when retain is true and storage_type is local")
-			}
+		if c.Artifacts.Directory == "" {
+			return fmt.Errorf("artifacts.directory is required when retain is true")
 		}
 	}
 
@@ -188,20 +182,9 @@ type SMTPConfig struct {
 
 type ArtifactsConfig struct {
 	Retain        bool          `koanf:"retain"`
-	StorageType   string        `koanf:"storage_type" validate:"omitempty,oneof=local s3"`
 	Directory     string        `koanf:"directory"`
-	S3            S3Config      `koanf:"s3"`
 	RetentionTime time.Duration `koanf:"retention_time"`
 	ScanInterval  time.Duration `koanf:"scan_interval"`
-}
-
-type S3Config struct {
-	Bucket    string `koanf:"bucket"`
-	Endpoint  string `koanf:"endpoint"`
-	Region    string `koanf:"region"`
-	AccessKey string `koanf:"access_key"`
-	SecretKey string `koanf:"secret_key"`
-	UseSSL    bool   `koanf:"use_ssl"`
 }
 
 
@@ -300,7 +283,6 @@ func GetDefaultConfig() Config {
 		},
 		Artifacts: ArtifactsConfig{
 			Retain:        false,
-			StorageType:   "local",
 			Directory:     "artifacts",
 			RetentionTime: 0,
 			ScanInterval:  1 * time.Hour,

@@ -52,7 +52,6 @@ max_conns = 10
 
 [artifacts]
 retain = true
-storage_type = "local"
 directory = "artifacts"
 retention_time = "24h"
 scan_interval = "1m"

@@ -172,9 +172,7 @@ timeout = "30s"
 [artifacts]
 # (optional) Enable retaining artifacts after flow execution. Disabled (false) by default.
 retain = false
-# (optional) Storage backend for artifacts: "local" or "s3". Default is "local"
-storage_type = "local"
-# Directory for local storage, used when storage_type = "local"
+# Directory for local storage of artifacts
 directory = "artifacts"
 # (optional) retention_time can be used to delete old artifacts.
 # Artifacts created before the retention_time will be deleted.
@@ -183,13 +181,4 @@ retention_time = "0s"
 # (optional) Scan interval for artifact retention.
 # Default is 1h
 scan_interval = "1h"
-
-# S3 configurations, used when storage_type = "s3"
-[artifacts.s3]
-bucket = ""
-endpoint = ""
-region = ""
-access_key = ""
-secret_key = ""
-use_ssl = true
 
